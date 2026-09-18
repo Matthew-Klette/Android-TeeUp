@@ -1,4 +1,6 @@
+using Microsoft.EntityFrameworkCore;
 using TeeUp.Api.Common;
+using TeeUp.Api.Data;
 using TeeUp.Api.Repositories;
 using TeeUp.Api.Services;
 
@@ -11,16 +13,19 @@ builder.Services.AddOpenApi();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, HttpContextCurrentUserService>();
 
-// Repositories (in-memory for now; swapped for EF Core/PostgreSQL-backed
-// implementations in EME-290 without touching the service layer above them).
-builder.Services.AddSingleton<IUserRepository, InMemoryUserRepository>();
-builder.Services.AddSingleton<ICourseRepository, InMemoryCourseRepository>();
-builder.Services.AddSingleton<ITeeTimeRepository, InMemoryTeeTimeRepository>();
-builder.Services.AddSingleton<IJoinRequestRepository, InMemoryJoinRequestRepository>();
-builder.Services.AddSingleton<IRoundRepository, InMemoryRoundRepository>();
-builder.Services.AddSingleton<IScorecardEntryRepository, InMemoryScorecardEntryRepository>();
-builder.Services.AddSingleton<IEndorsementRepository, InMemoryEndorsementRepository>();
-builder.Services.AddSingleton<INotificationRepository, InMemoryNotificationRepository>();
+builder.Services.AddDbContext<TeeUpDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+
+// Repositories: EF Core/PostgreSQL-backed. Services depend only on the
+// IRepository<T> abstractions, so this swap needed no changes above.
+builder.Services.AddScoped<IUserRepository, EfUserRepository>();
+builder.Services.AddScoped<ICourseRepository, EfCourseRepository>();
+builder.Services.AddScoped<ITeeTimeRepository, EfTeeTimeRepository>();
+builder.Services.AddScoped<IJoinRequestRepository, EfJoinRequestRepository>();
+builder.Services.AddScoped<IRoundRepository, EfRoundRepository>();
+builder.Services.AddScoped<IScorecardEntryRepository, EfScorecardEntryRepository>();
+builder.Services.AddScoped<IEndorsementRepository, EfEndorsementRepository>();
+builder.Services.AddScoped<INotificationRepository, EfNotificationRepository>();
 
 // Services
 builder.Services.AddScoped<IAuthService, AuthService>();
