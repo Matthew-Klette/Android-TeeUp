@@ -1,0 +1,132 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/teeup_background">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <View
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:layout_gravity="center_horizontal"
+                android:background="@drawable/bg_avatar_circle" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="12dp"
+                android:text="Display Name"
+                android:textColor="@color/teeup_text_primary"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="16dp"
+                android:text="HANDICAP · HOME COURSE"
+                android:textColor="@color/teeup_text_secondary"
+                android:textSize="11sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:background="@drawable/bg_card"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Rounds"
+                    android:textColor="@color/teeup_text_secondary" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Handicap"
+                    android:textColor="@color/teeup_text_secondary" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Friends"
+                    android:textColor="@color/teeup_text_secondary" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="ACCOUNT"
+                android:textColor="@color/teeup_text_secondary"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/row_personal_details"
+                style="@style/ProfileRow"
+                android:text="Personal Details" />
+
+            <TextView
+                android:id="@+id/row_playing_details"
+                style="@style/ProfileRow"
+                android:text="Playing Details" />
+
+            <TextView
+                android:id="@+id/row_notification_preferences"
+                style="@style/ProfileRow"
+                android:text="Notification Preferences" />
+
+            <TextView
+                android:id="@+id/row_language"
+                style="@style/ProfileRow"
+                android:text="Language" />
+
+            <TextView
+                android:id="@+id/row_biometric_login"
+                style="@style/ProfileRow"
+                android:layout_marginBottom="20dp"
+                android:text="Biometric Login" />
+
+            <TextView
+                android:id="@+id/row_offline_sync"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/bg_card_outline"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="16dp"
+                android:text="Offline Data &amp; Sync Status"
+                android:textColor="@color/teeup_accent" />
+
+            <TextView
+                android:id="@+id/row_privacy"
+                style="@style/ProfileRow"
+                android:text="Privacy &amp; Data (POPIA)" />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <include layout="@layout/bottom_nav" />
+
+</LinearLayout>
