@@ -10,7 +10,7 @@ This is a monorepo containing both the Android client and the backend API.
 ## Structure
 
 ```
-android/   Kotlin Android client (Jetpack, MVVM)
+android/   Kotlin Android client (plain Android SDK, no Jetpack/AndroidX)
 api/       ASP.NET Core Web API (controllers/services/repositories) + EF Core/PostgreSQL
 ```
 
