@@ -1,0 +1,11 @@
+<resources>
+    <!-- Sampled from the Figma prototype (ArSLsKQP3tWe9UAqkTbW1k). Rough
+         placeholders for scaffolding only — EME-307 owns the real pass. -->
+    <color name="teeup_background">#14150F</color>
+    <color name="teeup_surface">#1E2118</color>
+    <color name="teeup_surface_alt">#262B1E</color>
+    <color name="teeup_accent">#E0923C</color>
+    <color name="teeup_accent_secondary">#8FA35C</color>
+    <color name="teeup_text_primary">#F5F5F0</color>
+    <color name="teeup_text_secondary">#9A9C8F</color>
+</resources>
