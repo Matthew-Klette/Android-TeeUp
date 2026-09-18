@@ -61,4 +61,10 @@ public class JoinRequestService(
         await joinRequestRepository.UpdateAsync(joinRequest);
         return JoinRequestDto.From(joinRequest);
     }
+
+    public async Task<IReadOnlyList<JoinRequestDto>> GetForTeeTimeAsync(Guid teeTimeId)
+    {
+        var joinRequests = await joinRequestRepository.GetByTeeTimeIdAsync(teeTimeId);
+        return joinRequests.Select(JoinRequestDto.From).ToList();
+    }
 }
