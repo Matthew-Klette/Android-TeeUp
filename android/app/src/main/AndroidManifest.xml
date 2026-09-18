@@ -4,14 +4,24 @@
         android:allowBackup="true"
         android:label="@string/app_name"
         android:theme="@style/Theme.TeeUp">
+
         <activity
-            android:name=".MainActivity"
+            android:name=".SignInActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity android:name=".RegisterActivity" android:exported="false" />
+        <activity android:name=".HomeActivity" android:exported="false" />
+        <activity android:name=".RoundsActivity" android:exported="false" />
+        <activity android:name=".TeeTimeDetailActivity" android:exported="false" />
+        <activity android:name=".ScorecardActivity" android:exported="false" />
+        <activity android:name=".ProfileActivity" android:exported="false" />
+        <activity android:name=".NotificationsActivity" android:exported="false" />
+
     </application>
 
 </manifest>
