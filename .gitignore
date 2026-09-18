@@ -1,0 +1,28 @@
+# ---- macOS / IDE ----
+.DS_Store
+.idea/
+*.iml
+.vscode/
+
+# ---- Android / Gradle (android/) ----
+android/*.iml
+android/.gradle/
+android/build/
+android/**/build/
+android/captures/
+android/.externalNativeBuild/
+android/.cxx/
+android/local.properties
+android/*.apk
+android/*.aab
+android/**/google-services.json
+
+# ---- .NET / ASP.NET Core (api/) ----
+api/**/bin/
+api/**/obj/
+api/**/*.user
+api/appsettings.Development.json
+api/appsettings.*.local.json
+
+# ---- Knowledge graph cache ----
+.code-review-graph/
