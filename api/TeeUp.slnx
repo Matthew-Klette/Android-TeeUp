@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="TeeUp.Api.Tests/TeeUp.Api.Tests.csproj" />
+  <Project Path="TeeUp.Api/TeeUp.Api.csproj" />
+</Solution>
