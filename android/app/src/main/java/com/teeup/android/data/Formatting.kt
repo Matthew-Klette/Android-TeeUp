@@ -25,3 +25,7 @@ fun formatTeeTime(isoDateTime: String): String {
 
 fun formatPrice(price: Double): String =
     if (price <= 0.0) "Free" else "R%.0f".format(price)
+
+/** True if `userId` has no Pending or Accepted request against this tee time already. */
+fun canRequestToJoin(existing: List<JoinRequest>, userId: String): Boolean =
+    existing.none { it.guestUserId == userId && it.status != JoinRequestStatus.DECLINED }
