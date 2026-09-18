@@ -1,0 +1,42 @@
+using Microsoft.AspNetCore.Mvc;
+using TeeUp.Api.Common;
+using TeeUp.Api.Dtos;
+using TeeUp.Api.Repositories;
+using TeeUp.Api.Services;
+
+namespace TeeUp.Api.Controllers;
+
+[ApiController]
+[Route("api/rounds")]
+public class RoundsController(
+    IRoundService roundService,
+    ICurrentUserService currentUser,
+    IUserRepository userRepository) : ControllerBase
+{
+    [HttpPost("{id:guid}/scorecard")]
+    public async Task<ActionResult<RoundDto>> PostScorecard(Guid id, PostScorecardRequest request)
+    {
+        var round = await roundService.PostScorecardAsync(id, request);
+        return Ok(round);
+    }
+
+    [HttpGet("me")]
+    public async Task<ActionResult<IReadOnlyList<RoundDto>>> GetMine()
+    {
+        var userId = await ResolveCurrentUserIdAsync();
+        return Ok(await roundService.GetRoundsForUserAsync(userId));
+    }
+
+    private async Task<Guid> ResolveCurrentUserIdAsync()
+    {
+        if (currentUser.FirebaseUid is null)
+        {
+            throw new NotFoundException("No authenticated user on this request.");
+        }
+
+        var user = await userRepository.GetByFirebaseUidAsync(currentUser.FirebaseUid)
+            ?? throw new NotFoundException($"No user registered for Firebase UID {currentUser.FirebaseUid}.");
+
+        return user.Id;
+    }
+}

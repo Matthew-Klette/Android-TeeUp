@@ -5,7 +5,7 @@ EF Core. Layered as controllers → services → repositories.
 
 ## Requirements
 
-- .NET 8 SDK
+- .NET 10 SDK
 - PostgreSQL (Azure Database for PostgreSQL in production)
 
 ## Configuration
@@ -24,6 +24,19 @@ Firebase__ProjectId=<firebase-project-id>
 dotnet build
 dotnet test
 ```
+
+## Database migrations
+
+Entities live in `TeeUp.Api/Models`, mapped in `TeeUp.Api/Data/TeeUpDbContext.cs`.
+
+```
+dotnet ef migrations add <Name> --project TeeUp.Api --output-dir Data/Migrations
+dotnet ef database update --project TeeUp.Api
+```
+
+Requires `ConnectionStrings__Default` to point at a reachable PostgreSQL
+instance (`dotnet tool install --global dotnet-ef` if the `ef` command isn't
+found).
 
 ## Run
 
