@@ -19,3 +19,27 @@ data class TeeTime(
     val price: Double,
     val type: Int
 )
+
+/** Mirrors the API's JoinRequestDto (api/TeeUp.Api/Dtos/JoinRequestDtos.cs). status: 0=Pending, 1=Accepted, 2=Declined. */
+data class JoinRequest(
+    val id: String,
+    val teeTimeId: String,
+    val guestUserId: String,
+    val status: Int
+)
+
+object JoinRequestStatus {
+    const val PENDING = 0
+    const val ACCEPTED = 1
+    const val DECLINED = 2
+
+    fun label(status: Int): String = when (status) {
+        PENDING -> "Pending"
+        ACCEPTED -> "Accepted"
+        DECLINED -> "Declined"
+        else -> "Unknown"
+    }
+}
+
+/** Mirrors the API's UserDto (api/TeeUp.Api/Dtos/AuthDtos.cs) — only the fields this client needs. */
+data class RegisteredUser(val id: String, val displayName: String)

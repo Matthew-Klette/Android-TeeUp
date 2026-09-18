@@ -23,4 +23,33 @@ class FormattingTest {
     fun formatPrice_roundsToWholeRand() {
         assertEquals("R450", formatPrice(450.0))
     }
+
+    @Test
+    fun canRequestToJoin_trueWhenNoExistingRequest() {
+        assertEquals(true, canRequestToJoin(emptyList(), "user-1"))
+    }
+
+    @Test
+    fun canRequestToJoin_falseWhenAlreadyPending() {
+        val existing = listOf(JoinRequest("jr-1", "tt-1", "user-1", JoinRequestStatus.PENDING))
+        assertEquals(false, canRequestToJoin(existing, "user-1"))
+    }
+
+    @Test
+    fun canRequestToJoin_falseWhenAlreadyAccepted() {
+        val existing = listOf(JoinRequest("jr-1", "tt-1", "user-1", JoinRequestStatus.ACCEPTED))
+        assertEquals(false, canRequestToJoin(existing, "user-1"))
+    }
+
+    @Test
+    fun canRequestToJoin_trueAgainAfterDeclined() {
+        val existing = listOf(JoinRequest("jr-1", "tt-1", "user-1", JoinRequestStatus.DECLINED))
+        assertEquals(true, canRequestToJoin(existing, "user-1"))
+    }
+
+    @Test
+    fun canRequestToJoin_ignoresOtherUsersRequests() {
+        val existing = listOf(JoinRequest("jr-1", "tt-1", "someone-else", JoinRequestStatus.PENDING))
+        assertEquals(true, canRequestToJoin(existing, "user-1"))
+    }
 }

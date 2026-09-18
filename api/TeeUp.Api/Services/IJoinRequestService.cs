@@ -7,4 +7,5 @@ public interface IJoinRequestService
 {
     Task<JoinRequestDto> CreateAsync(Guid teeTimeId, Guid guestUserId);
     Task<JoinRequestDto> UpdateStatusAsync(Guid joinRequestId, JoinRequestStatus status);
+    Task<IReadOnlyList<JoinRequestDto>> GetForTeeTimeAsync(Guid teeTimeId);
 }

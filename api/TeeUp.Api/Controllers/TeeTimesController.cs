@@ -21,4 +21,10 @@ public class TeeTimesController(ITeeTimeService teeTimeService, IJoinRequestServ
         var joinRequest = await joinRequestService.CreateAsync(id, request.GuestUserId);
         return Ok(joinRequest);
     }
+
+    [HttpGet("{id:guid}/joinrequests")]
+    public async Task<ActionResult<IReadOnlyList<JoinRequestDto>>> GetJoinRequests(Guid id)
+    {
+        return Ok(await joinRequestService.GetForTeeTimeAsync(id));
+    }
 }
