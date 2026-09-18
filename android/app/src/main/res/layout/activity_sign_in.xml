@@ -1,0 +1,93 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/teeup_background"
+    android:paddingLeft="24dp"
+    android:paddingRight="24dp"
+    android:paddingTop="80dp"
+    android:paddingBottom="24dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="TeeUp"
+        android:textColor="@color/teeup_text_primary"
+        android:textSize="28sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="48dp"
+        android:text="FIND YOUR NEXT ROUND"
+        android:textColor="@color/teeup_text_secondary"
+        android:textSize="12sp" />
+
+    <Button
+        android:id="@+id/button_continue_google"
+        style="?android:attr/buttonStyle"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/bg_card"
+        android:text="Continue with Google"
+        android:textColor="@color/teeup_text_primary" />
+
+    <Button
+        android:id="@+id/button_continue_apple"
+        style="?android:attr/buttonStyle"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/bg_card"
+        android:text="Continue with Apple"
+        android:textColor="@color/teeup_text_primary" />
+
+    <Button
+        android:id="@+id/button_continue_email"
+        style="?android:attr/buttonStyle"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/bg_card"
+        android:text="Continue with Email"
+        android:textColor="@color/teeup_text_primary" />
+
+    <Button
+        android:id="@+id/button_use_biometric"
+        style="?android:attr/buttonStyle"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_button_outline"
+        android:text="Use Face / Fingerprint"
+        android:textColor="@color/teeup_accent" />
+
+    <TextView
+        android:id="@+id/text_register"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:clickable="true"
+        android:focusable="true"
+        android:text="New here? Register"
+        android:textColor="@color/teeup_accent_secondary" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="By continuing you agree to our Terms and POPIA-aligned Privacy Notice"
+        android:textColor="@color/teeup_text_secondary"
+        android:textSize="10sp" />
+
+</LinearLayout>
