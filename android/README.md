@@ -71,3 +71,25 @@ Networking is plain `HttpURLConnection` + `org.json` (`data/TeeUpApiClient.kt`)
 rather than Retrofit/OkHttp, since that's EME-294's base scaffold to set up
 and this ticket didn't need to wait on it. Worth migrating onto whatever
 EME-294 lands.
+
+## Placeholder identity until real sign-in lands (EME-298)
+
+`TeeTimeDetailActivity`'s Request to Join needs a real backend user id —
+`JoinRequest.GuestUserId` is a DB foreign key, so a made-up id would fail.
+`data/LocalIdentity.kt` generates a random UUID per install, registers it
+against `POST /api/auth/register` (idempotent server-side), and caches the
+resulting user id in `SharedPreferences`. It's a bridge, not the real
+thing — once Firebase sign-in + JWT verification land (EME-295/296/291),
+delete this file and pull the user id from the verified token instead;
+nothing downstream should need to change beyond where that id comes from.
+
+Pending Requests approve/decline needed a way to list a tee time's join
+requests, which didn't exist yet — added `GET /api/teetimes/{id}/joinrequests`
+alongside this ticket (small, symmetric with the existing POST).
+
+Host handicap/pace/home-course aren't shown on the detail screen yet:
+there's no public-profile-by-id endpoint (`ProfilesController` only
+exposes `PATCH /me` for the caller's own profile), and adding one raises
+the same privacy question already flagged elsewhere in this POE (Privacy
+& Data / POPIA) — worth a deliberate follow-up ticket rather than solving
+it as a side effect of this one.
