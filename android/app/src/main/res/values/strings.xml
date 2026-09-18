@@ -1,3 +1,132 @@
 <resources>
     <string name="app_name">TeeUp</string>
+    <!-- Welcome Screen -->
+    <string name="sign_in_tagline">FIND YOUR NEXT ROUND</string>
+    <string name="sign_in_google">Continue with Google</string>
+    <string name="sign_in_apple">Continue with Apple</string>
+    <string name="sign_in_email">Continue with Email</string>
+    <string name="sign_in_biometric">Use Face / Fingerprint</string>
+    <string name="sign_in_register">New here? Register</string>
+    <string name="sign_in_terms">By continuing you agree to our Terms and POPIA-aligned Privacy Notice</string>
+
+    <!-- Profile Screen -->
+    <string name="profile_title">Profile &amp; Settings</string>
+    <string name="profile_name_placeholder">Display Name</string>
+    <string name="profile_details_placeholder">Handicap · Home course</string>
+
+    <string name="profile_stat_rounds">Rounds</string>
+    <string name="profile_stat_handicap">Handicap</string>
+    <string name="profile_stat_friends">Friends</string>
+
+    <string name="profile_section_account">ACCOUNT</string>
+    <string name="profile_personal_details">Personal Details</string>
+    <string name="profile_playing_details">Playing Details</string>
+    <string name="profile_notification_preferences">Notification Preferences</string>
+    <string name="profile_language">Language</string>
+    <string name="profile_biometric_login">Biometric Login</string>
+    <string name="profile_offline_sync">Offline Data &amp; Sync Status</string>
+    <string name="profile_privacy">Privacy &amp; Data (POPIA)</string>
+
+    <!-- Navigation Bar -->
+    <string name="nav_home">Home</string>
+    <string name="nav_rounds">Rounds</string>
+    <string name="nav_scorecard">Scorecard</string>
+    <string name="nav_profile">Profile</string>
+
+    <!-- Register Screen -->
+    <string name="register_title">Create your profile</string>
+    <string name="register_subtitle">Tell us a little about your game.</string>
+
+    <string name="register_display_name">Display name</string>
+    <string name="register_display_name_hint">Enter your name</string>
+
+    <string name="register_handicap">Handicap index</string>
+    <string name="register_handicap_hint">For example, 14.5</string>
+
+    <string name="register_home_course">Home course</string>
+    <string name="register_home_course_hint">Enter your home course</string>
+
+    <string name="register_pace">Pace of play</string>
+    <string name="register_pace_hint">Relaxed, Standard or Brisk</string>
+
+    <string name="register_continue">Continue</string>
+
+    <!-- Home Screen -->
+    <string name="home_notifications">Notifications</string>
+    <string name="home_title">Find your next round</string>
+    <string name="home_area">PORT ELIZABETH &amp; NEARBY</string>
+    <string name="home_search_hint">Search course or area</string>
+
+    <string name="home_filter_datetime">Date / Time</string>
+    <string name="home_filter_players">Players 1–4</string>
+    <string name="home_filter_skill">Skill / Pace Filter</string>
+
+    <string name="home_results_heading">NEARBY</string>
+    <string name="home_loading">Loading nearby tee times…</string>
+
+    <string name="home_card_heading">%1$s · %2$s</string>
+    <string name="home_card_open_round">OPEN ROUND</string>
+    <string name="home_card_booking">BOOKING</string>
+    <string name="home_card_availability">%1$d spot(s) open · %2$s</string>
+    <string name="home_card_preview">Preview</string>
+    <string name="home_card_book">Book</string>
+
+    <!-- Tee Time Detail Screen -->
+    <string name="detail_title">Tee Time Detail</string>
+    <string name="detail_back">Go back</string>
+    <string name="detail_back_symbol">←</string>
+    <string name="detail_loading">Loading tee time…</string>
+    <string name="detail_host">HOST</string>
+    <string name="detail_request_to_join">Request to Join</string>
+    <string name="detail_pending_requests">Pending Requests</string>
+    <string name="detail_group_chat">Group Chat</string>
+
+    <!-- Rounds Screen -->
+    <string name="rounds_title">My Rounds</string>
+    <string name="rounds_subtitle">Your upcoming rounds and playing history.</string>
+    <string name="rounds_placeholder">Your rounds will appear here once this feature is available.</string>
+
+    <!-- Scoreboard Screen -->
+    <string name="scorecard_title">Scorecard</string>
+    <string name="scorecard_preview_notice">Sample round preview. Live scoring is coming soon.</string>
+    <string name="scorecard_sample_hole">HOLE 7 · PAR 4</string>
+
+    <string name="scorecard_distance_label">GPS TO GREEN</string>
+    <string name="scorecard_sample_distance">152 m</string>
+    <string name="scorecard_map_label">HOLE MAP</string>
+    <string name="scorecard_map_placeholder">Not available yet</string>
+
+    <string name="scorecard_strokes">Strokes</string>
+    <string name="scorecard_putts">Putts</string>
+    <string name="scorecard_sample_strokes">4</string>
+    <string name="scorecard_sample_putts">2</string>
+
+    <string name="scorecard_group_heading">GROUP SCORECARD</string>
+    <string name="scorecard_sample_player_two">Player 2 · Through hole 7</string>
+    <string name="scorecard_sample_player_three">Player 3 · Through hole 6</string>
+    <string name="scorecard_sample_player_four">Player 4 · Through hole 5</string>
+
+    <string name="scorecard_save_notice">Preview only — scores are not saved.</string>
+    <string name="scorecard_next_hole">Next Hole / Finish Round</string>
+
+    !-- Notification Screen -->
+    <string name="notifications_title">Notifications</string>
+    <string name="notifications_back">Go back</string>
+    <string name="notifications_back_symbol">←</string>
+    <string name="notifications_preview_notice">Sample notifications. Live updates are coming soon.</string>
+
+    <string name="notifications_today">TODAY</string>
+    <string name="notifications_yesterday">YESTERDAY</string>
+
+    <string name="notifications_join_title">New Join Request</string>
+    <string name="notifications_join_body">For your 07:40 Fancourt round</string>
+
+    <string name="notifications_accepted_title">Request Accepted</string>
+    <string name="notifications_accepted_body">Tee off in 2 hours</string>
+
+    <string name="notifications_sync_title">Sync Reminder</string>
+    <string name="notifications_sync_body">1 offline round pending</string>
+
+    <string name="notifications_weather_title">Weather Alert</string>
+    <string name="notifications_weather_body">Rain expected at Humewood GC</string>
 </resources>

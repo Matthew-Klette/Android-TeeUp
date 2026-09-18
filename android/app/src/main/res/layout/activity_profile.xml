@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -7,122 +8,132 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:padding="@dimen/screen_padding">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_xl"
+                android:text="@string/profile_title"
+                android:textColor="@color/teeup_text_primary"
+                android:textSize="@dimen/text_heading"
+                android:textStyle="bold" />
 
             <View
                 android:layout_width="72dp"
                 android:layout_height="72dp"
                 android:layout_gravity="center_horizontal"
-                android:background="@drawable/bg_avatar_circle" />
+                android:background="@drawable/bg_avatar_circle"
+                android:importantForAccessibility="no" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="12dp"
-                android:text="Display Name"
+                android:layout_marginTop="@dimen/space_md"
+                android:gravity="center"
+                android:text="@string/profile_name_placeholder"
                 android:textColor="@color/teeup_text_primary"
-                android:textSize="18sp"
+                android:textSize="@dimen/text_subheading"
                 android:textStyle="bold" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="16dp"
-                android:text="HANDICAP · HOME COURSE"
+                android:layout_marginTop="@dimen/space_xs"
+                android:layout_marginBottom="@dimen/space_xl"
+                android:gravity="center"
+                android:text="@string/profile_details_placeholder"
                 android:textColor="@color/teeup_text_secondary"
-                android:textSize="11sp" />
+                android:textSize="@dimen/text_body" />
 
+            <!-- Statistics placeholders; real values are added later -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="@dimen/space_xl"
                 android:background="@drawable/bg_card"
+                android:baselineAligned="false"
                 android:orientation="horizontal"
-                android:padding="16dp">
+                android:padding="@dimen/space_lg">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:text="Rounds"
-                    android:textColor="@color/teeup_text_secondary" />
+                    android:text="@string/profile_stat_rounds"
+                    android:textColor="@color/teeup_text_secondary"
+                    android:textSize="@dimen/text_body" />
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:text="Handicap"
-                    android:textColor="@color/teeup_text_secondary" />
+                    android:text="@string/profile_stat_handicap"
+                    android:textColor="@color/teeup_text_secondary"
+                    android:textSize="@dimen/text_body" />
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:text="Friends"
-                    android:textColor="@color/teeup_text_secondary" />
+                    android:text="@string/profile_stat_friends"
+                    android:textColor="@color/teeup_text_secondary"
+                    android:textSize="@dimen/text_body" />
             </LinearLayout>
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="ACCOUNT"
-                android:textColor="@color/teeup_text_secondary"
-                android:textSize="12sp" />
+                android:layout_marginBottom="@dimen/space_md"
+                android:text="@string/profile_section_account"
+                android:textColor="@color/teeup_accent_secondary"
+                android:textSize="@dimen/text_caption"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/row_personal_details"
                 style="@style/ProfileRow"
-                android:text="Personal Details" />
+                android:text="@string/profile_personal_details" />
 
             <TextView
                 android:id="@+id/row_playing_details"
                 style="@style/ProfileRow"
-                android:text="Playing Details" />
+                android:text="@string/profile_playing_details" />
 
             <TextView
                 android:id="@+id/row_notification_preferences"
                 style="@style/ProfileRow"
-                android:text="Notification Preferences" />
+                android:text="@string/profile_notification_preferences" />
 
             <TextView
                 android:id="@+id/row_language"
                 style="@style/ProfileRow"
-                android:text="Language" />
+                android:text="@string/profile_language" />
 
             <TextView
                 android:id="@+id/row_biometric_login"
                 style="@style/ProfileRow"
-                android:layout_marginBottom="20dp"
-                android:text="Biometric Login" />
+                android:text="@string/profile_biometric_login" />
 
             <TextView
                 android:id="@+id/row_offline_sync"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:background="@drawable/bg_card_outline"
-                android:clickable="true"
-                android:focusable="true"
-                android:padding="16dp"
-                android:text="Offline Data &amp; Sync Status"
-                android:textColor="@color/teeup_accent" />
+                style="@style/ProfileRow"
+                android:text="@string/profile_offline_sync" />
 
             <TextView
                 android:id="@+id/row_privacy"
                 style="@style/ProfileRow"
-                android:text="Privacy &amp; Data (POPIA)" />
+                android:text="@string/profile_privacy" />
 
         </LinearLayout>
     </ScrollView>
