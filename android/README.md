@@ -45,3 +45,29 @@ immersive in-round view), but it's wired here as the Scorecard tab's direct
 landing page for scaffolding simplicity. Worth revisiting when EME-303 is
 built — might want an "active rounds" list before dropping into
 hole-by-hole scoring.
+
+## Running against the real API (EME-297)
+
+`HomeActivity` calls the live `GET /api/courses` + `GET /api/teetimes`
+endpoints — no mock data. To see it work end to end on the emulator:
+
+1. Get the API running locally against a real Postgres (`../api/README.md`
+   covers provisioning; for local dev, `brew install postgresql@16`, then
+   `createdb teeup` and `dotnet ef database update --project TeeUp.Api`
+   with `ConnectionStrings__Default=Host=localhost;Database=teeup;Username=<you>`
+   works fine).
+2. Run the API: `ConnectionStrings__Default=... dotnet run --project ../api/TeeUp.Api`
+   (defaults to `http://localhost:5017`).
+3. Run the Android app on an **emulator** (not a physical device) —
+   `data/ApiConfig.kt` points at `http://10.0.2.2:5017/`, the emulator's
+   alias for your host machine. EME-294 owns real per-environment config;
+   swap that constant for a physical device or the deployed API.
+
+If the API isn't reachable, Home shows an inline error instead of crashing
+or silently falling back to fake data — that's deliberate (Application
+Robustness requirement).
+
+Networking is plain `HttpURLConnection` + `org.json` (`data/TeeUpApiClient.kt`)
+rather than Retrofit/OkHttp, since that's EME-294's base scaffold to set up
+and this ticket didn't need to wait on it. Worth migrating onto whatever
+EME-294 lands.
