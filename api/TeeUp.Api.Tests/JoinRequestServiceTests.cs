@@ -96,4 +96,23 @@ public class JoinRequestServiceTests
         await Assert.ThrowsAsync<NotFoundException>(
             () => service.UpdateStatusAsync(Guid.NewGuid(), JoinRequestStatus.Accepted));
     }
+
+    [Fact]
+    public async Task GetForTeeTimeAsync_ReturnsOnlyRequestsForThatTeeTime()
+    {
+        var (service, teeTimes, _) = CreateService();
+        var teeTime = MakeTeeTime(openSpots: 2);
+        var otherTeeTime = MakeTeeTime(openSpots: 2);
+        await teeTimes.AddAsync(teeTime);
+        await teeTimes.AddAsync(otherTeeTime);
+
+        await service.CreateAsync(teeTime.Id, Guid.NewGuid());
+        await service.CreateAsync(teeTime.Id, Guid.NewGuid());
+        await service.CreateAsync(otherTeeTime.Id, Guid.NewGuid());
+
+        var result = await service.GetForTeeTimeAsync(teeTime.Id);
+
+        Assert.Equal(2, result.Count);
+        Assert.All(result, r => Assert.Equal(teeTime.Id, r.TeeTimeId));
+    }
 }
