@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TeeUp.Api.Common;
 using TeeUp.Api.Dtos;
@@ -13,6 +14,7 @@ public class RoundsController(
     ICurrentUserService currentUser,
     IUserRepository userRepository) : ControllerBase
 {
+    [Authorize]
     [HttpPost("{id:guid}/scorecard")]
     public async Task<ActionResult<RoundDto>> PostScorecard(Guid id, PostScorecardRequest request)
     {
@@ -20,6 +22,7 @@ public class RoundsController(
         return Ok(round);
     }
 
+    [Authorize]
     [HttpGet("me")]
     public async Task<ActionResult<IReadOnlyList<RoundDto>>> GetMine()
     {

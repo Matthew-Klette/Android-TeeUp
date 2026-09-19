@@ -21,8 +21,8 @@ android/**/google-services.json
 api/**/bin/
 api/**/obj/
 api/**/*.user
-api/appsettings.Development.json
-api/appsettings.*.local.json
+api/**/appsettings.Development.json
+api/**/appsettings.*.local.json
 
 # ---- Knowledge graph cache ----
 .code-review-graph/

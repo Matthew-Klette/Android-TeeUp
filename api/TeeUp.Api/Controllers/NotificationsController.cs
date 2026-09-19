@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TeeUp.Api.Common;
 using TeeUp.Api.Dtos;
@@ -13,6 +14,7 @@ public class NotificationsController(
     ICurrentUserService currentUser,
     IUserRepository userRepository) : ControllerBase
 {
+    [Authorize]
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<NotificationDto>>> GetMine()
     {
