@@ -3,6 +3,7 @@
     <!-- Welcome Screen -->
     <string name="sign_in_tagline">FIND YOUR NEXT ROUND</string>
     <string name="sign_in_google">Continue with Google</string>
+    <string name="sign_in_google_progress">Signing in…</string>
     <string name="sign_in_apple">Continue with Apple</string>
     <string name="sign_in_email">Continue with Email</string>
     <string name="sign_in_biometric">Use Face / Fingerprint</string>

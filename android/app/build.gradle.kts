@@ -44,6 +44,7 @@ dependencies {
     implementation("com.google.firebase:firebase-database:22.0.2")
     implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
     implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.android.gms:play-services-auth:21.3.0")
 
     // Base networking scaffold (EME-294) — Retrofit/OkHttp REST client.
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
