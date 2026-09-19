@@ -43,6 +43,14 @@
         <item name="android:padding">@dimen/space_lg</item>
     </style>
 
+    <!-- Shared spinner appearance -->
+    <style name="TeeUpSpinner" parent="android:Widget.Material.Spinner">
+        <item name="android:background">@drawable/bg_input</item>
+        <item name="android:backgroundTint">@null</item>
+        <item name="android:minHeight">@dimen/touch_target</item>
+        <item name="android:padding">@dimen/space_lg</item>
+    </style>
+
     <!-- Existing Profile screen rows depend on this style name -->
     <style name="ProfileRow" parent="TeeUpText">
         <item name="android:layout_width">match_parent</item>

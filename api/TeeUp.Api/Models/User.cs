@@ -9,4 +9,5 @@ public class User
     public Guid? HomeCourseId { get; set; }
     public PaceOfPlay PaceOfPlay { get; set; } = PaceOfPlay.Standard;
     public Language Language { get; set; } = Language.En;
+    public bool ProfileComplete { get; set; }
 }

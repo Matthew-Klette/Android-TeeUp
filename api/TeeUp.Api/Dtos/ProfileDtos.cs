@@ -7,4 +7,5 @@ public record UpdateProfileRequest(
     decimal? HandicapIndex,
     Guid? HomeCourseId,
     PaceOfPlay? PaceOfPlay,
-    Language? Language);
+    Language? Language,
+    bool? ProfileComplete);

@@ -42,4 +42,4 @@ object JoinRequestStatus {
 }
 
 /** Mirrors the API's UserDto (api/TeeUp.Api/Dtos/AuthDtos.cs) — only the fields this client needs. */
-data class RegisteredUser(val id: String, val displayName: String)
+data class RegisteredUser(val id: String, val displayName: String, val profileComplete: Boolean)

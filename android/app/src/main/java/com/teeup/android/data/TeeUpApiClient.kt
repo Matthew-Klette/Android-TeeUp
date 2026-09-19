@@ -26,8 +26,27 @@ object TeeUpApiClient {
 
     fun register(firebaseUid: String, displayName: String): RegisteredUser {
         val body = JSONObject().put("firebaseUid", firebaseUid).put("displayName", displayName)
-        val response = JSONObject(request("POST", "api/auth/register", body))
-        return RegisteredUser(id = response.getString("id"), displayName = response.getString("displayName"))
+        return parseRegisteredUser(JSONObject(request("POST", "api/auth/register", body)))
+    }
+
+    /**
+     * PATCH /api/profiles/me. `homeCourseId`/`handicapIndex` null means "leave unset";
+     * `paceOfPlay` is the PaceOfPlay enum ordinal (0=Relaxed, 1=Standard, 2=Brisk).
+     */
+    fun updateProfile(
+        displayName: String,
+        handicapIndex: Double?,
+        homeCourseId: String?,
+        paceOfPlay: Int,
+        profileComplete: Boolean
+    ): RegisteredUser {
+        val body = JSONObject()
+            .put("displayName", displayName)
+            .put("handicapIndex", handicapIndex)
+            .put("homeCourseId", homeCourseId)
+            .put("paceOfPlay", paceOfPlay)
+            .put("profileComplete", profileComplete)
+        return parseRegisteredUser(JSONObject(request("PATCH", "api/profiles/me", body)))
     }
 
     fun createJoinRequest(teeTimeId: String, guestUserId: String): JoinRequest {
@@ -44,6 +63,12 @@ object TeeUpApiClient {
         val body = JSONObject().put("status", status)
         return parseJoinRequest(JSONObject(request("PATCH", "api/join-requests/$joinRequestId", body)))
     }
+
+    private fun parseRegisteredUser(o: JSONObject) = RegisteredUser(
+        id = o.getString("id"),
+        displayName = o.getString("displayName"),
+        profileComplete = o.getBoolean("profileComplete")
+    )
 
     private fun parseCourse(o: JSONObject) = Course(
         id = o.getString("id"),
