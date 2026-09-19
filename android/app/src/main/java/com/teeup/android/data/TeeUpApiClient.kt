@@ -1,5 +1,7 @@
 package com.teeup.android.data
 
+import com.google.android.gms.tasks.Tasks
+import com.google.firebase.auth.FirebaseAuth
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
@@ -74,6 +76,7 @@ object TeeUpApiClient {
         connection.setRequestProperty("Accept", "application/json")
         connection.connectTimeout = 10_000
         connection.readTimeout = 10_000
+        authorizationHeaderOrNull()?.let { connection.setRequestProperty("Authorization", it) }
         try {
             if (body != null) {
                 connection.doOutput = true
@@ -88,6 +91,16 @@ object TeeUpApiClient {
             return connection.inputStream.bufferedReader().use { it.readText() }
         } finally {
             connection.disconnect()
+        }
+    }
+
+    /** Null if no Firebase user is signed in, or the token fetch fails (request then goes out unauthenticated). */
+    private fun authorizationHeaderOrNull(): String? {
+        val user = FirebaseAuth.getInstance().currentUser ?: return null
+        return try {
+            "Bearer " + Tasks.await(user.getIdToken(false)).token
+        } catch (e: Exception) {
+            null
         }
     }
 }
