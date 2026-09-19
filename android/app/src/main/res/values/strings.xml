@@ -109,7 +109,7 @@
     <string name="scorecard_save_notice">Preview only — scores are not saved.</string>
     <string name="scorecard_next_hole">Next Hole / Finish Round</string>
 
-    !-- Notification Screen -->
+    <!-- Notification Screen -->
     <string name="notifications_title">Notifications</string>
     <string name="notifications_back">Go back</string>
     <string name="notifications_back_symbol">←</string>
