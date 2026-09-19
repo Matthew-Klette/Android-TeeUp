@@ -9,7 +9,7 @@
         android:usesCleartextTraffic="true">
 
         <activity
-            android:name=".SignInActivity"
+            android:name=".SplashActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -17,6 +17,7 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".SignInActivity" android:exported="false" />
         <activity android:name=".RegisterActivity" android:exported="false" />
         <activity android:name=".HomeActivity" android:exported="false" />
         <activity android:name=".RoundsActivity" android:exported="false" />
