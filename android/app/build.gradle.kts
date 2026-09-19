@@ -4,6 +4,14 @@ plugins {
     id("com.google.gms.google-services")
 }
 
+// Real Firebase config is per-developer and gitignored (see .gitignore) — fresh
+// clones and CI fall back to the placeholder so the build still succeeds.
+// Existing local files are left alone.
+val googleServicesFile = file("google-services.json")
+if (!googleServicesFile.exists()) {
+    file("google-services.json.example").copyTo(googleServicesFile)
+}
+
 android {
     namespace = "com.teeup.android"
     compileSdk = 34
