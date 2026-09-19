@@ -45,9 +45,9 @@ class SignInActivity : Activity() {
         findViewById<View>(R.id.button_continue_email).setOnClickListener { goToHome() }
         findViewById<View>(R.id.button_use_biometric).setOnClickListener { goToHome() }
 
-        findViewById<View>(R.id.text_register).setOnClickListener {
-            startActivity(Intent(this, RegisterActivity::class.java))
-        }
+        // No separate sign-up credential flow — Google SSO doubles as registration
+        // for a first-time user, so this link starts the same flow as the button.
+        findViewById<View>(R.id.text_register).setOnClickListener { onGoogleSignInClicked() }
     }
 
     private fun onGoogleSignInClicked() {
@@ -82,9 +82,10 @@ class SignInActivity : Activity() {
             try {
                 val credential = GoogleAuthProvider.getCredential(googleIdToken, null)
                 Tasks.await(FirebaseAuth.getInstance().signInWithCredential(credential))
-                LocalIdentity.ensureRegistered(this)
+                val identity = LocalIdentity.registerFresh(this)
                 runOnUiThread {
-                    startActivity(Intent(this, HomeActivity::class.java))
+                    val destination = if (identity.profileComplete) HomeActivity::class.java else RegisterActivity::class.java
+                    startActivity(Intent(this, destination))
                     finish()
                 }
             } catch (e: Exception) {

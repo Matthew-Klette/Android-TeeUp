@@ -45,12 +45,18 @@
     <string name="register_handicap_hint">For example, 14.5</string>
 
     <string name="register_home_course">Home course</string>
-    <string name="register_home_course_hint">Enter your home course</string>
+    <string name="register_home_course_none">No home course yet</string>
 
     <string name="register_pace">Pace of play</string>
-    <string name="register_pace_hint">Relaxed, Standard or Brisk</string>
 
     <string name="register_continue">Continue</string>
+    <string name="register_saving">Saving...</string>
+
+    <string-array name="pace_of_play_options">
+        <item>Relaxed</item>
+        <item>Standard</item>
+        <item>Brisk</item>
+    </string-array>
 
     <!-- Home Screen -->
     <string name="home_notifications">Notifications</string>

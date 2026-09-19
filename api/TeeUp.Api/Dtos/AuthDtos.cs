@@ -10,8 +10,10 @@ public record UserDto(
     decimal? HandicapIndex,
     Guid? HomeCourseId,
     PaceOfPlay PaceOfPlay,
-    Language Language)
+    Language Language,
+    bool ProfileComplete)
 {
     public static UserDto From(User user) => new(
-        user.Id, user.DisplayName, user.HandicapIndex, user.HomeCourseId, user.PaceOfPlay, user.Language);
+        user.Id, user.DisplayName, user.HandicapIndex, user.HomeCourseId, user.PaceOfPlay, user.Language,
+        user.ProfileComplete);
 }
