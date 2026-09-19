@@ -2,8 +2,6 @@ using TeeUp.Api.Models;
 
 namespace TeeUp.Api.Dtos;
 
-public record CreateJoinRequestRequest(Guid GuestUserId);
-
 public record UpdateJoinRequestRequest(JoinRequestStatus Status);
 
 public record JoinRequestDto(Guid Id, Guid TeeTimeId, Guid GuestUserId, JoinRequestStatus Status)

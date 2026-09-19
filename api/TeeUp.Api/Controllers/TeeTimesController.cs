@@ -1,13 +1,19 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TeeUp.Api.Common;
 using TeeUp.Api.Dtos;
+using TeeUp.Api.Repositories;
 using TeeUp.Api.Services;
 
 namespace TeeUp.Api.Controllers;
 
 [ApiController]
 [Route("api/teetimes")]
-public class TeeTimesController(ITeeTimeService teeTimeService, IJoinRequestService joinRequestService)
-    : ControllerBase
+public class TeeTimesController(
+    ITeeTimeService teeTimeService,
+    IJoinRequestService joinRequestService,
+    ICurrentUserService currentUser,
+    IUserRepository userRepository) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<TeeTimeDto>>> GetAll()
@@ -15,10 +21,12 @@ public class TeeTimesController(ITeeTimeService teeTimeService, IJoinRequestServ
         return Ok(await teeTimeService.GetAllAsync());
     }
 
+    [Authorize]
     [HttpPost("{id:guid}/joinrequests")]
-    public async Task<ActionResult<JoinRequestDto>> CreateJoinRequest(Guid id, CreateJoinRequestRequest request)
+    public async Task<ActionResult<JoinRequestDto>> CreateJoinRequest(Guid id)
     {
-        var joinRequest = await joinRequestService.CreateAsync(id, request.GuestUserId);
+        var guestUserId = await ResolveCurrentUserIdAsync();
+        var joinRequest = await joinRequestService.CreateAsync(id, guestUserId);
         return Ok(joinRequest);
     }
 
@@ -26,5 +34,18 @@ public class TeeTimesController(ITeeTimeService teeTimeService, IJoinRequestServ
     public async Task<ActionResult<IReadOnlyList<JoinRequestDto>>> GetJoinRequests(Guid id)
     {
         return Ok(await joinRequestService.GetForTeeTimeAsync(id));
+    }
+
+    private async Task<Guid> ResolveCurrentUserIdAsync()
+    {
+        if (currentUser.FirebaseUid is null)
+        {
+            throw new NotFoundException("No authenticated user on this request.");
+        }
+
+        var user = await userRepository.GetByFirebaseUidAsync(currentUser.FirebaseUid)
+            ?? throw new NotFoundException($"No user registered for Firebase UID {currentUser.FirebaseUid}.");
+
+        return user.Id;
     }
 }

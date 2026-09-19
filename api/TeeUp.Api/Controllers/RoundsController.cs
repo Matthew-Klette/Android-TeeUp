@@ -14,6 +14,7 @@ public class RoundsController(
     ICurrentUserService currentUser,
     IUserRepository userRepository) : ControllerBase
 {
+    [Authorize]
     [HttpPost("{id:guid}/scorecard")]
     public async Task<ActionResult<RoundDto>> PostScorecard(Guid id, PostScorecardRequest request)
     {
