@@ -26,3 +26,6 @@ api/appsettings.*.local.json
 
 # ---- Knowledge graph cache ----
 .code-review-graph/
+android/local.properties
+android/gradle/gradle-daemon-jvm.properties
+

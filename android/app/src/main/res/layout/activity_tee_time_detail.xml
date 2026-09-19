@@ -1,60 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fillViewport="true"
     android:background="@color/teeup_background">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:padding="@dimen/screen_padding">
 
+        <!-- Header -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_lg"
             android:gravity="center_vertical"
-            android:layout_marginBottom="16dp"
             android:orientation="horizontal">
 
             <TextView
                 android:id="@+id/button_back"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="@dimen/touch_target"
+                android:layout_height="@dimen/touch_target"
+                android:background="?android:attr/selectableItemBackground"
                 android:clickable="true"
                 android:focusable="true"
-                android:padding="8dp"
-                android:text="←"
-                android:textColor="@color/teeup_text_primary"
-                android:textSize="18sp" />
+                android:gravity="center"
+                android:contentDescription="@string/detail_back"
+                android:text="@string/detail_back_symbol"
+                android:textColor="@color/teeup_accent"
+                android:textSize="@dimen/text_heading" />
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/space_sm"
                 android:layout_weight="1"
-                android:gravity="center"
-                android:text="TEE TIME DETAIL"
+                android:text="@string/detail_title"
                 android:textColor="@color/teeup_text_primary"
-                android:textSize="14sp" />
+                android:textSize="@dimen/text_heading"
+                android:textStyle="bold" />
+
         </LinearLayout>
 
+        <!-- Existing image placeholder -->
         <View
             android:layout_width="match_parent"
             android:layout_height="140dp"
-            android:layout_marginBottom="16dp"
-            android:background="@drawable/bg_card" />
+            android:layout_marginBottom="@dimen/space_lg"
+            android:background="@drawable/bg_card"
+            android:importantForAccessibility="no" />
 
+        <!-- Loading and error messages -->
         <TextView
             android:id="@+id/text_status"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
+            android:layout_marginBottom="@dimen/space_md"
             android:background="@drawable/bg_card"
             android:gravity="center"
-            android:padding="24dp"
-            android:text="Loading tee time..."
+            android:padding="@dimen/screen_padding"
+            android:accessibilityLiveRegion="polite"
+            android:text="@string/detail_loading"
             android:textColor="@color/teeup_text_secondary"
+            android:textSize="@dimen/text_body"
             android:visibility="visible" />
 
+        <!-- Shown by the Activity after data loads -->
         <LinearLayout
             android:id="@+id/group_detail_content"
             android:layout_width="match_parent"
@@ -62,124 +75,136 @@
             android:orientation="vertical"
             android:visibility="gone">
 
+            <!-- Tee-time information -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
+                android:layout_marginBottom="@dimen/space_md"
                 android:background="@drawable/bg_card"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="@dimen/space_lg">
 
                 <TextView
                     android:id="@+id/text_teetime_title"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Humewood GC · 16:20"
                     android:textColor="@color/teeup_text_primary"
-                    android:textSize="16sp"
+                    android:textSize="@dimen/text_subheading"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/text_teetime_subtitle"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="4 players · 2 confirmed, 2 open"
+                    android:layout_marginTop="@dimen/space_sm"
                     android:textColor="@color/teeup_text_secondary"
-                    android:textSize="12sp" />
+                    android:textSize="@dimen/text_body" />
+
             </LinearLayout>
 
+            <!-- Host information -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="20dp"
+                android:layout_marginBottom="@dimen/space_lg"
                 android:background="@drawable/bg_card"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="@dimen/space_lg">
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="HOST"
-                    android:textColor="@color/teeup_text_secondary"
-                    android:textSize="11sp" />
+                    android:layout_marginBottom="@dimen/space_sm"
+                    android:text="@string/detail_host"
+                    android:textColor="@color/teeup_accent_secondary"
+                    android:textSize="@dimen/text_caption"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/text_host_info"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Handicap 14 · Brisk pace"
-                    android:textColor="@color/teeup_text_primary" />
+                    android:textColor="@color/teeup_text_primary"
+                    android:textSize="@dimen/text_body_large" />
 
                 <TextView
                     android:id="@+id/text_host_subtitle"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Home course: Humewood GC"
+                    android:layout_marginTop="@dimen/space_xs"
                     android:textColor="@color/teeup_text_secondary"
-                    android:textSize="12sp" />
+                    android:textSize="@dimen/text_body" />
+
             </LinearLayout>
 
             <Button
                 android:id="@+id/button_request_to_join"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginBottom="12dp"
-                android:background="@drawable/bg_button_outline"
-                android:text="Request to Join"
-                android:textColor="@color/teeup_accent" />
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_lg"
+                android:text="@string/detail_request_to_join" />
 
+            <!-- Pending requests -->
             <LinearLayout
                 android:id="@+id/row_pending_requests"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:background="@drawable/bg_card"
+                android:layout_marginBottom="@dimen/space_sm"
+                android:minHeight="@dimen/touch_target"
+                android:background="@drawable/bg_card_interactive"
                 android:clickable="true"
                 android:focusable="true"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="@dimen/space_lg">
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Pending Requests"
-                    android:textColor="@color/teeup_text_primary" />
+                    android:text="@string/detail_pending_requests"
+                    android:textColor="@color/teeup_text_primary"
+                    android:textSize="@dimen/text_body_large" />
 
                 <TextView
                     android:id="@+id/text_pending_requests_subtitle"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Host: approve or decline"
+                    android:layout_marginTop="@dimen/space_xs"
                     android:textColor="@color/teeup_text_secondary"
-                    android:textSize="12sp" />
+                    android:textSize="@dimen/text_body" />
+
             </LinearLayout>
 
+            <!-- Group chat -->
             <LinearLayout
                 android:id="@+id/row_group_chat"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_card"
+                android:minHeight="@dimen/touch_target"
+                android:background="@drawable/bg_card_interactive"
                 android:clickable="true"
                 android:focusable="true"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="@dimen/space_lg">
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Group Chat"
-                    android:textColor="@color/teeup_text_primary" />
+                    android:text="@string/detail_group_chat"
+                    android:textColor="@color/teeup_text_primary"
+                    android:textSize="@dimen/text_body_large" />
 
                 <TextView
                     android:id="@+id/text_group_chat_subtitle"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Opens once you're grouped"
+                    android:layout_marginTop="@dimen/space_xs"
                     android:textColor="@color/teeup_text_secondary"
-                    android:textSize="12sp" />
+                    android:textSize="@dimen/text_body" />
+
             </LinearLayout>
 
         </LinearLayout>
 
     </LinearLayout>
+
 </ScrollView>

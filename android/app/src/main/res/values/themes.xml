@@ -1,7 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.TeeUp" parent="android:Theme.DeviceDefault.NoActionBar">
+
+    <style name="Theme.TeeUp" parent="android:Theme.Material.NoActionBar">
+
+        <!-- General appearance -->
+        <item name="android:fontFamily">sans</item>
         <item name="android:windowBackground">@color/teeup_background</item>
+        <item name="android:colorBackground">@color/teeup_background</item>
+
+        <!-- Accent and touch feedback -->
+        <item name="android:colorAccent">@color/teeup_accent</item>
+        <item name="android:colorControlHighlight">@color/teeup_ripple</item>
+
+        <!-- Default text colours -->
         <item name="android:textColorPrimary">@color/teeup_text_primary</item>
         <item name="android:textColorSecondary">@color/teeup_text_secondary</item>
+        <item name="android:textColorHint">@color/teeup_text_secondary</item>
+
+        <!-- Connect the shared widget styles -->
+        <item name="android:textViewStyle">@style/TeeUpText</item>
+        <item name="android:buttonStyle">@style/TeeUpButton</item>
+        <item name="android:editTextStyle">@style/TeeUpInput</item>
+
+        <!-- System bars -->
+        <item name="android:statusBarColor">@color/teeup_background</item>
+        <item name="android:navigationBarColor">@color/teeup_background</item>
+        <item name="android:windowLightStatusBar">false</item>
+
     </style>
+
 </resources>

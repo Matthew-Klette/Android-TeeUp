@@ -4,14 +4,17 @@
 
     <item>
         <selector>
-            <!-- Disabled button -->
-            <item android:state_enabled="false">
+
+            <!-- Current tab -->
+            <item android:state_selected="true">
                 <shape android:shape="rectangle">
-                    <solid android:color="@color/teeup_surface" />
+                    <solid android:color="@color/teeup_surface_alt" />
+
                     <stroke
                         android:width="1dp"
-                        android:color="@color/teeup_border" />
-                    <corners android:radius="@dimen/button_radius" />
+                        android:color="@color/teeup_accent" />
+
+                    <corners android:radius="@dimen/card_radius" />
                 </shape>
             </item>
 
@@ -19,23 +22,24 @@
             <item android:state_focused="true">
                 <shape android:shape="rectangle">
                     <solid android:color="@color/teeup_surface_alt" />
+
                     <stroke
                         android:width="1dp"
-                        android:color="@color/teeup_accent" />
-                    <corners android:radius="@dimen/button_radius" />
+                        android:color="@color/teeup_border" />
+
+                    <corners android:radius="@dimen/card_radius" />
                 </shape>
             </item>
 
-            <!-- Normal button -->
+            <!-- Unselected tab -->
             <item>
                 <shape android:shape="rectangle">
                     <solid android:color="@color/teeup_surface" />
-                    <stroke
-                        android:width="1dp"
-                        android:color="@color/teeup_accent" />
-                    <corners android:radius="@dimen/button_radius" />
+                    <corners android:radius="@dimen/card_radius" />
                 </shape>
             </item>
+
         </selector>
     </item>
+
 </ripple>

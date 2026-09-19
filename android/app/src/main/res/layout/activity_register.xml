@@ -1,81 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fillViewport="true"
     android:background="@color/teeup_background">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingLeft="24dp"
-        android:paddingRight="24dp"
-        android:paddingTop="32dp"
-        android:paddingBottom="32dp">
+        android:padding="@dimen/screen_padding">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Create your profile"
+            android:text="@string/register_title"
             android:textColor="@color/teeup_text_primary"
-            android:textSize="22sp"
+            android:textSize="@dimen/text_heading"
             android:textStyle="bold" />
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            android:text="EME-296 owns the real form + validation"
+            android:layout_marginTop="@dimen/space_sm"
+            android:layout_marginBottom="@dimen/space_xl"
+            android:text="@string/register_subtitle"
             android:textColor="@color/teeup_text_secondary"
-            android:textSize="12sp" />
+            android:textSize="@dimen/text_body" />
+
+        <!-- Display name -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_sm"
+            android:labelFor="@id/input_display_name"
+            android:text="@string/register_display_name"
+            android:textColor="@color/teeup_text_primary"
+            android:textSize="@dimen/text_body" />
 
         <EditText
             android:id="@+id/input_display_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:background="@drawable/bg_card"
-            android:hint="Display name"
-            android:padding="12dp"
-            android:textColor="@color/teeup_text_primary" />
+            android:layout_marginBottom="@dimen/space_lg"
+            android:hint="@string/register_display_name_hint"
+            android:inputType="textPersonName" />
+
+        <!-- Handicap -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_sm"
+            android:labelFor="@id/input_handicap"
+            android:text="@string/register_handicap"
+            android:textColor="@color/teeup_text_primary"
+            android:textSize="@dimen/text_body" />
 
         <EditText
             android:id="@+id/input_handicap"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:background="@drawable/bg_card"
-            android:hint="Handicap index"
-            android:inputType="numberDecimal"
-            android:padding="12dp"
-            android:textColor="@color/teeup_text_primary" />
+            android:layout_marginBottom="@dimen/space_lg"
+            android:hint="@string/register_handicap_hint"
+            android:inputType="numberDecimal" />
+
+        <!-- Home course -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_sm"
+            android:labelFor="@id/input_home_course"
+            android:text="@string/register_home_course"
+            android:textColor="@color/teeup_text_primary"
+            android:textSize="@dimen/text_body" />
 
         <EditText
             android:id="@+id/input_home_course"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:background="@drawable/bg_card"
-            android:hint="Home course"
-            android:padding="12dp"
-            android:textColor="@color/teeup_text_primary" />
+            android:layout_marginBottom="@dimen/space_lg"
+            android:hint="@string/register_home_course_hint"
+            android:inputType="textCapWords" />
+
+        <!-- Pace of play -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_sm"
+            android:labelFor="@id/input_pace"
+            android:text="@string/register_pace"
+            android:textColor="@color/teeup_text_primary"
+            android:textSize="@dimen/text_body" />
 
         <EditText
             android:id="@+id/input_pace"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            android:background="@drawable/bg_card"
-            android:hint="Pace of play (Relaxed / Standard / Brisk)"
-            android:padding="12dp"
-            android:textColor="@color/teeup_text_primary" />
+            android:layout_marginBottom="@dimen/space_xl"
+            android:hint="@string/register_pace_hint"
+            android:inputType="textCapWords" />
 
         <Button
             android:id="@+id/button_continue"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="@drawable/bg_button_outline"
-            android:text="Continue"
-            android:textColor="@color/teeup_accent" />
+            android:layout_height="wrap_content"
+            android:text="@string/register_continue" />
 
     </LinearLayout>
+
 </ScrollView>

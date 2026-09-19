@@ -1,12 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="ProfileRow">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_marginBottom">8dp</item>
-        <item name="android:background">@drawable/bg_card</item>
-        <item name="android:clickable">true</item>
-        <item name="android:focusable">true</item>
-        <item name="android:padding">16dp</item>
+
+    <!-- Default text appearance -->
+    <style name="TeeUpText" parent="android:Widget.Material.TextView">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:textSize">@dimen/text_body</item>
         <item name="android:textColor">@color/teeup_text_primary</item>
     </style>
+
+    <!-- Shared button appearance -->
+    <style name="TeeUpButton" parent="android:Widget.Material.Button">
+        <item name="android:background">@drawable/bg_button_outline</item>
+        <item name="android:backgroundTint">@null</item>
+
+        <item name="android:textColor">@color/button_text</item>
+        <item name="android:textSize">@dimen/text_body</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textAllCaps">false</item>
+
+        <item name="android:minHeight">@dimen/touch_target</item>
+        <item name="android:minWidth">@dimen/touch_target</item>
+
+        <item name="android:paddingStart">@dimen/space_lg</item>
+        <item name="android:paddingEnd">@dimen/space_lg</item>
+        <item name="android:paddingTop">@dimen/space_md</item>
+        <item name="android:paddingBottom">@dimen/space_md</item>
+
+        <item name="android:stateListAnimator">@null</item>
+    </style>
+
+    <!-- Shared input-field appearance -->
+    <style name="TeeUpInput" parent="android:Widget.Material.EditText">
+        <item name="android:background">@drawable/bg_input</item>
+        <item name="android:backgroundTint">@null</item>
+
+        <item name="android:textColor">@color/teeup_text_primary</item>
+        <item name="android:textColorHint">@color/teeup_text_secondary</item>
+        <item name="android:textSize">@dimen/text_body_large</item>
+        <item name="android:fontFamily">sans</item>
+
+        <item name="android:minHeight">@dimen/touch_target</item>
+        <item name="android:padding">@dimen/space_lg</item>
+    </style>
+
+    <!-- Existing Profile screen rows depend on this style name -->
+    <style name="ProfileRow" parent="TeeUpText">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginBottom">@dimen/space_sm</item>
+
+        <item name="android:background">@drawable/bg_card</item>
+        <item name="android:foreground">?android:attr/selectableItemBackground</item>
+
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:minHeight">@dimen/touch_target</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:padding">@dimen/space_lg</item>
+    </style>
+
+    <!-- Bottom-navigation container -->
+    <style name="TeeUpNavItem" parent="">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+
+        <item name="android:minHeight">@dimen/nav_height</item>
+        <item name="android:padding">@dimen/space_sm</item>
+        <item name="android:gravity">center</item>
+
+        <item name="android:background">@drawable/bg_nav_item</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <!-- Label inherits its parent tab's selected state -->
+    <style name="TeeUpNavLabel" parent="TeeUpText">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">@dimen/text_caption</item>
+        <item name="android:textColor">@color/nav_text</item>
+        <item name="android:duplicateParentState">true</item>
+    </style>
+
 </resources>
