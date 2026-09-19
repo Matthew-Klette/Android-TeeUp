@@ -19,9 +19,21 @@ object TeeUpApiClient {
         return (0 until array.length()).map { i -> parseCourse(array.getJSONObject(i)) }
     }
 
-    fun fetchTeeTimes(): List<TeeTime> {
-        val array = JSONArray(request("GET", "api/teetimes"))
+    /** `maxHandicap`/`pace` filter by the tee time's host (EME-299); null means "no filter". */
+    fun fetchTeeTimes(maxHandicap: Double? = null, pace: Int? = null): List<TeeTime> {
+        val query = buildList {
+            maxHandicap?.let { add("maxHandicap=$it") }
+            pace?.let { add("pace=$it") }
+        }.joinToString("&")
+        val path = if (query.isEmpty()) "api/teetimes" else "api/teetimes?$query"
+
+        val array = JSONArray(request("GET", path))
         return (0 until array.length()).map { i -> parseTeeTime(array.getJSONObject(i)) }
+    }
+
+    fun fetchNotifications(): List<AppNotification> {
+        val array = JSONArray(request("GET", "api/notifications"))
+        return (0 until array.length()).map { i -> parseNotification(array.getJSONObject(i)) }
     }
 
     fun register(firebaseUid: String, displayName: String): RegisteredUser {
@@ -86,6 +98,15 @@ object TeeUpApiClient {
         openSpots = o.getInt("openSpots"),
         price = o.getDouble("price"),
         type = o.getInt("type")
+    )
+
+    private fun parseNotification(o: JSONObject) = AppNotification(
+        id = o.getString("id"),
+        type = o.getInt("type"),
+        message = o.getString("message"),
+        relatedEntityId = if (o.isNull("relatedEntityId")) null else o.getString("relatedEntityId"),
+        isRead = o.getBoolean("isRead"),
+        createdAt = o.getString("createdAt")
     )
 
     private fun parseJoinRequest(o: JSONObject) = JoinRequest(

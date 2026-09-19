@@ -120,20 +120,16 @@
     <string name="notifications_title">Notifications</string>
     <string name="notifications_back">Go back</string>
     <string name="notifications_back_symbol">←</string>
-    <string name="notifications_preview_notice">Sample notifications. Live updates are coming soon.</string>
+    <string name="notifications_loading">Loading notifications…</string>
+    <string name="notifications_empty">No notifications yet</string>
+    <string name="notifications_load_failed">Couldn\'t load notifications — try again later</string>
 
-    <string name="notifications_today">TODAY</string>
-    <string name="notifications_yesterday">YESTERDAY</string>
-
-    <string name="notifications_join_title">New Join Request</string>
-    <string name="notifications_join_body">For your 07:40 Fancourt round</string>
-
-    <string name="notifications_accepted_title">Request Accepted</string>
-    <string name="notifications_accepted_body">Tee off in 2 hours</string>
-
-    <string name="notifications_sync_title">Sync Reminder</string>
-    <string name="notifications_sync_body">1 offline round pending</string>
-
-    <string name="notifications_weather_title">Weather Alert</string>
-    <string name="notifications_weather_body">Rain expected at Humewood GC</string>
+    <!-- Home Screen: Skill/Pace filter dialog -->
+    <string name="filter_skill_title">Filter by skill / pace</string>
+    <string name="filter_max_handicap_hint">Max host handicap (optional)</string>
+    <string name="filter_pace_any">Any pace</string>
+    <string name="filter_apply">Apply</string>
+    <string name="filter_clear">Clear filters</string>
+    <string name="filter_cancel">Cancel</string>
+    <string name="home_filter_active">Filtered by skill/pace — tap to change</string>
 </resources>

@@ -45,135 +45,19 @@
         </LinearLayout>
 
         <TextView
+            android:id="@+id/text_status"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/space_xl"
-            android:text="@string/notifications_preview_notice"
+            android:text="@string/notifications_loading"
             android:textColor="@color/teeup_text_secondary"
             android:textSize="@dimen/text_body" />
 
-        <!-- Today -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/space_md"
-            android:text="@string/notifications_today"
-            android:textColor="@color/teeup_accent_secondary"
-            android:textSize="@dimen/text_caption"
-            android:textStyle="bold" />
-
         <LinearLayout
+            android:id="@+id/notifications_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/space_sm"
-            android:background="@drawable/bg_card_outline"
-            android:orientation="vertical"
-            android:padding="@dimen/space_lg">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/notifications_join_title"
-                android:textColor="@color/teeup_accent"
-                android:textSize="@dimen/text_body_large"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_xs"
-                android:text="@string/notifications_join_body"
-                android:textColor="@color/teeup_text_secondary"
-                android:textSize="@dimen/text_body" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/space_xl"
-            android:background="@drawable/bg_card"
-            android:orientation="vertical"
-            android:padding="@dimen/space_lg">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/notifications_accepted_title"
-                android:textColor="@color/teeup_text_primary"
-                android:textSize="@dimen/text_body_large"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_xs"
-                android:text="@string/notifications_accepted_body"
-                android:textColor="@color/teeup_text_secondary"
-                android:textSize="@dimen/text_body" />
-
-        </LinearLayout>
-
-        <!-- Yesterday -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/space_md"
-            android:text="@string/notifications_yesterday"
-            android:textColor="@color/teeup_accent_secondary"
-            android:textSize="@dimen/text_caption"
-            android:textStyle="bold" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/space_sm"
-            android:background="@drawable/bg_card"
-            android:orientation="vertical"
-            android:padding="@dimen/space_lg">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/notifications_sync_title"
-                android:textColor="@color/teeup_text_primary"
-                android:textSize="@dimen/text_body_large"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_xs"
-                android:text="@string/notifications_sync_body"
-                android:textColor="@color/teeup_text_secondary"
-                android:textSize="@dimen/text_body" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_card"
-            android:orientation="vertical"
-            android:padding="@dimen/space_lg">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/notifications_weather_title"
-                android:textColor="@color/teeup_text_primary"
-                android:textSize="@dimen/text_body_large"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_xs"
-                android:text="@string/notifications_weather_body"
-                android:textColor="@color/teeup_text_secondary"
-                android:textSize="@dimen/text_body" />
-
-        </LinearLayout>
+            android:orientation="vertical" />
 
     </LinearLayout>
 

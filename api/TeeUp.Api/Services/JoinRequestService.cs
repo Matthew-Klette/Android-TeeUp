@@ -12,7 +12,8 @@ namespace TeeUp.Api.Services;
 /// </summary>
 public class JoinRequestService(
     IJoinRequestRepository joinRequestRepository,
-    ITeeTimeRepository teeTimeRepository) : IJoinRequestService
+    ITeeTimeRepository teeTimeRepository,
+    INotificationRepository notificationRepository) : IJoinRequestService
 {
     public async Task<JoinRequestDto> CreateAsync(Guid teeTimeId, Guid guestUserId)
     {
@@ -59,6 +60,20 @@ public class JoinRequestService(
 
         joinRequest.Status = status;
         await joinRequestRepository.UpdateAsync(joinRequest);
+
+        await notificationRepository.AddAsync(new Notification
+        {
+            Id = Guid.NewGuid(),
+            UserId = joinRequest.GuestUserId,
+            Type = status == JoinRequestStatus.Accepted
+                ? NotificationType.RequestAccepted
+                : NotificationType.RequestDeclined,
+            Message = status == JoinRequestStatus.Accepted
+                ? "Your request to join a tee time was accepted."
+                : "Your request to join a tee time was declined.",
+            RelatedEntityId = joinRequest.TeeTimeId
+        });
+
         return JoinRequestDto.From(joinRequest);
     }
 

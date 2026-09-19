@@ -7,12 +7,16 @@ namespace TeeUp.Api.Tests;
 
 public class JoinRequestServiceTests
 {
-    private static (JoinRequestService Service, InMemoryTeeTimeRepository TeeTimes, InMemoryJoinRequestRepository JoinRequests)
-        CreateService()
+    private static (
+        JoinRequestService Service,
+        InMemoryTeeTimeRepository TeeTimes,
+        InMemoryJoinRequestRepository JoinRequests,
+        InMemoryNotificationRepository Notifications) CreateService()
     {
         var teeTimes = new InMemoryTeeTimeRepository();
         var joinRequests = new InMemoryJoinRequestRepository();
-        return (new JoinRequestService(joinRequests, teeTimes), teeTimes, joinRequests);
+        var notifications = new InMemoryNotificationRepository();
+        return (new JoinRequestService(joinRequests, teeTimes, notifications), teeTimes, joinRequests, notifications);
     }
 
     private static TeeTime MakeTeeTime(int openSpots = 1) => new()
@@ -28,7 +32,7 @@ public class JoinRequestServiceTests
     [Fact]
     public async Task CreateAsync_ForExistingTeeTime_CreatesPendingRequest()
     {
-        var (service, teeTimes, _) = CreateService();
+        var (service, teeTimes, _, _) = CreateService();
         var teeTime = MakeTeeTime();
         await teeTimes.AddAsync(teeTime);
 
@@ -41,7 +45,7 @@ public class JoinRequestServiceTests
     [Fact]
     public async Task CreateAsync_ForUnknownTeeTime_ThrowsNotFound()
     {
-        var (service, _, _) = CreateService();
+        var (service, _, _, _) = CreateService();
 
         await Assert.ThrowsAsync<NotFoundException>(
             () => service.CreateAsync(Guid.NewGuid(), Guid.NewGuid()));
@@ -50,7 +54,7 @@ public class JoinRequestServiceTests
     [Fact]
     public async Task UpdateStatusAsync_AcceptingWithinOpenSpots_Succeeds()
     {
-        var (service, teeTimes, _) = CreateService();
+        var (service, teeTimes, _, _) = CreateService();
         var teeTime = MakeTeeTime(openSpots: 1);
         await teeTimes.AddAsync(teeTime);
         var joinRequest = await service.CreateAsync(teeTime.Id, Guid.NewGuid());
@@ -63,7 +67,7 @@ public class JoinRequestServiceTests
     [Fact]
     public async Task UpdateStatusAsync_AcceptingBeyondOpenSpots_ThrowsDomainValidation()
     {
-        var (service, teeTimes, _) = CreateService();
+        var (service, teeTimes, _, _) = CreateService();
         var teeTime = MakeTeeTime(openSpots: 1);
         await teeTimes.AddAsync(teeTime);
 
@@ -78,7 +82,7 @@ public class JoinRequestServiceTests
     [Fact]
     public async Task UpdateStatusAsync_OnAlreadyResolvedRequest_ThrowsDomainValidation()
     {
-        var (service, teeTimes, _) = CreateService();
+        var (service, teeTimes, _, _) = CreateService();
         var teeTime = MakeTeeTime(openSpots: 2);
         await teeTimes.AddAsync(teeTime);
         var joinRequest = await service.CreateAsync(teeTime.Id, Guid.NewGuid());
@@ -91,16 +95,35 @@ public class JoinRequestServiceTests
     [Fact]
     public async Task UpdateStatusAsync_ForUnknownRequest_ThrowsNotFound()
     {
-        var (service, _, _) = CreateService();
+        var (service, _, _, _) = CreateService();
 
         await Assert.ThrowsAsync<NotFoundException>(
             () => service.UpdateStatusAsync(Guid.NewGuid(), JoinRequestStatus.Accepted));
     }
 
+    [Theory]
+    [InlineData(JoinRequestStatus.Accepted, NotificationType.RequestAccepted)]
+    [InlineData(JoinRequestStatus.Declined, NotificationType.RequestDeclined)]
+    public async Task UpdateStatusAsync_NotifiesTheGuestOfTheOutcome(
+        JoinRequestStatus status, NotificationType expectedType)
+    {
+        var (service, teeTimes, _, notifications) = CreateService();
+        var teeTime = MakeTeeTime(openSpots: 1);
+        await teeTimes.AddAsync(teeTime);
+        var guestId = Guid.NewGuid();
+        var joinRequest = await service.CreateAsync(teeTime.Id, guestId);
+
+        await service.UpdateStatusAsync(joinRequest.Id, status);
+
+        var notification = Assert.Single(await notifications.GetByUserIdAsync(guestId));
+        Assert.Equal(expectedType, notification.Type);
+        Assert.Equal(teeTime.Id, notification.RelatedEntityId);
+    }
+
     [Fact]
     public async Task GetForTeeTimeAsync_ReturnsOnlyRequestsForThatTeeTime()
     {
-        var (service, teeTimes, _) = CreateService();
+        var (service, teeTimes, _, _) = CreateService();
         var teeTime = MakeTeeTime(openSpots: 2);
         var otherTeeTime = MakeTeeTime(openSpots: 2);
         await teeTimes.AddAsync(teeTime);

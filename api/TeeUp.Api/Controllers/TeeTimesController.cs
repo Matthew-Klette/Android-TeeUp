@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TeeUp.Api.Common;
 using TeeUp.Api.Dtos;
+using TeeUp.Api.Models;
 using TeeUp.Api.Repositories;
 using TeeUp.Api.Services;
 
@@ -16,9 +17,10 @@ public class TeeTimesController(
     IUserRepository userRepository) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<TeeTimeDto>>> GetAll()
+    public async Task<ActionResult<IReadOnlyList<TeeTimeDto>>> GetAll(
+        [FromQuery] decimal? maxHandicap, [FromQuery] PaceOfPlay? pace)
     {
-        return Ok(await teeTimeService.GetAllAsync());
+        return Ok(await teeTimeService.GetAllAsync(maxHandicap, pace));
     }
 
     [Authorize]

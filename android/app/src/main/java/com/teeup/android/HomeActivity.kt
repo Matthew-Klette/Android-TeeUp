@@ -1,14 +1,19 @@
 package com.teeup.android
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
+import android.text.InputType
 import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.Spinner
 import android.widget.TextView
 import com.teeup.android.data.ApiConfig
 import com.teeup.android.data.ApiException
@@ -24,6 +29,11 @@ class HomeActivity : Activity() {
 
     private lateinit var statusText: TextView
     private lateinit var teeTimesContainer: LinearLayout
+    private lateinit var skillFilterButton: Button
+
+    /** EME-299: discover a group filtered by the host's handicap/pace of play. Null = no filter. */
+    private var filterMaxHandicap: Double? = null
+    private var filterPace: Int? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,11 +43,65 @@ class HomeActivity : Activity() {
 
         statusText = findViewById(R.id.text_status)
         teeTimesContainer = findViewById(R.id.tee_times_container)
+        skillFilterButton = findViewById(R.id.button_filter_skill)
 
         findViewById<View>(R.id.button_notifications).setOnClickListener {
             startActivity(Intent(this, NotificationsActivity::class.java))
         }
 
+        skillFilterButton.setOnClickListener { showSkillFilterDialog() }
+
+        loadNearbyTeeTimes()
+    }
+
+    private fun showSkillFilterDialog() {
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(16), dp(16), dp(16), dp(16))
+        }
+
+        val handicapInput = EditText(this).apply {
+            hint = getString(R.string.filter_max_handicap_hint)
+            inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
+            filterMaxHandicap?.let { setText(it.toString()) }
+        }
+        container.addView(handicapInput)
+
+        val paceLabels = listOf(getString(R.string.filter_pace_any)) +
+            resources.getStringArray(R.array.pace_of_play_options)
+        val paceSpinner = Spinner(this).apply {
+            layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = dp(12) }
+            adapter = ArrayAdapter(this@HomeActivity, android.R.layout.simple_spinner_item, paceLabels)
+                .apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
+            setSelection((filterPace ?: -1) + 1)
+        }
+        container.addView(paceSpinner)
+
+        AlertDialog.Builder(this)
+            .setTitle(R.string.filter_skill_title)
+            .setView(container)
+            .setPositiveButton(R.string.filter_apply) { _, _ ->
+                filterMaxHandicap = handicapInput.text.toString().trim().toDoubleOrNull()
+                filterPace = (paceSpinner.selectedItemPosition - 1).takeIf { it >= 0 }
+                applyFilterState()
+            }
+            .setNeutralButton(R.string.filter_clear) { _, _ ->
+                filterMaxHandicap = null
+                filterPace = null
+                applyFilterState()
+            }
+            .setNegativeButton(R.string.filter_cancel, null)
+            .show()
+    }
+
+    private fun applyFilterState() {
+        skillFilterButton.setText(
+            if (filterMaxHandicap != null || filterPace != null) {
+                R.string.home_filter_active
+            } else {
+                R.string.home_filter_skill
+            }
+        )
         loadNearbyTeeTimes()
     }
 
@@ -51,7 +115,7 @@ class HomeActivity : Activity() {
                 val courses = TeeUpApiClient.fetchCourses()
                     .associateBy { it.id }
 
-                val teeTimes = TeeUpApiClient.fetchTeeTimes()
+                val teeTimes = TeeUpApiClient.fetchTeeTimes(filterMaxHandicap, filterPace)
 
                 runOnUiThread {
                     renderTeeTimes(teeTimes, courses)
@@ -263,4 +327,8 @@ class HomeActivity : Activity() {
 
     private fun space(dimensionRes: Int): Int =
         resources.getDimensionPixelSize(dimensionRes)
+
+    private fun dp(value: Int): Int = TypedValue.applyDimension(
+        TypedValue.COMPLEX_UNIT_DIP, value.toFloat(), resources.displayMetrics
+    ).toInt()
 }
