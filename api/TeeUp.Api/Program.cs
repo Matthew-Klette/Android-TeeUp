@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using TeeUp.Api.Common;
 using TeeUp.Api.Data;
 using TeeUp.Api.Repositories;
@@ -12,6 +14,27 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, HttpContextCurrentUserService>();
+
+// Firebase ID tokens are OIDC-compliant JWTs issued by securetoken.google.com.
+// Setting Authority lets the handler discover Google's public signing keys
+// (and future key rotations) from its OIDC metadata automatically.
+var firebaseProjectId = builder.Configuration["Firebase:ProjectId"];
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Authority = $"https://securetoken.google.com/{firebaseProjectId}";
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = $"https://securetoken.google.com/{firebaseProjectId}",
+            ValidateAudience = true,
+            ValidAudience = firebaseProjectId,
+            ValidateLifetime = true
+        };
+    });
+
+builder.Services.AddAuthorization();
 
 builder.Services.AddDbContext<TeeUpDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
@@ -44,6 +67,9 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 
