@@ -23,6 +23,8 @@
         <activity android:name=".RoundsActivity" android:exported="false" />
         <activity android:name=".TeeTimeDetailActivity" android:exported="false" />
         <activity android:name=".ScorecardActivity" android:exported="false" />
+        <activity android:name=".LiveScorecardActivity" android:exported="false" />
+        <activity android:name=".PostRoundSummaryActivity" android:exported="false" />
         <activity android:name=".ProfileActivity" android:exported="false" />
         <activity android:name=".NotificationsActivity" android:exported="false" />
 

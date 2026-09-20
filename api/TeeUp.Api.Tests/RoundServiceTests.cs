@@ -8,6 +8,37 @@ namespace TeeUp.Api.Tests;
 
 public class RoundServiceTests
 {
+    [Fact]
+    public async Task ScheduleIncludesUnscoredBookingsAndExcludesPendingDeclinedAndOtherUsers()
+    {
+        var (service, teeTimes, requests) = CreateService();
+        var user = Guid.NewGuid();
+        var hosted = MakeTeeTime(DateTime.UtcNow.AddDays(2), user);
+        var accepted = MakeTeeTime(DateTime.UtcNow.AddDays(1));
+        var past = MakeTeeTime(DateTime.UtcNow.AddDays(-1), user);
+        await teeTimes.AddAsync(hosted);
+        await teeTimes.AddAsync(accepted);
+        await teeTimes.AddAsync(past);
+        foreach (var status in new[] { JoinRequestStatus.Pending, JoinRequestStatus.Declined, JoinRequestStatus.Accepted })
+        {
+            var excluded = MakeTeeTime(DateTime.UtcNow.AddDays(3));
+            await teeTimes.AddAsync(excluded);
+            await requests.AddAsync(new JoinRequest { Id = Guid.NewGuid(), TeeTimeId = excluded.Id,
+                GuestUserId = status == JoinRequestStatus.Accepted ? Guid.NewGuid() : user, Status = status });
+        }
+        await requests.AddAsync(new JoinRequest { Id = Guid.NewGuid(), TeeTimeId = accepted.Id,
+            GuestUserId = user, Status = JoinRequestStatus.Accepted });
+        // A host who also has an accepted request must appear only once.
+        await requests.AddAsync(new JoinRequest { Id = Guid.NewGuid(), TeeTimeId = hosted.Id,
+            GuestUserId = user, Status = JoinRequestStatus.Accepted });
+        await service.PostScorecardAsync(past.Id, OneHole());
+        var schedule = await service.GetScheduleForUserAsync(user);
+        Assert.Equal(new[] { past.Id, accepted.Id, hosted.Id }, schedule.Select(r => r.TeeTimeId));
+        Assert.Single(schedule[0].Round!.Scorecard);
+        Assert.Null(schedule[1].Round);
+        Assert.Null(schedule[2].Round);
+    }
+
     private static (RoundService Service, InMemoryTeeTimeRepository TeeTimes, InMemoryJoinRequestRepository JoinRequests)
         CreateService()
     {

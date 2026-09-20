@@ -17,6 +17,11 @@
             android:orientation="vertical"
             android:padding="@dimen/screen_padding">
 
+            <Button android:id="@+id/button_back" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:text="@string/wireflow_back" />
+            <TextView android:id="@+id/round_reference" style="@style/TeeUpText"
+                android:layout_width="match_parent" android:layout_height="wrap_content" />
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -220,12 +225,11 @@
                 android:id="@+id/button_next_hole"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/scorecard_next_hole" />
+                android:text="@string/scorecard_summary_preview" />
 
         </LinearLayout>
 
     </ScrollView>
 
-    <include layout="@layout/bottom_nav" />
 
 </LinearLayout>

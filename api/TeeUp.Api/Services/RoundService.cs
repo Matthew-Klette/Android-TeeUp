@@ -15,6 +15,25 @@ public class RoundService(
     ITeeTimeRepository teeTimeRepository,
     IJoinRequestRepository joinRequestRepository) : IRoundService
 {
+    public async Task<IReadOnlyList<ScheduledRoundDto>> GetScheduleForUserAsync(Guid userId)
+    {
+        var accepted = (await joinRequestRepository.GetAllAsync())
+            .Where(j => j.GuestUserId == userId && j.Status == JoinRequestStatus.Accepted)
+            .Select(j => j.TeeTimeId).ToHashSet();
+        var mine = (await teeTimeRepository.GetAllAsync())
+            .Where(t => t.HostUserId == userId || accepted.Contains(t.Id))
+            .OrderBy(t => t.DateTime);
+        var result = new List<ScheduledRoundDto>();
+        foreach (var teeTime in mine)
+        {
+            var round = await roundRepository.GetByTeeTimeIdAsync(teeTime.Id);
+            var dto = round is null ? null : RoundDto.From(round,
+                await scorecardEntryRepository.GetByRoundIdAsync(round.Id));
+            result.Add(new ScheduledRoundDto(teeTime.Id, teeTime.CourseId, teeTime.DateTime, dto));
+        }
+        return result;
+    }
+
     public async Task<RoundDto> PostScorecardAsync(Guid teeTimeId, PostScorecardRequest request)
     {
         var teeTime = await teeTimeRepository.GetByIdAsync(teeTimeId)

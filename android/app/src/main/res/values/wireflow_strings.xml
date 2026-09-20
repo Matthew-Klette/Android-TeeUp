@@ -1,0 +1,22 @@
+<resources>
+    <string name="rounds_upcoming">Upcoming</string>
+    <string name="rounds_history">History</string>
+    <string name="rounds_loading">Loading your rounds…</string>
+    <string name="rounds_load_failed">Could not load your rounds. Check your connection and retry.</string>
+    <string name="rounds_upcoming_empty">No upcoming rounds. Find a tee time on Home to get started.</string>
+    <string name="rounds_history_empty">No past rounds yet.</string>
+    <string name="rounds_unknown_course">Course unavailable</string>
+    <string name="rounds_view_details">View tee time</string>
+    <string name="rounds_open_scorecard">Open scorecard preview</string>
+    <string name="rounds_view_summary">View round summary</string>
+    <string name="rounds_browse">View My Rounds</string>
+    <string name="scorecard_landing">Choose a started round from My Rounds → History to preview its scorecard. Live scoring and offline sync will be available in a later version.</string>
+    <string name="summary_title">Post-Round Summary</string>
+    <string name="summary_preview">Summary preview. Final totals, endorsements and offline sync will be available in a later version. No scores are saved by this preview.</string>
+    <string name="round_reference">Tee time: %1$s</string>
+    <string name="round_missing">No round selected. Return to My Rounds and select a round.</string>
+    <string name="wireflow_back">Back</string>
+    <string name="notification_unavailable">This notification has no available destination.</string>
+    <string name="notification_round_missing">The linked tee time is unavailable. Showing My Rounds.</string>
+    <string name="scorecard_summary_preview">Preview round summary</string>
+</resources>

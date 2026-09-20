@@ -22,6 +22,7 @@ import kotlinx.coroutines.CancellationException
 object TeeUpRepository {
     private const val TAG = "TeeUpRepository"
     private val api = RetrofitClient.apiService
+    suspend fun getRoundSchedule(): List<ScheduledRound> = profileCall { api.getRoundSchedule(it) }
     suspend fun getProfile(): UserProfile = profileCall {
         api.getProfile(it)
     }

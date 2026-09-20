@@ -1,11 +1,15 @@
 package com.teeup.android
 
 import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
+import com.teeup.android.nav.NotificationDestination
+import com.teeup.android.nav.notificationDestination
 import com.teeup.android.data.ApiException
 import com.teeup.android.data.AppNotification
 import com.teeup.android.data.NotificationType
@@ -66,6 +70,10 @@ class NotificationsActivity : Activity() {
 
     private fun buildNotificationCard(notification: AppNotification): View {
         val card = LinearLayout(this).apply {
+            isClickable = true
+            isFocusable = true
+            contentDescription = "${titleFor(notification.type)}. ${notification.message}"
+            setOnClickListener { openNotification(notification) }
             orientation = LinearLayout.VERTICAL
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -99,6 +107,27 @@ class NotificationsActivity : Activity() {
         })
 
         return card
+    }
+
+    private fun openNotification(notification: AppNotification) {
+        when (notificationDestination(notification.type, notification.relatedEntityId)) {
+            NotificationDestination.TEE_TIME -> startActivity(
+                Intent(this, TeeTimeDetailActivity::class.java)
+                    .putExtra(TeeTimeDetailActivity.EXTRA_TEE_TIME_ID, notification.relatedEntityId))
+            NotificationDestination.ROUNDS -> {
+                Toast.makeText(this, R.string.notification_round_missing, Toast.LENGTH_LONG).show()
+                openTab(RoundsActivity::class.java)
+            }
+            NotificationDestination.SCORECARD -> openTab(ScorecardActivity::class.java)
+            NotificationDestination.UNAVAILABLE -> Toast.makeText(
+                this, R.string.notification_unavailable, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun openTab(destination: Class<*>) {
+        startActivity(Intent(this, destination).addFlags(
+            Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP))
+        finish()
     }
 
     private fun titleFor(type: Int): String = when (type) {
