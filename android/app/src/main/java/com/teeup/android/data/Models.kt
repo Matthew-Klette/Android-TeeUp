@@ -43,3 +43,30 @@ object JoinRequestStatus {
 
 /** Mirrors the API's UserDto (api/TeeUp.Api/Dtos/AuthDtos.cs) — only the fields this client needs. */
 data class RegisteredUser(val id: String, val displayName: String, val profileComplete: Boolean)
+
+/** Mirrors the API's NotificationDto (api/TeeUp.Api/Dtos/NotificationDtos.cs). */
+data class AppNotification(
+    val id: String,
+    val type: Int,
+    val message: String,
+    val relatedEntityId: String?,
+    val isRead: Boolean,
+    val createdAt: String
+)
+
+/** Mirrors the API's NotificationType enum (api/TeeUp.Api/Models/Enums.cs). */
+object NotificationType {
+    const val JOIN_REQUEST_RECEIVED = 0
+    const val REQUEST_ACCEPTED = 1
+    const val REQUEST_DECLINED = 2
+    const val TEE_TIME_REMINDER = 3
+    const val SYNC_PENDING = 4
+    const val WEATHER_ALERT = 5
+}
+
+/** Mirrors the API's PaceOfPlay enum (api/TeeUp.Api/Models/Enums.cs). */
+object PaceOfPlay {
+    const val RELAXED = 0
+    const val STANDARD = 1
+    const val BRISK = 2
+}
