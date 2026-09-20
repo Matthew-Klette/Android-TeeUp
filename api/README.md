@@ -25,6 +25,16 @@ dotnet build
 dotnet test
 ```
 
+The profile persistence test is opt-in and uses a migrated local PostgreSQL
+database. Set `TEEUP_TEST_DATABASE` to its connection string before running
+`dotnet test`; otherwise this test is reported as skipped. It rolls back its
+fixture data after execution. Keep credentials out of source control.
+
+Profile endpoint tests use a test-only authentication handler to check identity
+isolation, partial updates, and validation. Real Firebase sign-in still needs an
+emulator check: edit personal details, playing details, and notification
+preferences, then reopen Profile to confirm the saved values load correctly.
+
 ## Database migrations
 
 Entities live in `TeeUp.Api/Models`, mapped in `TeeUp.Api/Data/TeeUpDbContext.cs`.

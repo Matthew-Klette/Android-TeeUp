@@ -11,7 +11,9 @@ public class ProfileServiceTests
     private static (ProfileService Service, InMemoryUserRepository Users) CreateService()
     {
         var users = new InMemoryUserRepository();
-        return (new ProfileService(users), users);
+        var courses = new InMemoryCourseRepository();
+
+        return (new ProfileService(users, courses), users);
     }
 
     private static async Task<User> AddUser(InMemoryUserRepository users, string firebaseUid = "uid-1")
@@ -72,5 +74,52 @@ public class ProfileServiceTests
 
         await Assert.ThrowsAsync<NotFoundException>(() => service.UpdateProfileAsync(
             "unknown-uid", new UpdateProfileRequest(null, null, null, null, null, null)));
+    }
+
+    [Fact]
+    public async Task UpdateProfileAsync_DisabledPreferencesSurviveLaterNameChange()
+    {
+        var (service, users) = CreateService();
+        var user = await AddUser(users);
+
+        await service.UpdateProfileAsync(
+            user.FirebaseUid,
+            new UpdateProfileRequest(
+                null, null, null, null, null, null,
+                JoinRequestNotifications: false,
+                TeeTimeReminders: false,
+                WeatherAlerts: false));
+
+        await service.UpdateProfileAsync(
+            user.FirebaseUid,
+            new UpdateProfileRequest(
+                " Updated Golfer ", null, null, null, null, null));
+
+        var loaded = await service.GetProfileAsync(user.FirebaseUid);
+
+        Assert.Equal("Updated Golfer", loaded.DisplayName);
+        Assert.False(loaded.JoinRequestNotifications);
+        Assert.False(loaded.TeeTimeReminders);
+        Assert.False(loaded.WeatherAlerts);
+    }
+
+    [Fact]
+    public async Task UpdateProfileAsync_InvalidHandicapLeavesProfileUnchanged()
+    {
+        var (service, users) = CreateService();
+        var user = await AddUser(users);
+
+        await Assert.ThrowsAsync<DomainValidationException>(() =>
+            service.UpdateProfileAsync(
+                user.FirebaseUid,
+                new UpdateProfileRequest(
+                    "Changed Name", 55m, null, null, null, null,
+                    WeatherAlerts: false)));
+
+        var loaded = await service.GetProfileAsync(user.FirebaseUid);
+
+        Assert.Equal("New Golfer", loaded.DisplayName);
+        Assert.Null(loaded.HandicapIndex);
+        Assert.True(loaded.WeatherAlerts);
     }
 }

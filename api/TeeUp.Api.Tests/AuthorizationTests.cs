@@ -25,6 +25,20 @@ public class AuthorizationTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
+    public async Task GetProfile_WithoutToken_Returns401()
+    {
+        var response = await _client.GetAsync("/api/profiles/me");
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task UpdateProfile_WithoutToken_Returns401()
+    {
+        var response = await _client.PatchAsJsonAsync("/api/profiles/me", new { displayName = "Changed" });
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
     public async Task CreateJoinRequest_WithoutToken_Returns401()
     {
         var response = await _client.PostAsJsonAsync($"/api/teetimes/{Guid.NewGuid()}/joinrequests", new { });
