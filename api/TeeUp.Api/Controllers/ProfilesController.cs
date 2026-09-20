@@ -7,19 +7,32 @@ using TeeUp.Api.Services;
 namespace TeeUp.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/profiles")]
-public class ProfilesController(IProfileService profileService, ICurrentUserService currentUser) : ControllerBase
+public class ProfilesController(
+    IProfileService profileService,
+    ICurrentUserService currentUser) : ControllerBase
 {
-    [Authorize]
-    [HttpPatch("me")]
-    public async Task<ActionResult<UserDto>> UpdateMe(UpdateProfileRequest request)
+    [HttpGet("me")]
+    public async Task<ActionResult<UserDto>> GetMe()
     {
-        if (currentUser.FirebaseUid is null)
-        {
-            throw new NotFoundException("No authenticated user on this request.");
-        }
+        var firebaseUid = currentUser.FirebaseUid;
 
-        var user = await profileService.UpdateProfileAsync(currentUser.FirebaseUid, request);
-        return Ok(user);
+        if (string.IsNullOrWhiteSpace(firebaseUid))
+            return Unauthorized();
+
+        return Ok(await profileService.GetProfileAsync(firebaseUid));
+    }
+
+    [HttpPatch("me")]
+    public async Task<ActionResult<UserDto>> UpdateMe(
+        UpdateProfileRequest request)
+    {
+        var firebaseUid = currentUser.FirebaseUid;
+
+        if (string.IsNullOrWhiteSpace(firebaseUid))
+            return Unauthorized();
+
+        return Ok(await profileService.UpdateProfileAsync(firebaseUid, request));
     }
 }

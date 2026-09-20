@@ -11,9 +11,20 @@ public record UserDto(
     Guid? HomeCourseId,
     PaceOfPlay PaceOfPlay,
     Language Language,
-    bool ProfileComplete)
+    bool ProfileComplete,
+    bool JoinRequestNotifications = true,
+    bool TeeTimeReminders = true,
+    bool WeatherAlerts = true)
 {
     public static UserDto From(User user) => new(
-        user.Id, user.DisplayName, user.HandicapIndex, user.HomeCourseId, user.PaceOfPlay, user.Language,
-        user.ProfileComplete);
+        user.Id,
+        user.DisplayName,
+        user.HandicapIndex,
+        user.HomeCourseId,
+        user.PaceOfPlay,
+        user.Language,
+        user.ProfileComplete,
+        user.JoinRequestNotifications,
+        user.TeeTimeReminders,
+        user.WeatherAlerts);
 }

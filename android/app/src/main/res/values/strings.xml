@@ -28,6 +28,31 @@
     <string name="profile_offline_sync">Offline Data &amp; Sync Status</string>
     <string name="profile_privacy">Privacy &amp; Data (POPIA)</string>
 
+    <!-- Profile loading and error states -->
+    <string name="profile_loading">Loading your profile...</string>
+    <string name="profile_load_failed">Unable to load your profile. Please try again.</string>
+    <string name="profile_retry">Try again</string>
+    <string name="profile_not_loaded">Profile unavailable</string>
+    <string name="profile_handicap_unset">Not set</string>
+    <string name="profile_pace_unknown">Not set</string>
+    <string name="profile_summary">Handicap: %1$s · Pace: %2$s</string>
+
+    <!-- Profile editors -->
+    <string name="profile_save">Save</string>
+    <string name="profile_cancel">Cancel</string>
+    <string name="profile_saving">Saving your changes...</string>
+    <string name="profile_saved">Your changes have been saved.</string>
+    <string name="profile_save_failed">Unable to save your changes.</string>
+    <string name="profile_save_error">%1$s Your changes are not confirmed. Tap Retry save to try again.</string>
+    <string name="profile_retry_save">Retry save</string>
+    <string name="profile_name_invalid">Enter a name between 1 and 100 characters.</string>
+
+    <string-array name="profile_notification_options">
+        <item>Join-request updates</item>
+        <item>Tee-time reminders</item>
+        <item>Weather alerts</item>
+    </string-array>
+
     <!-- Navigation Bar -->
     <string name="nav_home">Home</string>
     <string name="nav_rounds">Rounds</string>
@@ -132,4 +157,29 @@
     <string name="filter_clear">Clear filters</string>
     <string name="filter_cancel">Cancel</string>
     <string name="home_filter_active">Filtered by skill/pace — tap to change</string>
+
+    <!-- Playing details editor -->
+    <string name="profile_handicap_help">Leave handicap blank to remove it.</string>
+    <string name="profile_handicap_invalid">Enter a handicap from 0 to 54 with at most one decimal place, or leave it blank.</string>
+    <string name="profile_pace_invalid">Select a pace of play.</string>
+    <string name="profile_course_keep">Keep current home course</string>
+    <string name="profile_course_keep_named">Keep current home course: %1$s</string>
+    <string name="profile_course_remove">No home course</string>
+    <string name="profile_courses_loading">Loading courses...</string>
+    <string name="profile_courses_failed">Courses could not be loaded. You can keep or remove your current course. Reopen Playing Details to retry.</string>
+    <string name="profile_courses_empty">No courses are available yet.</string>
+
+    <!-- Features deferred to the final POE -->
+    <string name="profile_language_notice">The prototype currently uses English. Language selection will be available in the final version; this preview does not change your language.</string>
+    <string name="profile_biometric_notice">Biometric login is not available in this prototype. It will be connected in the final version.</string>
+    <string name="profile_biometric_toggle">Use biometric login</string>
+    <string name="profile_offline_notice">Offline storage and automatic synchronisation are not available in this prototype. Saving settings requires a connection to the TeeUp service. No offline sync status is available yet.</string>
+    <string name="profile_offline_toggle">Enable offline data and sync</string>
+    <string name="profile_privacy_notice">Google sign-in uses Firebase Authentication. Profile details, playing preferences and notification preferences are sent to the TeeUp service when saved.\n\nThis prototype does not yet provide in-app data export or account deletion. A complete privacy notice and data-management process must be provided before public release.</string>
+
+    <string-array name="profile_language_preview_options">
+        <item>English</item>
+        <item>Afrikaans</item>
+        <item>isiZulu</item>
+    </string-array>
 </resources>
