@@ -25,6 +25,13 @@ public class AuthorizationTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
+    public async Task RoundSchedule_WithoutToken_Returns401()
+    {
+        var response = await _client.GetAsync("/api/rounds/me/schedule");
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
     public async Task GetProfile_WithoutToken_Returns401()
     {
         var response = await _client.GetAsync("/api/profiles/me");

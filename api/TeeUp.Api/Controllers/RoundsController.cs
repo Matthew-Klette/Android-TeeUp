@@ -15,6 +15,14 @@ public class RoundsController(
     IUserRepository userRepository) : ControllerBase
 {
     [Authorize]
+    [HttpGet("me/schedule")]
+    public async Task<ActionResult<IReadOnlyList<ScheduledRoundDto>>> GetSchedule()
+    {
+        var userId = await ResolveCurrentUserIdAsync();
+        return Ok(await roundService.GetScheduleForUserAsync(userId));
+    }
+
+    [Authorize]
     [HttpPost("{id:guid}/scorecard")]
     public async Task<ActionResult<RoundDto>> PostScorecard(Guid id, PostScorecardRequest request)
     {

@@ -34,7 +34,25 @@
                 android:textColor="@color/teeup_text_secondary"
                 android:textSize="@dimen/text_body" />
 
-            <!-- Existing placeholder; round loading is implemented later -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <Button android:id="@+id/rounds_upcoming"
+                    android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                    android:background="@drawable/bg_nav_item" android:textColor="@color/nav_text"
+                    android:text="@string/rounds_upcoming" />
+                <Button android:id="@+id/rounds_history"
+                    android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                    android:background="@drawable/bg_nav_item" android:textColor="@color/nav_text"
+                    android:text="@string/rounds_history" />
+            </LinearLayout>
+            <ProgressBar android:id="@+id/rounds_progress"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_gravity="center" android:visibility="gone" />
+            <Button android:id="@+id/rounds_retry"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="@string/profile_retry" android:visibility="gone" />
             <TextView
                 android:id="@+id/text_empty_state"
                 android:layout_width="match_parent"
@@ -45,6 +63,10 @@
                 android:text="@string/rounds_placeholder"
                 android:textColor="@color/teeup_text_secondary"
                 android:textSize="@dimen/text_body_large" />
+
+            <LinearLayout android:id="@+id/rounds_container"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" />
 
         </LinearLayout>
 

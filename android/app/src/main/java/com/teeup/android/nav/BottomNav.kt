@@ -65,5 +65,7 @@ object BottomNav {
         }
 
         activity.startActivity(intent)
+        // Home is the stable root. Switching tabs must not accumulate tab history.
+        if (activity !is HomeActivity) activity.finish()
     }
 }
