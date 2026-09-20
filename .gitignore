@@ -5,6 +5,7 @@
 .vscode/
 
 # ---- Android / Gradle (android/) ----
+.gradle/
 android/*.iml
 android/.gradle/
 android/build/

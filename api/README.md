@@ -10,13 +10,23 @@ EF Core. Layered as controllers → services → repositories.
 
 ## Configuration
 
-Set the connection string and Firebase project id via environment variables
-or `appsettings.Development.json` (gitignored):
+Store the local development connection string in .NET user-secrets, outside
+the repository. From the `api` directory:
+
+```text
+dotnet user-secrets set "ConnectionStrings:Default" "Host=localhost;Port=5432;Database=teeup;Username=postgres;Password=<local-password>" --project TeeUp.Api
+```
+
+User-secrets load automatically in the Development environment. Alternatively,
+set the connection string and Firebase project id via environment variables:
 
 ```
 ConnectionStrings__Default=Host=...;Database=teeup;Username=...;Password=...
 Firebase__ProjectId=<firebase-project-id>
 ```
+
+Never put database passwords in tracked appsettings files. The existing
+`appsettings.Development.json` is tracked despite the ignore rule.
 
 ## Build & test
 
