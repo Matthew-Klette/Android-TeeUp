@@ -1,6 +1,7 @@
 package com.teeup.android
 
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import com.teeup.android.nav.BottomNav
 import com.teeup.android.nav.BottomNavTab
@@ -19,6 +20,11 @@ class ScorecardActivity : LocaleActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_scorecard)
         BottomNav.wire(this, BottomNavTab.SCORECARD)
+
+        findViewById<View>(R.id.button_back).setOnClickListener {
+            finish()
+            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
+        }
 
         // The hole/scores shown here are static sample data (scorecard_sample_*),
         // so advancing a hole has nothing real to advance — honest placeholder

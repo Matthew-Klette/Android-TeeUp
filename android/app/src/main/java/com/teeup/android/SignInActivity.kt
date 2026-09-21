@@ -38,17 +38,18 @@ class SignInActivity : LocaleActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_sign_in)
 
-        val goToHome = {
-            startActivity(Intent(this, HomeActivity::class.java))
-            overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
-            finish()
-        }
-
         googleButton = findViewById(R.id.button_continue_google)
         googleButton.setOnClickListener { onGoogleSignInClicked() }
 
-        findViewById<View>(R.id.button_continue_email).setOnClickListener { goToHome() }
-        findViewById<View>(R.id.button_use_biometric).setOnClickListener { goToHome() }
+        // Stubs for their own tickets — must not drop the user into HomeActivity
+        // without a real Firebase session, or every action that needs an identity
+        // (e.g. requesting to join a tee time) fails with "no signed-in Firebase user".
+        findViewById<View>(R.id.button_continue_email).setOnClickListener {
+            TeeUpBanner.show(this, "Email sign-in isn't built yet — use Continue with Google.")
+        }
+        findViewById<View>(R.id.button_use_biometric).setOnClickListener {
+            TeeUpBanner.show(this, "Biometric sign-in isn't built yet — use Continue with Google.")
+        }
 
         // No separate sign-up credential flow — Google SSO doubles as registration
         // for a first-time user, so this link starts the same flow as the button.

@@ -175,6 +175,13 @@ class TeeTimeDetailActivity : LocaleActivity() {
                         render(refreshedTeeTime, refreshedCourse, refreshedRequests)
                     }
                 }
+            } catch (e: IllegalStateException) {
+                // LocalIdentity.ensureRegistered() throws this when there's no signed-in
+                // Firebase user — surface a friendly prompt instead of the raw internal message.
+                runOnUiThread {
+                    TeeUpBanner.show(this, "Please sign in again to request to join", isError = true)
+                    startActivity(Intent(this, SignInActivity::class.java))
+                }
             } catch (e: Exception) {
                 runOnUiThread {
                     TeeUpBanner.show(this, e.message ?: "Couldn't send the request", isError = true)
