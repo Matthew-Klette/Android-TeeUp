@@ -12,4 +12,11 @@ public interface ITeeTimeService
     /// there's nothing to match against.
     /// </summary>
     Task<IReadOnlyList<TeeTimeDto>> GetAllAsync(decimal? maxHandicap = null, PaceOfPlay? pace = null);
+
+    /// <summary>
+    /// Creates a tee time for a solo round, dated right now, hosted by and reserved
+    /// entirely for <paramref name="hostUserId"/> — no join-request flow needed before
+    /// scores can be posted against it (see RoundService's "no posting before it starts" rule).
+    /// </summary>
+    Task<TeeTimeDto> CreateSoloAsync(Guid hostUserId, Guid courseId);
 }

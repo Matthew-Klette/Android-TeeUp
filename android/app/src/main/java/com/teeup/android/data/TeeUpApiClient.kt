@@ -1,5 +1,8 @@
 package com.teeup.android.data
 
+import com.teeup.android.BuildConfig
+import com.teeup.android.R
+import com.teeup.android.TeeUpApplication
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
 import org.json.JSONArray
@@ -31,6 +34,13 @@ object TeeUpApiClient {
 
         val array = JSONArray(request("GET", path))
         return (0 until array.length()).map { i -> parseTeeTime(array.getJSONObject(i)) }
+    }
+
+    /** POST /api/teetimes — a tee time hosted by and reserved entirely for the caller,
+     *  dated right now, for the solo "Start a Round" flow (no join-request needed). */
+    fun createSoloTeeTime(courseId: String): TeeTime {
+        val body = JSONObject().put("courseId", courseId)
+        return parseTeeTime(JSONObject(request("POST", "api/teetimes", body)))
     }
 
     fun fetchNotifications(): List<AppNotification> {
@@ -78,6 +88,28 @@ object TeeUpApiClient {
         return parseJoinRequest(JSONObject(request("PATCH", "api/join-requests/$joinRequestId", body)))
     }
 
+    fun fetchSchedule(): List<ScheduledRound> {
+        val array = JSONArray(request("GET", "api/rounds/me/schedule"))
+        return (0 until array.length()).map { i -> parseScheduledRound(array.getJSONObject(i)) }
+    }
+
+    /** POST /api/rounds/{teeTimeId}/scorecard. `entries` must be new holes only — posting an
+     *  already-submitted hole number creates a duplicate row (RoundService only de-dupes within
+     *  a single request, not against what's already stored). */
+    fun postScorecard(teeTimeId: String, entries: List<HoleScoreInput>): PlayedRound {
+        val entriesArray = JSONArray()
+        entries.forEach { entry ->
+            entriesArray.put(
+                JSONObject()
+                    .put("holeNumber", entry.holeNumber)
+                    .put("strokes", entry.strokes)
+                    .put("putts", entry.putts)
+            )
+        }
+        val body = JSONObject().put("entries", entriesArray)
+        return parsePlayedRound(JSONObject(request("POST", "api/rounds/$teeTimeId/scorecard", body)))
+    }
+
     private fun parseRegisteredUser(o: JSONObject) = RegisteredUser(
         id = o.getString("id"),
         displayName = o.getString("displayName"),
@@ -121,13 +153,45 @@ object TeeUpApiClient {
         status = o.getInt("status")
     )
 
+    private fun parseScheduledRound(o: JSONObject) = ScheduledRound(
+        teeTimeId = o.getString("teeTimeId"),
+        courseId = o.getString("courseId"),
+        dateTime = o.getString("dateTime"),
+        round = if (o.isNull("round")) null else parsePlayedRound(o.getJSONObject("round"))
+    )
+
+    private fun parsePlayedRound(o: JSONObject): PlayedRound {
+        val entries = o.getJSONArray("scorecard")
+        return PlayedRound(
+            id = o.getString("id"),
+            teeTimeId = o.getString("teeTimeId"),
+            scorecard = (0 until entries.length()).map { i -> parseHoleScore(entries.getJSONObject(i)) }
+        )
+    }
+
+    private fun parseHoleScore(o: JSONObject) = HoleScore(
+        id = o.getString("id"),
+        holeNumber = o.getInt("holeNumber"),
+        strokes = o.getInt("strokes"),
+        putts = o.getInt("putts"),
+        synced = o.getBoolean("synced")
+    )
+
     private fun request(method: String, path: String, body: JSONObject? = null): String {
         val connection = URL(ApiConfig.BASE_URL + path).openConnection() as HttpURLConnection
         connection.requestMethod = method
         connection.setRequestProperty("Accept", "application/json")
         connection.connectTimeout = 10_000
         connection.readTimeout = 10_000
-        authorizationHeaderOrNull()?.let { connection.setRequestProperty("Authorization", it) }
+        val authHeader = authorizationHeaderOrNull()
+        if (authHeader != null) {
+            connection.setRequestProperty("Authorization", authHeader)
+        } else if (BuildConfig.DEBUG) {
+            // No real Firebase session (see DevIdentity's doc comment) — fall back to the
+            // dev-only header a backend running with DevAuth:Enabled accepts. Debug-only,
+            // so this is never sent from a release build even by accident.
+            connection.setRequestProperty("X-Dev-User-Id", DevIdentity.deviceId)
+        }
         try {
             if (body != null) {
                 connection.doOutput = true
@@ -140,7 +204,7 @@ object TeeUpApiClient {
             }
             return connection.inputStream.bufferedReader().use { it.readText() }
         } catch (e: IOException) {
-            throw ApiException("Could not connect. Check your connection and try again.")
+            throw ApiException(TeeUpApplication.appContext.getString(R.string.http_error_no_connection))
         } finally {
             connection.disconnect()
         }

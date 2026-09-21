@@ -24,6 +24,15 @@ public class TeeTimesController(
     }
 
     [Authorize]
+    [HttpPost]
+    public async Task<ActionResult<TeeTimeDto>> CreateSolo(CreateTeeTimeRequest request)
+    {
+        var hostUserId = await ResolveCurrentUserIdAsync();
+        var teeTime = await teeTimeService.CreateSoloAsync(hostUserId, request.CourseId);
+        return Ok(teeTime);
+    }
+
+    [Authorize]
     [HttpPost("{id:guid}/joinrequests")]
     public async Task<ActionResult<JoinRequestDto>> CreateJoinRequest(Guid id)
     {

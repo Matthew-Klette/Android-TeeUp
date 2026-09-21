@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Replaces android.R.layout.simple_spinner_item for the closed/selected Spinner
+     view — that system layout inherits its text color from Widget.Material.Spinner
+     (dark), which stays light regardless of this app's light theme override. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="?android:attr/listPreferredItemHeightSmall"
+    android:gravity="center_vertical"
+    android:paddingStart="@dimen/space_sm"
+    android:paddingEnd="@dimen/space_sm"
+    android:textColor="@color/teeup_text_primary"
+    android:textSize="@dimen/text_body_large"
+    android:ellipsize="end"
+    android:singleLine="true" />

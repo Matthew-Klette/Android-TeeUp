@@ -81,7 +81,10 @@ class HomeActivity : LocaleActivity() {
         })
 
         findViewById<Button>(R.id.button_filter_datetime).setOnClickListener {
-            showOptionsDialog(getString(R.string.home_filter_datetime), listOf("All dates", "Today", "Tomorrow")) { index ->
+            showOptionsDialog(
+                getString(R.string.home_filter_datetime),
+                resources.getStringArray(R.array.home_date_filter_options).toList()
+            ) { index ->
                 dateFilter = DateFilter.entries[index]
                 updateFilterLabels()
                 applyFilters()
@@ -91,7 +94,7 @@ class HomeActivity : LocaleActivity() {
         findViewById<Button>(R.id.button_filter_players).setOnClickListener {
             showOptionsDialog(
                 getString(R.string.home_filter_players),
-                listOf("Any", "1+ open spot", "2+ open spots", "3+ open spots", "4+ open spots")
+                resources.getStringArray(R.array.home_players_filter_options).toList()
             ) { index ->
                 minOpenSpots = index
                 updateFilterLabels()
@@ -163,7 +166,7 @@ class HomeActivity : LocaleActivity() {
         }
 
         if (filtered.isEmpty()) {
-            showError(if (allTeeTimes.isEmpty()) "No tee times nearby right now" else "No tee times match your filters")
+            showError(if (allTeeTimes.isEmpty()) getString(R.string.home_empty_no_teetimes) else getString(R.string.home_empty_no_matches))
         } else {
             renderTeeTimes(filtered)
         }
@@ -186,11 +189,11 @@ class HomeActivity : LocaleActivity() {
     private fun updateFilterLabels() {
         findViewById<Button>(R.id.button_filter_datetime).text = when (dateFilter) {
             DateFilter.ALL -> getString(R.string.home_filter_datetime)
-            DateFilter.TODAY -> "Date: Today"
-            DateFilter.TOMORROW -> "Date: Tomorrow"
+            DateFilter.TODAY -> getString(R.string.home_filter_date_today)
+            DateFilter.TOMORROW -> getString(R.string.home_filter_date_tomorrow)
         }
         findViewById<Button>(R.id.button_filter_players).text =
-            if (minOpenSpots == 0) getString(R.string.home_filter_players) else "Players: $minOpenSpots+"
+            if (minOpenSpots == 0) getString(R.string.home_filter_players) else getString(R.string.home_filter_players_min_format, minOpenSpots)
         findViewById<Button>(R.id.button_filter_skill).setText(
             if (filterMaxHandicap != null || filterPace != null) {
                 R.string.home_filter_active
@@ -219,8 +222,8 @@ class HomeActivity : LocaleActivity() {
             resources.getStringArray(R.array.pace_of_play_options)
         val paceSpinner = Spinner(this).apply {
             layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = dp(12) }
-            adapter = ArrayAdapter(this@HomeActivity, android.R.layout.simple_spinner_item, paceLabels)
-                .apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
+            adapter = ArrayAdapter(this@HomeActivity, R.layout.spinner_item, paceLabels)
+                .apply { setDropDownViewResource(R.layout.spinner_dropdown_item) }
             setSelection((filterPace ?: -1) + 1)
         }
         container.addView(paceSpinner)
@@ -279,7 +282,7 @@ class HomeActivity : LocaleActivity() {
         dialog = AlertDialog.Builder(this)
             .setTitle(title)
             .setView(container)
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(R.string.dialog_cancel, null)
             .create()
         dialog.show()
     }
@@ -317,7 +320,7 @@ class HomeActivity : LocaleActivity() {
         teeTime: TeeTime,
         course: Course?
     ): View {
-        val courseName = course?.name ?: "Unknown course"
+        val courseName = course?.name ?: getString(R.string.home_unknown_course)
         val isOpenRound = teeTime.type == 1
 
         val card = LinearLayout(this).apply {
@@ -532,7 +535,7 @@ class HomeActivity : LocaleActivity() {
 
     private fun openCoursePreview(course: Course?) {
         if (course == null) {
-            TeeUpBanner.show(this, "Course details aren't available yet")
+            TeeUpBanner.show(this, getString(R.string.teetime_course_unavailable))
             return
         }
         val intent = Intent(this, CoursePreviewActivity::class.java).apply {

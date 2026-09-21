@@ -5,7 +5,10 @@ using TeeUp.Api.Common;
 
 namespace TeeUp.Api.Services;
 
-public class TeeTimeService(ITeeTimeRepository teeTimeRepository, IUserRepository userRepository) : ITeeTimeService
+public class TeeTimeService(
+    ITeeTimeRepository teeTimeRepository,
+    IUserRepository userRepository,
+    ICourseRepository courseRepository) : ITeeTimeService
 {
     public async Task<IReadOnlyList<TeeTimeDto>> GetAllAsync(decimal? maxHandicap = null, PaceOfPlay? pace = null)
     {
@@ -30,5 +33,25 @@ public class TeeTimeService(ITeeTimeRepository teeTimeRepository, IUserRepositor
                 && (pace is null || host.PaceOfPlay == pace))
             .Select(TeeTimeDto.From)
             .ToList();
+    }
+
+    public async Task<TeeTimeDto> CreateSoloAsync(Guid hostUserId, Guid courseId)
+    {
+        _ = await courseRepository.GetByIdAsync(courseId)
+            ?? throw new NotFoundException($"Course {courseId} not found.");
+
+        var teeTime = new TeeTime
+        {
+            Id = Guid.NewGuid(),
+            HostUserId = hostUserId,
+            CourseId = courseId,
+            DateTime = DateTime.UtcNow,
+            OpenSpots = 0,
+            Price = 0,
+            Type = TeeTimeType.Booking
+        };
+
+        await teeTimeRepository.AddAsync(teeTime);
+        return TeeTimeDto.From(teeTime);
     }
 }

@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 
     <application
+        android:name=".TeeUpApplication"
         android:allowBackup="true"
         android:label="@string/app_name"
         android:theme="@style/Theme.TeeUp"
@@ -26,6 +27,7 @@
         <activity android:name=".TeeTimeDetailActivity" android:exported="false" />
         <activity android:name=".CoursePreviewActivity" android:exported="false" />
         <activity android:name=".ScorecardActivity" android:exported="false" />
+        <activity android:name=".RoundSummaryActivity" android:exported="false" />
         <activity android:name=".ProfileActivity" android:exported="false" />
         <activity android:name=".NotificationsActivity" android:exported="false" />
         <activity android:name=".PersonalDetailsActivity" android:exported="false" />
