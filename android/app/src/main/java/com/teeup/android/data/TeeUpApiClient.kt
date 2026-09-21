@@ -268,7 +268,17 @@ object TeeUpApiClient {
             }
             val code = connection.responseCode
             if (code !in 200..299) {
-                throw ApiException(httpFailureMessage(code))
+                // The API's ExceptionHandlingMiddleware writes a specific, human-readable
+                // {status, detail} body for every domain/auth error (EME-313: "Only the host
+                // can accept or decline...", "You've already requested to join...", etc.) —
+                // prefer that over the generic per-status-code fallback whenever it's present.
+                val serverDetail = try {
+                    connection.errorStream?.bufferedReader()?.use { it.readText() }
+                        ?.let { JSONObject(it).optString("detail").takeIf { detail -> detail.isNotBlank() } }
+                } catch (e: Exception) {
+                    null
+                }
+                throw ApiException(serverDetail ?: httpFailureMessage(code))
             }
             return connection.inputStream.bufferedReader().use { it.readText() }
         } catch (e: IOException) {
