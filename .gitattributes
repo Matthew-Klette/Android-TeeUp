@@ -1,0 +1,24 @@
+# Normalize line endings on checkin so every contributor's checkout matches,
+# regardless of OS or editor defaults. This is the root cause behind stray
+# .idea/*.xml (and other) line-ending-only diffs recurring across tickets
+# (EME-301, EME-305) — nothing was normalizing endings before this file
+# existed, so whichever editor/OS last touched a file decided its line
+# endings for the next commit.
+* text=auto eol=lf
+
+# Windows launcher scripts must keep CRLF to run correctly on Windows.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary files: never line-ending-normalize or text-diff these.
+*.jar binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.keystore binary
+*.jks binary
+*.ttf binary
+*.otf binary

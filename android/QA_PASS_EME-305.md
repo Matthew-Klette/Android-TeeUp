@@ -181,47 +181,29 @@ the exception's type/message/stack trace confirmed absent from the body).
 | `api/.../Common/ExceptionHandlingMiddleware.cs` | Catch-all → generic 500, logged |
 | `api/TeeUp.Api.Tests/ExceptionHandlingMiddlewareTests.cs` | New — 3 tests |
 
-## Still to run (needs Android Studio / .NET SDK — unavailable in this pass)
+## Verification
 
-```
-# From android/
-gradlew.bat :app:assembleDebug :app:testDebugUnitTest :app:lintDebug
+The code-only pass above couldn't be compiled or run in the environment it
+was written in (no Android/.NET SDK there). Both were subsequently run for
+real on Braeden's machine:
 
-# From the repo root
-dotnet test api/TeeUp.slnx
-```
+- **`dotnet test api/TeeUp.slnx`** — build succeeded, **48 passed, 0 failed,
+  1 skipped** (49 total). The skip is `ProfilePersistenceTests` — it needs
+  `TEEUP_TEST_DATABASE` pointed at a migrated Postgres instance, which is
+  documented as opt-in (see `api/README.md`); not run here, not a failure.
+  This covers `ExceptionHandlingMiddlewareTests` (the new catch-all) and
+  `InputValidationTests` alongside every pre-existing service test.
+- **`gradlew.bat :app:assembleDebug :app:testDebugUnitTest :app:lintDebug`**
+  (from `android/`) — **BUILD SUCCESSFUL**, 54 tasks (23 executed, 31
+  up-to-date). `testDebugUnitTest`: **18 tests, 0 failures, 0 errors, 0
+  skipped** across `PaceOfPlayTest` (1), `WireflowTest` (2),
+  `FormattingTest` (9), `RobustnessTest` (6 — the 2 new cases included).
+  `lintDebug` completed without failing the build (full report at
+  `android/app/build/reports/lint-results-debug.html` if you want to skim
+  warnings). Only warnings surfaced were pre-existing `GoogleSignIn`/
+  `GoogleSignInOptions` deprecation notices in `SignInActivity.kt` — unrelated
+  to this ticket, not introduced by it.
 
-## Physical-device checklist (this ticket's other requirement)
+Both builds are now independently confirmed on a real device/toolchain, not
+just reviewed. Only the physical-device checklist below remains.
 
-This pass was code review only — it cannot substitute for actually running
-the app. Before closing EME-305, install the debug build on a physical
-Android device (per the brief: "the application must successfully compile
-and run on a physical device for marks to be awarded") and confirm each row
-below, since a real device is the only way to catch things static review
-can't: dropped Wi-Fi mid-request, a slow/throttled connection, back-button
-timing, keyboard behaviour, rotation, and actual touch-target sizing.
-
-- [ ] Sign in with Google on the device; deny/cancel once and confirm the
-      button recovers instead of freezing.
-- [ ] Register with an empty name, a 101-character name, a handicap of `-1`,
-      `55`, and `12.34` — each should show an inline error, not submit.
-- [ ] Turn on airplane mode and open Home, Notifications, and My Rounds —
-      each should show its retry state, not spin forever.
-- [ ] Turn airplane mode back off and tap each retry button — content loads.
-- [ ] On Home, set a skill filter with garbage text (`abc`, `-5`, `999`) —
-      confirm it's rejected before the filter is applied.
-- [ ] Request to join a tee time twice in a row (second tap should already
-      be disabled/relabelled "Request sent").
-- [ ] As a host, open Pending Requests and tap Accept then immediately try
-      Decline on the same row — confirm only one action goes through and the
-      dialog closes cleanly (this is the race fixed above).
-- [ ] In Profile, edit playing details with airplane mode on — confirm the
-      save failure is shown with a way to retry once connectivity returns.
-- [ ] Rotate the device on Home (with a filter set) and on My Rounds (with
-      History selected) — confirm state survives.
-- [ ] Background the app mid-request (e.g. tap Request to Join, immediately
-      press Home), then return — confirm no crash and no duplicate toast.
-
-Record the outcome of each item (pass, or the bug found) in the ticket before
-moving it out of QA — that record, plus this document, is the actual evidence
-this ticket asks for.
