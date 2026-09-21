@@ -12,15 +12,44 @@ data class Course(
     val rating: Double?
 )
 
-/** Mirrors the API's TeeTimeDto (api/TeeUp.Api/Dtos/TeeTimeDtos.cs). type: 0=Booking, 1=OpenRound. */
+/**
+ * Mirrors the API's TeeTimeDto (api/TeeUp.Api/Dtos/TeeTimeDtos.cs). type: 0=Booking, 1=OpenRound.
+ * status: 0=Open, 1=Full, 2=Cancelled (Models/Enums.cs TeeTimeStatus). holes/wanted* are null for
+ * legacy/solo rows created before EME-311's group fields existed. openSpots is the group's fixed
+ * guest capacity (not counting the host) and never changes; spotsRemaining is that capacity minus
+ * accepted guests, so it's the field to show/filter on for "how many spots are actually open".
+ */
 data class TeeTime(
     val id: String,
     val hostUserId: String?,
     val courseId: String,
     val dateTime: String,
     val openSpots: Int,
+    val spotsRemaining: Int,
     val price: Double,
-    val type: Int
+    val type: Int,
+    val holes: Int?,
+    val wantedHandicapMin: Double?,
+    val wantedHandicapMax: Double?,
+    val wantedPace: Int?,
+    val status: Int,
+    val members: List<GroupMember>
+)
+
+/** Mirrors the API's TeeTimeStatus enum (api/TeeUp.Api/Models/Enums.cs). */
+object TeeTimeStatus {
+    const val OPEN = 0
+    const val FULL = 1
+    const val CANCELLED = 2
+}
+
+/** Mirrors the API's GroupMemberDto (api/TeeUp.Api/Dtos/TeeTimeDtos.cs). */
+data class GroupMember(
+    val userId: String,
+    val displayName: String,
+    val handicapIndex: Double?,
+    val paceOfPlay: Int,
+    val isHost: Boolean
 )
 
 /** Mirrors the API's JoinRequestDto (api/TeeUp.Api/Dtos/JoinRequestDtos.cs). status: 0=Pending, 1=Accepted, 2=Declined. */

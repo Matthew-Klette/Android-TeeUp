@@ -24,6 +24,7 @@
         <activity android:name=".RegisterActivity" android:exported="false" />
         <activity android:name=".HomeActivity" android:exported="false" />
         <activity android:name=".RoundsActivity" android:exported="false" />
+        <activity android:name=".CreateGroupActivity" android:exported="false" />
         <activity android:name=".TeeTimeDetailActivity" android:exported="false" />
         <activity android:name=".CoursePreviewActivity" android:exported="false" />
         <activity android:name=".ScorecardActivity" android:exported="false" />

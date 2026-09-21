@@ -122,8 +122,17 @@
                 android:id="@+id/button_filter_skill"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/space_xl"
+                android:layout_marginBottom="@dimen/space_md"
                 android:text="@string/home_filter_skill" />
+
+            <!-- EME-311: persistent entry point, reachable whether or not groups already exist -->
+            <Button
+                android:id="@+id/button_create_group"
+                style="@style/TeeUpButton.Primary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_xl"
+                android:text="@string/home_create_group" />
 
             <!-- Results -->
             <TextView

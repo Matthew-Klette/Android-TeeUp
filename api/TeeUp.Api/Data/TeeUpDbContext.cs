@@ -50,6 +50,10 @@ public class TeeUpDbContext(DbContextOptions<TeeUpDbContext> options) : DbContex
             b.HasKey(t => t.Id);
             b.Property(t => t.Price).HasPrecision(8, 2);
             b.Property(t => t.Type).HasConversion<string>();
+            b.Property(t => t.WantedHandicapMin).HasPrecision(4, 1);
+            b.Property(t => t.WantedHandicapMax).HasPrecision(4, 1);
+            b.Property(t => t.WantedPace).HasConversion<string>();
+            b.Property(t => t.Status).HasConversion<string>().HasDefaultValue(TeeTimeStatus.Open);
             b.HasOne<User>()
                 .WithMany()
                 .HasForeignKey(t => t.HostUserId)
