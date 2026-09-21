@@ -9,3 +9,7 @@ public class NotFoundException(string message) : Exception(message);
 /// <summary>Caller is authenticated but not allowed to perform this action (EME-313: only a tee
 /// time's host may accept/decline its join requests). Mapped to 403 Forbidden.</summary>
 public class ForbiddenException(string message) : Exception(message);
+
+/// <summary>The request conflicts with existing state rather than being invalid on its own
+/// (EME-313: a duplicate pending/accepted join request). Mapped to 409 Conflict.</summary>
+public class ConflictException(string message) : Exception(message);

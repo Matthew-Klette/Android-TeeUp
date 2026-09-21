@@ -67,7 +67,7 @@ public class JoinRequestServiceTests
     }
 
     [Fact]
-    public async Task CreateAsync_WithExistingPendingRequest_ThrowsDomainValidation()
+    public async Task CreateAsync_WithExistingPendingRequest_ThrowsConflict()
     {
         var (service, teeTimes, _, _) = CreateService();
         var teeTime = MakeTeeTime(openSpots: 2);
@@ -75,7 +75,7 @@ public class JoinRequestServiceTests
         var guestId = Guid.NewGuid();
         await service.CreateAsync(teeTime.Id, guestId);
 
-        await Assert.ThrowsAsync<DomainValidationException>(
+        await Assert.ThrowsAsync<ConflictException>(
             () => service.CreateAsync(teeTime.Id, guestId));
     }
 
@@ -218,6 +218,13 @@ public class JoinRequestServiceTests
             () => service.UpdateStatusAsync(Guid.NewGuid(), JoinRequestStatus.Accepted, Guid.NewGuid()));
     }
 
+    /// <summary>
+    /// A fast sanity check that the lock exists and rejects a second accept once the first has
+    /// run — but the in-memory repositories complete every call synchronously (no real I/O to
+    /// yield on), so this can't prove the lock is what's enforcing it rather than incidental
+    /// ordering. <see cref="JoinRequestConcurrencyTests"/> (opt-in, real Postgres, separate
+    /// DbContexts) is the authoritative version of this test per the EME-313 review.
+    /// </summary>
     [Fact]
     public async Task UpdateStatusAsync_ConcurrentAcceptsForLastOpenSpot_ExactlyOneSucceeds()
     {
@@ -228,8 +235,14 @@ public class JoinRequestServiceTests
         var first = await service.CreateAsync(teeTime.Id, Guid.NewGuid());
         var second = await service.CreateAsync(teeTime.Id, Guid.NewGuid());
 
+        // Both racers are scheduled onto separate thread-pool threads and released together,
+        // rather than invoked inline as Task.WhenAll's arguments — otherwise a fully-synchronous
+        // first call could run start-to-finish before the second is even constructed.
+        var gate = new TaskCompletionSource();
+
         async Task<bool> TryAccept(Guid joinRequestId)
         {
+            await gate.Task;
             try
             {
                 await service.UpdateStatusAsync(joinRequestId, JoinRequestStatus.Accepted, hostId);
@@ -241,10 +254,46 @@ public class JoinRequestServiceTests
             }
         }
 
-        var results = await Task.WhenAll(TryAccept(first.Id), TryAccept(second.Id));
+        var taskA = Task.Run(() => TryAccept(first.Id));
+        var taskB = Task.Run(() => TryAccept(second.Id));
+        gate.SetResult();
+        var results = await Task.WhenAll(taskA, taskB);
 
         Assert.Single(results, succeeded => succeeded);
         Assert.Equal(TeeTimeStatus.Full, (await teeTimes.GetByIdAsync(teeTime.Id))!.Status);
+    }
+
+    [Fact]
+    public async Task UpdateStatusAsync_AcceptAndDeclineOnSameRequest_ExactlyOneSucceeds()
+    {
+        var (service, teeTimes, _, _) = CreateService();
+        var hostId = Guid.NewGuid();
+        var teeTime = MakeTeeTime(openSpots: 1, hostUserId: hostId);
+        await teeTimes.AddAsync(teeTime);
+        var joinRequest = await service.CreateAsync(teeTime.Id, Guid.NewGuid());
+
+        var gate = new TaskCompletionSource();
+
+        async Task<bool> TryUpdate(JoinRequestStatus status)
+        {
+            await gate.Task;
+            try
+            {
+                await service.UpdateStatusAsync(joinRequest.Id, status, hostId);
+                return true;
+            }
+            catch (DomainValidationException)
+            {
+                return false;
+            }
+        }
+
+        var acceptTask = Task.Run(() => TryUpdate(JoinRequestStatus.Accepted));
+        var declineTask = Task.Run(() => TryUpdate(JoinRequestStatus.Declined));
+        gate.SetResult();
+        var results = await Task.WhenAll(acceptTask, declineTask);
+
+        Assert.Single(results, succeeded => succeeded);
     }
 
     [Theory]

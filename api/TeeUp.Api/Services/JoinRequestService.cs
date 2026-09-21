@@ -10,7 +10,10 @@ namespace TeeUp.Api.Services;
 /// tee time or double-request one they already have a pending/accepted request against; a
 /// request can only leave "Pending" once, only by the tee time's host, and only into a tee time
 /// that's still open, uncancelled and in the future; and a host cannot accept more guests than a
-/// tee time has open spots — enforced even when two accepts race for the last spot.
+/// tee time has open spots. All three mutations (create, accept, decline) for a given tee time
+/// are serialized through <see cref="TeeTimeJoinLock"/> and re-read their state with
+/// <see cref="IRepository{T}.GetByIdFreshAsync"/> once inside it, so a caller can't act on a
+/// stale pre-lock read of state a concurrent caller already changed.
 /// </summary>
 public class JoinRequestService(
     IJoinRequestRepository joinRequestRepository,
@@ -32,11 +35,17 @@ public class JoinRequestService(
             throw new DomainValidationException("This tee time is no longer accepting join requests.");
         }
 
+        // Held across the duplicate-check-then-insert below: two near-simultaneous requests
+        // from the same guest must not both see "no existing request" before either commits
+        // (EME-313 review). This also means a request can't be created while an accept/decline
+        // for the same tee time is mid-flight, since that shares the same per-tee-time lock.
+        using var _ = await TeeTimeJoinLock.AcquireAsync(teeTimeId);
+
         var existingRequests = await joinRequestRepository.GetByTeeTimeIdAsync(teeTimeId);
         // A Declined request doesn't block re-requesting — matches Android's canRequestToJoin.
         if (existingRequests.Any(j => j.GuestUserId == guestUserId && j.Status != JoinRequestStatus.Declined))
         {
-            throw new DomainValidationException("You've already requested to join this tee time.");
+            throw new ConflictException("You've already requested to join this tee time.");
         }
 
         var joinRequest = new JoinRequest
@@ -53,10 +62,23 @@ public class JoinRequestService(
 
     public async Task<JoinRequestDto> UpdateStatusAsync(Guid joinRequestId, JoinRequestStatus status, Guid callerId)
     {
-        var joinRequest = await joinRequestRepository.GetByIdAsync(joinRequestId)
+        // Only needed to learn which tee time this request belongs to, so the right lock can
+        // be taken below — every decision is made from a fresh re-read once inside it, so a
+        // stale value here can't affect the outcome. Must stay untracked (GetByIdFreshAsync,
+        // not GetByIdAsync): EF would otherwise track this instance, and the later
+        // GetByIdFreshAsync + UpdateAsync on a second, detached instance with the same key
+        // fails ("another instance with the same key is already being tracked").
+        var lookup = await joinRequestRepository.GetByIdFreshAsync(joinRequestId)
             ?? throw new NotFoundException($"Join request {joinRequestId} not found.");
 
-        var teeTime = await teeTimeRepository.GetByIdAsync(joinRequest.TeeTimeId)
+        // Held for the whole read-check-write below: accept/decline calls racing on the same
+        // request, or two accepts racing for the last open spot, must not both pass their
+        // checks before either commits (EME-313 review) — see TeeTimeJoinLock's doc comment.
+        using var _ = await TeeTimeJoinLock.AcquireAsync(lookup.TeeTimeId);
+
+        var joinRequest = await joinRequestRepository.GetByIdFreshAsync(joinRequestId)
+            ?? throw new NotFoundException($"Join request {joinRequestId} not found.");
+        var teeTime = await teeTimeRepository.GetByIdFreshAsync(joinRequest.TeeTimeId)
             ?? throw new NotFoundException($"Tee time {joinRequest.TeeTimeId} not found.");
 
         if (teeTime.HostUserId != callerId)
@@ -72,22 +94,6 @@ public class JoinRequestService(
 
         if (status == JoinRequestStatus.Accepted)
         {
-            // Held for the whole read-check-write below: two near-simultaneous accepts for
-            // this tee time's last open spot must not both pass the capacity check before
-            // either commits (EME-313) — see TeeTimeAcceptLock's doc comment.
-            using var _ = await TeeTimeAcceptLock.AcquireAsync(teeTime.Id);
-
-            // Re-read: a sibling accept could have completed while this call waited for the lock.
-            joinRequest = await joinRequestRepository.GetByIdAsync(joinRequestId)
-                ?? throw new NotFoundException($"Join request {joinRequestId} not found.");
-            if (joinRequest.Status != JoinRequestStatus.Pending)
-            {
-                throw new DomainValidationException(
-                    $"Join request {joinRequestId} is already {joinRequest.Status} and cannot be changed.");
-            }
-
-            teeTime = await teeTimeRepository.GetByIdAsync(teeTime.Id)
-                ?? throw new NotFoundException($"Tee time {teeTime.Id} not found.");
             if (teeTime.Status == TeeTimeStatus.Cancelled || teeTime.DateTime <= DateTime.UtcNow)
             {
                 throw new DomainValidationException("This tee time can no longer accept new players.");

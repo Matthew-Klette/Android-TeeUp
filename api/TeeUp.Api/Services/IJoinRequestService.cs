@@ -7,8 +7,11 @@ public interface IJoinRequestService
 {
     /// <summary>
     /// Throws <see cref="TeeUp.Api.Common.DomainValidationException"/> if the tee time is the
-    /// caller's own, is cancelled/in the past, or the caller already has a pending/accepted
-    /// request against it (EME-313).
+    /// caller's own or is cancelled/in the past, or
+    /// <see cref="TeeUp.Api.Common.ConflictException"/> (409) if the caller already has a
+    /// pending/accepted request against it (EME-313). Two callers requesting at once are
+    /// serialized so neither can slip past the duplicate check (see
+    /// <see cref="TeeTimeJoinLock"/>).
     /// </summary>
     Task<JoinRequestDto> CreateAsync(Guid teeTimeId, Guid guestUserId);
 
@@ -17,7 +20,8 @@ public interface IJoinRequestService
     /// <see cref="TeeUp.Api.Common.ForbiddenException"/> (EME-313). Accepting into a
     /// full/cancelled/past group, or changing an already-decided request, throws
     /// <see cref="TeeUp.Api.Common.DomainValidationException"/>. Two callers racing to accept
-    /// the last open spot: exactly one succeeds (see <see cref="TeeTimeAcceptLock"/>).
+    /// the last open spot, or an accept racing a decline on the same request: exactly one
+    /// succeeds (see <see cref="TeeTimeJoinLock"/>).
     /// </summary>
     Task<JoinRequestDto> UpdateStatusAsync(Guid joinRequestId, JoinRequestStatus status, Guid callerId);
 

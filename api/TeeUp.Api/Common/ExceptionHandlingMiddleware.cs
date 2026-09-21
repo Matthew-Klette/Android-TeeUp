@@ -22,6 +22,10 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
         {
             await WriteProblem(context, HttpStatusCode.Forbidden, ex.Message);
         }
+        catch (ConflictException ex)
+        {
+            await WriteProblem(context, HttpStatusCode.Conflict, ex.Message);
+        }
         catch (Exception ex)
         {
             // EME-305 QA pass: anything not already a domain/not-found error (a bug, a DB
