@@ -196,6 +196,25 @@ public class JoinRequestServiceTests
     }
 
     [Fact]
+    public async Task UpdateStatusAsync_AcceptingIntoFullTeeTime_ThrowsDomainValidation()
+    {
+        var (service, teeTimes, _, _) = CreateService();
+        var hostId = Guid.NewGuid();
+        var teeTime = MakeTeeTime(openSpots: 2, hostUserId: hostId);
+        await teeTimes.AddAsync(teeTime);
+        var joinRequest = await service.CreateAsync(teeTime.Id, Guid.NewGuid());
+
+        // Marked Full without any accepted request (e.g. another path flipped the status) — the
+        // explicit status check must reject this on its own; the accepted-count comparison alone
+        // wouldn't, since only 0 of 2 spots are actually accepted.
+        teeTime.Status = TeeTimeStatus.Full;
+        await teeTimes.UpdateAsync(teeTime);
+
+        await Assert.ThrowsAsync<DomainValidationException>(
+            () => service.UpdateStatusAsync(joinRequest.Id, JoinRequestStatus.Accepted, hostId));
+    }
+
+    [Fact]
     public async Task UpdateStatusAsync_OnAlreadyResolvedRequest_ThrowsDomainValidation()
     {
         var (service, teeTimes, _, _) = CreateService();

@@ -94,7 +94,11 @@ public class JoinRequestService(
 
         if (status == JoinRequestStatus.Accepted)
         {
-            if (teeTime.Status == TeeTimeStatus.Cancelled || teeTime.DateTime <= DateTime.UtcNow)
+            // Explicitly reject anything but Open, not just Cancelled — a tee time can be Full
+            // without every join request against it being Accepted yet (e.g. another request was
+            // withdrawn after it filled), and the accepted-count check below alone wouldn't catch
+            // that (EME-313 review).
+            if (teeTime.Status != TeeTimeStatus.Open || teeTime.DateTime <= DateTime.UtcNow)
             {
                 throw new DomainValidationException("This tee time can no longer accept new players.");
             }
