@@ -1,6 +1,8 @@
 package com.teeup.android.data
 
 import com.teeup.android.BuildConfig
+import com.teeup.android.R
+import com.teeup.android.TeeUpApplication
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
 import org.json.JSONArray
@@ -202,7 +204,7 @@ object TeeUpApiClient {
             }
             return connection.inputStream.bufferedReader().use { it.readText() }
         } catch (e: IOException) {
-            throw ApiException("Could not connect. Check your connection and try again.")
+            throw ApiException(TeeUpApplication.appContext.getString(R.string.http_error_no_connection))
         } finally {
             connection.disconnect()
         }

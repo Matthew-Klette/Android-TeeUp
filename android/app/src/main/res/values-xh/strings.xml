@@ -103,25 +103,10 @@
 
     <!-- Scoreboard Screen -->
     <string name="scorecard_title">Ikhadi Lamanqaku</string>
-    <string name="scorecard_preview_notice">Umzekelo womjikelo wokujonga kwangaphambili. Ukubala amanqaku ngokwangoku kuyeza kungekudala.</string>
-    <string name="scorecard_sample_hole">IMBOBO 7 · PAR 4</string>
-
-    <string name="scorecard_distance_label">I-GPS UKUYA KUMHLAZA</string>
-    <string name="scorecard_sample_distance">152 m</string>
-    <string name="scorecard_map_label">IMEPHU YEMBOBO</string>
-    <string name="scorecard_map_placeholder">Ayikafumaneki okwangoku</string>
 
     <string name="scorecard_strokes">Iintshaya</string>
     <string name="scorecard_putts">Ii-Putt</string>
-    <string name="scorecard_sample_strokes">4</string>
-    <string name="scorecard_sample_putts">2</string>
 
-    <string name="scorecard_group_heading">IKHADI LAMANQAKU LEQELA</string>
-    <string name="scorecard_sample_player_two">Umdlali 2 · Kwimbobo 7</string>
-    <string name="scorecard_sample_player_three">Umdlali 3 · Kwimbobo 6</string>
-    <string name="scorecard_sample_player_four">Umdlali 4 · Kwimbobo 5</string>
-
-    <string name="scorecard_save_notice">Kukujonga kwangaphambili kuphela — amanqaku awagcinwa.</string>
     <string name="scorecard_next_hole">Imbobo Elandelayo / Gqiba Umjikelo</string>
 
     <!-- Notification Screen -->
@@ -235,4 +220,172 @@
     <string name="privacy_body_controls">Ungahlela okanye ucime amabala eprofayile yakho nangaliphi na ixesha ngaphantsi kweInkcukacha Zomntu / Inkcukacha Zokudlala, kwaye uphume ngezantsi. Ukucima iakhawunti ngaphakathi kwe-app akukafumaneki okwangoku — cela oko ngokuthe ngqo kwiqela okwangoku.</string>
     <string name="privacy_sign_out">Phuma</string>
     <string name="privacy_signing_out">Iyaphuma…</string>
+
+    <!-- Home Screen — inline filter labels/dialogs -->
+    <string name="home_filter_date_today">Umhla: Namhlanje</string>
+    <string name="home_filter_date_tomorrow">Umhla: Ngomso</string>
+    <string name="home_filter_players_min_format">Abadlali: %1$d+</string>
+    <string name="dialog_cancel">Rhoxisa</string>
+    <string name="filter_apply">Sebenzisa</string>
+    <string name="filter_cancel">Rhoxisa</string>
+    <string name="filter_clear">Sula</string>
+    <string name="filter_max_handicap_hint">I-handicap ephezulu (akunyanzelekanga)</string>
+    <string name="filter_pace_any">Nasiphi isantya</string>
+    <string name="filter_skill_title">Isakhono / Isantya</string>
+    <string name="home_filter_active">Isakhono / Isantya ✓</string>
+    <string name="home_empty_no_teetimes">Akukho maxesha okudlala akufuphi okwangoku</string>
+    <string name="home_empty_no_matches">Akukho maxesha okudlala afanelana nezihluzi zakho</string>
+    <string name="home_unknown_course">Ibala elingaziwayo</string>
+
+    <string-array name="home_date_filter_options">
+        <item>Yonke imihla</item>
+        <item>Namhlanje</item>
+        <item>Ngomso</item>
+    </string-array>
+
+    <string-array name="home_players_filter_options">
+        <item>Nayiphi na</item>
+        <item>Indawo evulekileyo eyi-1+</item>
+        <item>Iindawo ezivulekileyo ezi-2+</item>
+        <item>Iindawo ezivulekileyo ezi-3+</item>
+        <item>Iindawo ezivulekileyo ezi-4+</item>
+    </string-array>
+
+    <string-array name="month_abbreviations">
+        <item>Jan</item>
+        <item>Feb</item>
+        <item>Mat</item>
+        <item>Apr</item>
+        <item>Mey</item>
+        <item>Jun</item>
+        <item>Jul</item>
+        <item>Ago</item>
+        <item>Sep</item>
+        <item>Okt</item>
+        <item>Nov</item>
+        <item>Dis</item>
+    </string-array>
+
+    <!-- Formatting.kt fallbacks -->
+    <string name="date_unavailable">Umhla awufumaneki</string>
+    <string name="price_free">Simahla</string>
+
+    <!-- InputValidation.kt / TeeUpApiClient.kt — HTTP error messages -->
+    <string name="http_error_400">Ezinye iinkcukacha azisebenzi. Jonga izinto ozifakileyo uze uzame kwakhona.</string>
+    <string name="http_error_401">Nceda ungene kwakhona ukuze uqhubeke.</string>
+    <string name="http_error_403">Awunayo imvume yokwenza oko.</string>
+    <string name="http_error_404">Le nto ayisafumaneki.</string>
+    <string name="http_error_409">Le nto itshintshile. Yilayishe kwakhona phambi kokuba uzame kwakhona.</string>
+    <string name="http_error_429">Izicelo zininzi kakhulu. Linda umzuzwana uze uzame kwakhona.</string>
+    <string name="http_error_5xx">Inkonzo ayifumaneki okwangoku. Nceda uzame kwakhona kungekudala.</string>
+    <string name="http_error_default">Isicelo asikwazanga ukugqitywa. Nceda uzame kwakhona.</string>
+    <string name="http_error_no_connection">Ayikwazanga ukuxhuma. Jonga uxhulumano lwakho uze uzame kwakhona.</string>
+    <string name="invalid_round_date_format">Umhla ongasebenziyo womjikelo: %1$s</string>
+
+    <!-- app_name — brand name, unchanged across languages -->
+    <string name="app_name">TeeUp</string>
+    <string name="profile_details_summary">%1$s · %2$s</string>
+    <string name="profile_handicap_unset">Ayikabekwa i-handicap</string>
+    <string name="qa_load_failed">Ayikwazanga ukulayisha esi sikrini. Jonga uxhulumano lwakho uze uzame kwakhona.</string>
+    <string name="qa_sign_in_unavailable">Ukungena akufumaneki. Nceda uzame kwakhona.</string>
+
+    <string name="join_request_status_pending">Ilindile</string>
+    <string name="join_request_status_accepted">Yamkelwe</string>
+    <string name="join_request_status_declined">Yaliwe</string>
+    <string name="join_request_status_unknown">Ayaziwa</string>
+
+    <string name="notification_round_missing">Ixesha lokudlala elidibeneyo alifumaneki. Kuboniswa Imijikelo Yam.</string>
+    <string name="notification_unavailable">Esi saziso asinandawo ifumanekayo yokuya kuyo.</string>
+
+    <string name="register_error_name_required">Faka igama elibonisiweyo</string>
+    <string name="register_error_handicap_invalid">Faka i-handicap esebenzayo phakathi kuka-0 no-54, okanye uyishiye ingenanto</string>
+    <string name="register_error_save_failed">Ayikwazanga ukugcina iprofayile yakho — zama kwakhona</string>
+    <string name="signin_google_failed">Ukungena nge-Google akuphumelelanga — nceda uzame kwakhona</string>
+    <string name="signin_failed_generic">Ukungena akuphumelelanga — jonga uxhulumano lwakho uze uzame kwakhona</string>
+
+    <string name="rounds_date_error_fallback">Ayikwazanga ukufunda umhla womjikelo</string>
+    <string name="scorecard_load_failed">Ayikwazanga ukulayisha lo mjikelo</string>
+    <string name="scorecard_save_failed">Ayikwazanga ukugcina lo mjikelo</string>
+    <string name="summary_load_failed">Ayikwazanga ukulayisha lo mjikelo</string>
+
+    <!-- Rounds tab / Start a Round / Scorecard / Summary (previously untranslated) -->
+    <string name="rounds_upcoming">Ezayo</string>
+    <string name="rounds_history">Imbali</string>
+    <string name="rounds_loading">Ilayisha imijikelo yakho…</string>
+    <string name="rounds_load_failed">Ayikwazanga ukulayisha imijikelo yakho. Jonga uxhulumano lwakho uze uzame kwakhona.</string>
+    <string name="rounds_upcoming_empty">Akukho mijikelo ezayo. Fumana ixesha lokudlala kwiKhaya ukuze uqale.</string>
+    <string name="rounds_history_empty">Akukabikho mijikelo yangaphambili.</string>
+    <string name="rounds_unknown_course">Ibala alifumaneki</string>
+    <string name="rounds_view_details">Jonga ixesha lokudlala</string>
+    <string name="rounds_open_scorecard">Vula ukujonga ikhadi lamanqaku</string>
+    <string name="rounds_view_summary">Jonga isishwankathelo somjikelo</string>
+    <string name="rounds_browse">Jonga Imijikelo Yam</string>
+    <string name="rounds_start_round">Qalisa Umjikelo</string>
+    <string name="rounds_continue_round">Qhubeka noMjikelo</string>
+    <string name="rounds_not_started_yet">Akukaqaliswa</string>
+    <string name="rounds_start_a_round">Qalisa Umjikelo</string>
+    <string name="rounds_pick_course">Khetha ibala</string>
+    <string name="rounds_choose_holes">Zingaphi izimbobo?</string>
+    <string name="rounds_nine_holes">Izimbobo ezi-9</string>
+    <string name="rounds_eighteen_holes">Izimbobo ezingu-18</string>
+    <string name="rounds_no_courses">Amabala awakafumaneki okwangoku — jonga uxhulumano lwakho uze uzame kwakhona.</string>
+    <string name="rounds_start_solo_failed">Ayikwazanga ukuqalisa umjikelo</string>
+    <string name="scorecard_landing">Khetha umjikelo ozayo kwiMijikelo Yam ukuze uqale ukufaka amanqaku imbobo ngemvobo.</string>
+    <string name="summary_title">Isishwankathelo Somjikelo</string>
+    <string name="summary_preview">Amanani okugqibela alo mjikelo.</string>
+    <string name="summary_total_strokes">Iintshaya Zizonke</string>
+    <string name="summary_total_putts">Ii-Putt Zizonke</string>
+    <string name="summary_holes_played">Izimbobo ezidlaliweyo</string>
+    <string name="summary_hole_row_format">Imbobo %1$d — iintshaya ezi-%2$d, ii-putt ezi-%3$d</string>
+    <string name="summary_no_holes">Akukabikho zimbobo zibaliweyo kulo mjikelo.</string>
+    <string name="summary_done">Kugqityiwe</string>
+    <string name="round_reference">Ixesha lokudlala: %1$s</string>
+    <string name="round_missing">Akukho mjikelo ukhethiweyo. Buyela kwiMijikelo Yam ukhethe umjikelo.</string>
+    <string name="wireflow_back">Emva</string>
+    <string name="scorecard_summary_preview">Jonga isishwankathelo somjikelo</string>
+
+    <string name="scorecard_entry_notice">Faka inqaku lakho kwimbobo nganye, emva koko ugqibe umjikelo ukuze uyigcine kwikhadi lakho lamanqaku.</string>
+    <string name="scorecard_hole_heading">IMBOBO %1$d</string>
+    <string name="scorecard_strokes_hint">umz. 4</string>
+    <string name="scorecard_putts_hint">umz. 2</string>
+    <string name="scorecard_finish_round">Gqiba Umjikelo</string>
+    <string name="scorecard_finish_early">Gqiba umjikelo ngoku</string>
+    <string name="scorecard_progress_format">%1$d kwi-%2$d izimbobo zigciniwe kulo mjikelo</string>
+    <string name="scorecard_validation_error">Faka iintshaya (1 okanye ngaphezulu) needi-putt (0 ukuya kwiintshaya) kule mbobo.</string>
+    <string name="scorecard_finish_empty_error">Faka ubuncinane imbobo enye phambi kokugqiba umjikelo.</string>
+    <string name="scorecard_finish_success">Umjikelo ugciniwe.</string>
+    <string name="scorecard_missing_round">Akukho mjikelo ukhethiweyo. Khetha omnye kwiMijikelo Yam.</string>
+    <string name="scorecard_already_complete">Lo mjikelo sele unazo zonke izimbobo ezingu-18 ezibaliweyo.</string>
+
+    <!-- Tee Time Detail Screen (previously untranslated) -->
+    <string name="teetime_no_id">Akukho xesha lokudlala lichaziweyo</string>
+    <string name="teetime_loading">Ilayisha ixesha lokudlala...</string>
+    <string name="teetime_load_failed">Ayikwazanga ukulayisha eli xesha lokudlala</string>
+    <string name="teetime_not_found">Ixesha lokudlala alifumanekanga</string>
+    <string name="teetime_unknown_course">Ibala elingaziwayo</string>
+    <string name="teetime_subtitle_format">%1$d indawo evulekileyo · %2$s</string>
+    <string name="teetime_host_booking_no_host">Ukubhukisha — indawo egciniweyo, akufunwa mnini-ndlu</string>
+    <string name="teetime_host_open_no_host">Umjikelo ovuliweyo — akukabikho mnini-ndlu unikiweyo</string>
+    <string name="teetime_host_hosted">Umjikelo onomnini-ndlu</string>
+    <string name="teetime_host_subtitle_format">%1$d bamkelwe · %2$d balindile</string>
+    <string name="teetime_request_sent">Isicelo sithunyelwe</string>
+    <string name="teetime_request_to_join">Cela Ukudibana</string>
+    <string name="teetime_pending_waiting_format">%1$d balindile — cofa ukuvuma okanye ukwala</string>
+    <string name="teetime_pending_none">Akukho kulindileyo</string>
+    <string name="teetime_group_chat_tap_open">Cofa ukuze uvule</string>
+    <string name="teetime_group_chat_locked_subtitle">Ivula xa isicelo samkelwe</string>
+    <string name="teetime_group_chat_not_built">Incoko yeqela ayikenziwa okwangoku — akukho tikithi/iseva yayo.</string>
+    <string name="teetime_group_chat_locked_banner">Ivula xa isicelo sokudibana samkelwe</string>
+    <string name="teetime_sending">Iyathumela...</string>
+    <string name="teetime_signin_again">Nceda ungene kwakhona ukuze ucele ukudibana</string>
+    <string name="teetime_request_failed_fallback">Ayikwazanga ukuthumela isicelo</string>
+    <string name="teetime_no_join_requests">Akukabikho zicelo zokudibana.</string>
+    <string name="teetime_join_requests_title">Izicelo zokudibana</string>
+    <string name="teetime_close">Vala</string>
+    <string name="teetime_guest_status_format">Isindwendwe %1$s · %2$s</string>
+    <string name="teetime_accept">Yamkela</string>
+    <string name="teetime_decline">Yala</string>
+    <string name="teetime_updated">Ihlaziyiwe</string>
+    <string name="teetime_update_failed_fallback">Ayikwazanga ukuhlaziya isicelo</string>
+    <string name="teetime_course_unavailable">Iinkcukacha zebala azikafumaneki okwangoku</string>
 </resources>

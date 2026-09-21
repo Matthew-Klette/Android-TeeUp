@@ -91,7 +91,7 @@ class ScorecardActivity : LocaleActivity() {
                 runOnUiThread { onRoundLoaded(match, course, startHole, existingHoles.size) }
             } catch (e: Exception) {
                 runOnUiThread {
-                    TeeUpBanner.show(this, e.message ?: "Couldn't load this round", isError = true)
+                    TeeUpBanner.show(this, e.message ?: getString(R.string.scorecard_load_failed), isError = true)
                     finish()
                 }
             }
@@ -188,7 +188,7 @@ class ScorecardActivity : LocaleActivity() {
             } catch (e: Exception) {
                 runOnUiThread {
                     setLoading(false)
-                    TeeUpBanner.show(this, e.message ?: "Couldn't save this round", isError = true)
+                    TeeUpBanner.show(this, e.message ?: getString(R.string.scorecard_save_failed), isError = true)
                 }
             }
         }.start()

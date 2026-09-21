@@ -1,5 +1,8 @@
 package com.teeup.android.data
 
+import android.content.Context
+import com.teeup.android.R
+
 /** Mirrors the API's CourseDto (api/TeeUp.Api/Dtos/CourseDtos.cs). */
 data class Course(
     val id: String,
@@ -33,12 +36,12 @@ object JoinRequestStatus {
     const val ACCEPTED = 1
     const val DECLINED = 2
 
-    fun label(status: Int): String = when (status) {
-        PENDING -> "Pending"
-        ACCEPTED -> "Accepted"
-        DECLINED -> "Declined"
-        else -> "Unknown"
-    }
+    fun label(context: Context, status: Int): String = context.getString(when (status) {
+        PENDING -> R.string.join_request_status_pending
+        ACCEPTED -> R.string.join_request_status_accepted
+        DECLINED -> R.string.join_request_status_declined
+        else -> R.string.join_request_status_unknown
+    })
 }
 
 /**

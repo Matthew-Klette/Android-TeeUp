@@ -103,25 +103,10 @@
 
     <!-- Scoreboard Screen -->
     <string name="scorecard_title">Telkaart</string>
-    <string name="scorecard_preview_notice">Voorbeeldrondte-voorskou. Intydse telling kom binnekort.</string>
-    <string name="scorecard_sample_hole">GAT 7 · PAR 4</string>
-
-    <string name="scorecard_distance_label">GPS NA GROEN</string>
-    <string name="scorecard_sample_distance">152 m</string>
-    <string name="scorecard_map_label">GATKAART</string>
-    <string name="scorecard_map_placeholder">Nog nie beskikbaar nie</string>
 
     <string name="scorecard_strokes">Houe</string>
     <string name="scorecard_putts">Putte</string>
-    <string name="scorecard_sample_strokes">4</string>
-    <string name="scorecard_sample_putts">2</string>
 
-    <string name="scorecard_group_heading">GROEP TELKAART</string>
-    <string name="scorecard_sample_player_two">Speler 2 · Deur gat 7</string>
-    <string name="scorecard_sample_player_three">Speler 3 · Deur gat 6</string>
-    <string name="scorecard_sample_player_four">Speler 4 · Deur gat 5</string>
-
-    <string name="scorecard_save_notice">Slegs voorskou — tellings word nie gestoor nie.</string>
     <string name="scorecard_next_hole">Volgende Gat / Voltooi Rondte</string>
 
     <!-- Notification Screen -->
@@ -235,4 +220,172 @@
     <string name="privacy_body_controls">Jy kan jou profielvelde enige tyd wysig of uitvee onder Persoonlike Besonderhede / Spelbesonderhede, en hieronder afmeld. Rekeninguitvee binne die app is nog nie beskikbaar nie — versoek dit intussen direk van die span.</string>
     <string name="privacy_sign_out">Meld Af</string>
     <string name="privacy_signing_out">Meld tans af…</string>
+
+    <!-- Home Screen — inline filter labels/dialogs -->
+    <string name="home_filter_date_today">Datum: Vandag</string>
+    <string name="home_filter_date_tomorrow">Datum: Môre</string>
+    <string name="home_filter_players_min_format">Spelers: %1$d+</string>
+    <string name="dialog_cancel">Kanselleer</string>
+    <string name="filter_apply">Toepas</string>
+    <string name="filter_cancel">Kanselleer</string>
+    <string name="filter_clear">Maak skoon</string>
+    <string name="filter_max_handicap_hint">Maks. voorgee (opsioneel)</string>
+    <string name="filter_pace_any">Enige tempo</string>
+    <string name="filter_skill_title">Vaardigheid / Tempo</string>
+    <string name="home_filter_active">Vaardigheid / Tempo ✓</string>
+    <string name="home_empty_no_teetimes">Geen afslaantye naby op die oomblik nie</string>
+    <string name="home_empty_no_matches">Geen afslaantye pas by jou filters nie</string>
+    <string name="home_unknown_course">Onbekende baan</string>
+
+    <string-array name="home_date_filter_options">
+        <item>Alle datums</item>
+        <item>Vandag</item>
+        <item>Môre</item>
+    </string-array>
+
+    <string-array name="home_players_filter_options">
+        <item>Enige</item>
+        <item>1+ oop plek</item>
+        <item>2+ oop plekke</item>
+        <item>3+ oop plekke</item>
+        <item>4+ oop plekke</item>
+    </string-array>
+
+    <string-array name="month_abbreviations">
+        <item>Jan</item>
+        <item>Feb</item>
+        <item>Mrt</item>
+        <item>Apr</item>
+        <item>Mei</item>
+        <item>Jun</item>
+        <item>Jul</item>
+        <item>Aug</item>
+        <item>Sep</item>
+        <item>Okt</item>
+        <item>Nov</item>
+        <item>Des</item>
+    </string-array>
+
+    <!-- Formatting.kt fallbacks -->
+    <string name="date_unavailable">Datum onbeskikbaar</string>
+    <string name="price_free">Gratis</string>
+
+    <!-- InputValidation.kt / TeeUpApiClient.kt — HTTP error messages -->
+    <string name="http_error_400">Party besonderhede is ongeldig. Kontroleer jou inskrywings en probeer weer.</string>
+    <string name="http_error_401">Meld asseblief weer aan om voort te gaan.</string>
+    <string name="http_error_403">Jy het nie toestemming om dit te doen nie.</string>
+    <string name="http_error_404">Hierdie item is nie meer beskikbaar nie.</string>
+    <string name="http_error_409">Hierdie item het verander. Herlaai dit voor jy weer probeer.</string>
+    <string name="http_error_429">Te veel versoeke. Wag \'n oomblik en probeer weer.</string>
+    <string name="http_error_5xx">Die diens is nie beskikbaar nie. Probeer asseblief binnekort weer.</string>
+    <string name="http_error_default">Die versoek kon nie voltooi word nie. Probeer asseblief weer.</string>
+    <string name="http_error_no_connection">Kon nie verbind nie. Kontroleer jou verbinding en probeer weer.</string>
+    <string name="invalid_round_date_format">Ongeldige rondte-datum: %1$s</string>
+
+    <!-- app_name — brand name, unchanged across languages -->
+    <string name="app_name">TeeUp</string>
+    <string name="profile_details_summary">%1$s · %2$s</string>
+    <string name="profile_handicap_unset">Geen voorgee gestel nie</string>
+    <string name="qa_load_failed">Kon nie hierdie skerm laai nie. Kontroleer jou verbinding en probeer weer.</string>
+    <string name="qa_sign_in_unavailable">Aanmelding is nie beskikbaar nie. Probeer asseblief weer.</string>
+
+    <string name="join_request_status_pending">Hangend</string>
+    <string name="join_request_status_accepted">Aanvaar</string>
+    <string name="join_request_status_declined">Geweier</string>
+    <string name="join_request_status_unknown">Onbekend</string>
+
+    <string name="notification_round_missing">Die gekoppelde afslaantyd is nie beskikbaar nie. Wys My Rondtes.</string>
+    <string name="notification_unavailable">Hierdie kennisgewing het geen beskikbare bestemming nie.</string>
+
+    <string name="register_error_name_required">Voer \'n vertoonnaam in</string>
+    <string name="register_error_handicap_invalid">Voer \'n geldige voorgee tussen 0 en 54 in, of los dit leeg</string>
+    <string name="register_error_save_failed">Kon nie jou profiel stoor nie — probeer weer</string>
+    <string name="signin_google_failed">Google-aanmelding het misluk — probeer asseblief weer</string>
+    <string name="signin_failed_generic">Aanmelding het misluk — kontroleer jou verbinding en probeer weer</string>
+
+    <string name="rounds_date_error_fallback">Kon nie \'n rondte se datum lees nie</string>
+    <string name="scorecard_load_failed">Kon nie hierdie rondte laai nie</string>
+    <string name="scorecard_save_failed">Kon nie hierdie rondte stoor nie</string>
+    <string name="summary_load_failed">Kon nie hierdie rondte laai nie</string>
+
+    <!-- Rounds tab / Start a Round / Scorecard / Summary (previously untranslated) -->
+    <string name="rounds_upcoming">Komende</string>
+    <string name="rounds_history">Geskiedenis</string>
+    <string name="rounds_loading">Laai jou rondtes…</string>
+    <string name="rounds_load_failed">Kon nie jou rondtes laai nie. Kontroleer jou verbinding en probeer weer.</string>
+    <string name="rounds_upcoming_empty">Geen komende rondtes nie. Vind \'n afslaantyd op Tuis om te begin.</string>
+    <string name="rounds_history_empty">Nog geen vorige rondtes nie.</string>
+    <string name="rounds_unknown_course">Baan onbeskikbaar</string>
+    <string name="rounds_view_details">Bekyk afslaantyd</string>
+    <string name="rounds_open_scorecard">Maak telkaartvoorskou oop</string>
+    <string name="rounds_view_summary">Bekyk rondte-opsomming</string>
+    <string name="rounds_browse">Bekyk My Rondtes</string>
+    <string name="rounds_start_round">Begin Rondte</string>
+    <string name="rounds_continue_round">Gaan voort met Rondte</string>
+    <string name="rounds_not_started_yet">Nog nie begin nie</string>
+    <string name="rounds_start_a_round">Begin \'n Rondte</string>
+    <string name="rounds_pick_course">Kies \'n baan</string>
+    <string name="rounds_choose_holes">Hoeveel putjies?</string>
+    <string name="rounds_nine_holes">9 putjies</string>
+    <string name="rounds_eighteen_holes">18 putjies</string>
+    <string name="rounds_no_courses">Bane is nog nie beskikbaar nie — kontroleer jou verbinding en probeer weer.</string>
+    <string name="rounds_start_solo_failed">Kon nie \'n rondte begin nie</string>
+    <string name="scorecard_landing">Kies \'n komende rondte vanaf My Rondtes om tellings putjie-vir-putjie in te voer.</string>
+    <string name="summary_title">Rondte-opsomming</string>
+    <string name="summary_preview">Finale totale vir hierdie rondte.</string>
+    <string name="summary_total_strokes">Totale houe</string>
+    <string name="summary_total_putts">Totale putte</string>
+    <string name="summary_holes_played">Putjies gespeel</string>
+    <string name="summary_hole_row_format">Putjie %1$d — %2$d houe, %3$d putte</string>
+    <string name="summary_no_holes">Nog geen putjies vir hierdie rondte aangeteken nie.</string>
+    <string name="summary_done">Klaar</string>
+    <string name="round_reference">Afslaantyd: %1$s</string>
+    <string name="round_missing">Geen rondte gekies nie. Gaan terug na My Rondtes en kies \'n rondte.</string>
+    <string name="wireflow_back">Terug</string>
+    <string name="scorecard_summary_preview">Bekyk rondte-opsomming</string>
+
+    <string name="scorecard_entry_notice">Voer jou telling vir elke putjie in, en voltooi dan die rondte om dit op jou telkaart te stoor.</string>
+    <string name="scorecard_hole_heading">PUTJIE %1$d</string>
+    <string name="scorecard_strokes_hint">bv. 4</string>
+    <string name="scorecard_putts_hint">bv. 2</string>
+    <string name="scorecard_finish_round">Voltooi Rondte</string>
+    <string name="scorecard_finish_early">Voltooi rondte nou</string>
+    <string name="scorecard_progress_format">%1$d van %2$d putjies gestoor hierdie rondte</string>
+    <string name="scorecard_validation_error">Voer houe (1 of meer) en putte (0 tot houe) vir hierdie putjie in.</string>
+    <string name="scorecard_finish_empty_error">Voer minstens een putjie in voordat jy die rondte voltooi.</string>
+    <string name="scorecard_finish_success">Rondte gestoor.</string>
+    <string name="scorecard_missing_round">Geen rondte gekies nie. Kies een vanaf My Rondtes.</string>
+    <string name="scorecard_already_complete">Hierdie rondte het reeds al 18 putjies aangeteken.</string>
+
+    <!-- Tee Time Detail Screen (previously untranslated) -->
+    <string name="teetime_no_id">Geen afslaantyd is gespesifiseer nie</string>
+    <string name="teetime_loading">Laai afslaantyd...</string>
+    <string name="teetime_load_failed">Kon nie hierdie afslaantyd laai nie</string>
+    <string name="teetime_not_found">Afslaantyd nie gevind nie</string>
+    <string name="teetime_unknown_course">Onbekende baan</string>
+    <string name="teetime_subtitle_format">%1$d plek(ke) oop · %2$s</string>
+    <string name="teetime_host_booking_no_host">Bespreking — gereserveerde plek, geen gasheer nodig nie</string>
+    <string name="teetime_host_open_no_host">Oop rondte — nog geen gasheer toegewys nie</string>
+    <string name="teetime_host_hosted">Gasheer-rondte</string>
+    <string name="teetime_host_subtitle_format">%1$d aanvaar · %2$d hangend</string>
+    <string name="teetime_request_sent">Versoek gestuur</string>
+    <string name="teetime_request_to_join">Versoek om Aan te Sluit</string>
+    <string name="teetime_pending_waiting_format">%1$d wag — tik om goed te keur of te weier</string>
+    <string name="teetime_pending_none">Geen hangend nie</string>
+    <string name="teetime_group_chat_tap_open">Tik om oop te maak</string>
+    <string name="teetime_group_chat_locked_subtitle">Maak oop sodra \'n versoek aanvaar is</string>
+    <string name="teetime_group_chat_not_built">Groepklets is nog nie gebou nie — geen kaartjie/bediener daarvoor nie.</string>
+    <string name="teetime_group_chat_locked_banner">Maak oop sodra \'n aansluitversoek aanvaar is</string>
+    <string name="teetime_sending">Stuur tans...</string>
+    <string name="teetime_signin_again">Meld asseblief weer aan om aan te sluit te versoek</string>
+    <string name="teetime_request_failed_fallback">Kon nie die versoek stuur nie</string>
+    <string name="teetime_no_join_requests">Nog geen aansluitversoeke nie.</string>
+    <string name="teetime_join_requests_title">Aansluitversoeke</string>
+    <string name="teetime_close">Maak toe</string>
+    <string name="teetime_guest_status_format">Gas %1$s · %2$s</string>
+    <string name="teetime_accept">Aanvaar</string>
+    <string name="teetime_decline">Weier</string>
+    <string name="teetime_updated">Opgedateer</string>
+    <string name="teetime_update_failed_fallback">Kon nie die versoek opdateer nie</string>
+    <string name="teetime_course_unavailable">Baanbesonderhede is nog nie beskikbaar nie</string>
 </resources>

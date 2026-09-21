@@ -102,7 +102,7 @@ class RoundsActivity : LocaleActivity() {
         val rounds = try {
             selectRounds(schedule, showHistory, System.currentTimeMillis())
         } catch (e: IllegalArgumentException) {
-            TeeUpBanner.show(this, e.message ?: "Couldn't read a round's date", isError = true)
+            TeeUpBanner.show(this, e.message ?: getString(R.string.rounds_date_error_fallback), isError = true)
             emptyList()
         }
 

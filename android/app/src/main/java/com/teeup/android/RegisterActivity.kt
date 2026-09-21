@@ -80,7 +80,7 @@ class RegisterActivity : LocaleActivity() {
     private fun onContinueClicked() {
         val displayName = nameInput.text.toString().trim()
         if (displayName.isEmpty()) {
-            TeeUpBanner.show(this, "Enter a display name", isError = true)
+            TeeUpBanner.show(this, getString(R.string.register_error_name_required), isError = true)
             return
         }
 
@@ -89,7 +89,7 @@ class RegisterActivity : LocaleActivity() {
             handicapText.isEmpty() -> null
             else -> handicapText.toDoubleOrNull()?.takeIf { it in 0.0..54.0 }
                 ?: run {
-                    TeeUpBanner.show(this, "Enter a valid handicap between 0 and 54, or leave it blank", isError = true)
+                    TeeUpBanner.show(this, getString(R.string.register_error_handicap_invalid), isError = true)
                     return
                 }
         }
@@ -121,7 +121,7 @@ class RegisterActivity : LocaleActivity() {
                 runOnUiThread {
                     continueButton.isEnabled = true
                     continueButton.setText(R.string.register_continue)
-                    TeeUpBanner.show(this, e.message ?: "Couldn't save your profile — try again", isError = true)
+                    TeeUpBanner.show(this, e.message ?: getString(R.string.register_error_save_failed), isError = true)
                 }
             }
         }.start()

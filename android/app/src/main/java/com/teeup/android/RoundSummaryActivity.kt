@@ -70,7 +70,7 @@ class RoundSummaryActivity : LocaleActivity() {
             } catch (e: Exception) {
                 runOnUiThread {
                     findViewById<View>(R.id.summary_progress).visibility = View.GONE
-                    TeeUpBanner.show(this, e.message ?: "Couldn't load this round", isError = true)
+                    TeeUpBanner.show(this, e.message ?: getString(R.string.summary_load_failed), isError = true)
                 }
             }
         }.start()

@@ -35,4 +35,62 @@
     <string name="notification_unavailable">This notification has no available destination.</string>
     <string name="notification_round_missing">The linked tee time is unavailable. Showing My Rounds.</string>
     <string name="scorecard_summary_preview">View round summary</string>
+
+    <!-- Home Screen — inline filter labels/dialogs -->
+    <string name="home_filter_date_today">Date: Today</string>
+    <string name="home_filter_date_tomorrow">Date: Tomorrow</string>
+    <string name="home_filter_players_min_format">Players: %1$d+</string>
+    <string name="dialog_cancel">Cancel</string>
+    <string name="home_empty_no_teetimes">No tee times nearby right now</string>
+    <string name="home_empty_no_matches">No tee times match your filters</string>
+    <string name="home_unknown_course">Unknown course</string>
+
+    <!-- Tee Time Detail Screen -->
+    <string name="teetime_no_id">No tee time was specified</string>
+    <string name="teetime_not_found">Tee time not found</string>
+    <string name="join_request_status_pending">Pending</string>
+    <string name="join_request_status_accepted">Accepted</string>
+    <string name="join_request_status_declined">Declined</string>
+    <string name="join_request_status_unknown">Unknown</string>
+    <string name="teetime_loading">Loading tee time...</string>
+    <string name="teetime_load_failed">Couldn\'t load this tee time</string>
+    <string name="teetime_unknown_course">Unknown course</string>
+    <string name="teetime_subtitle_format">%1$d spot(s) open · %2$s</string>
+    <string name="teetime_host_booking_no_host">Booking — reserved slot, no host required</string>
+    <string name="teetime_host_open_no_host">Open round — no host assigned yet</string>
+    <string name="teetime_host_hosted">Hosted round</string>
+    <string name="teetime_host_subtitle_format">%1$d accepted · %2$d pending</string>
+    <string name="teetime_request_sent">Request sent</string>
+    <string name="teetime_request_to_join">Request to Join</string>
+    <string name="teetime_pending_waiting_format">%1$d waiting — tap to approve or decline</string>
+    <string name="teetime_pending_none">None pending</string>
+    <string name="teetime_group_chat_tap_open">Tap to open</string>
+    <string name="teetime_group_chat_locked_subtitle">Opens once a request is accepted</string>
+    <string name="teetime_group_chat_not_built">Group chat isn\'t built yet — no ticket/backend for it.</string>
+    <string name="teetime_group_chat_locked_banner">Opens once a join request is accepted</string>
+    <string name="teetime_sending">Sending...</string>
+    <string name="teetime_signin_again">Please sign in again to request to join</string>
+    <string name="teetime_request_failed_fallback">Couldn\'t send the request</string>
+    <string name="teetime_no_join_requests">No join requests yet.</string>
+    <string name="teetime_join_requests_title">Join requests</string>
+    <string name="teetime_close">Close</string>
+    <string name="teetime_guest_status_format">Guest %1$s · %2$s</string>
+    <string name="teetime_accept">Accept</string>
+    <string name="teetime_decline">Decline</string>
+    <string name="teetime_updated">Updated</string>
+    <string name="teetime_update_failed_fallback">Couldn\'t update the request</string>
+    <string name="teetime_course_unavailable">Course details aren\'t available yet</string>
+
+    <!-- Register / Sign In error fallbacks -->
+    <string name="register_error_name_required">Enter a display name</string>
+    <string name="register_error_handicap_invalid">Enter a valid handicap between 0 and 54, or leave it blank</string>
+    <string name="register_error_save_failed">Couldn\'t save your profile — try again</string>
+    <string name="signin_google_failed">Google sign-in failed — please try again</string>
+    <string name="signin_failed_generic">Sign-in failed — check your connection and try again</string>
+
+    <!-- Rounds / Scorecard / Summary error fallbacks -->
+    <string name="rounds_date_error_fallback">Couldn\'t read a round\'s date</string>
+    <string name="scorecard_load_failed">Couldn\'t load this round</string>
+    <string name="scorecard_save_failed">Couldn\'t save this round</string>
+    <string name="summary_load_failed">Couldn\'t load this round</string>
 </resources>

@@ -73,7 +73,7 @@ class SignInActivity : LocaleActivity() {
             // The user backing out of the Google chooser isn't a failure worth surfacing.
             if (e.statusCode != GoogleSignInStatusCodes.SIGN_IN_CANCELLED) {
                 Log.w(tag, "Google sign-in failed: ${e.statusCode}", e)
-                TeeUpBanner.show(this, "Google sign-in failed — please try again", isError = true)
+                TeeUpBanner.show(this, getString(R.string.signin_google_failed), isError = true)
             }
         }
     }
@@ -88,7 +88,7 @@ class SignInActivity : LocaleActivity() {
                 Log.w(tag, "Firebase sign-in failed", e)
                 runOnUiThread {
                     resetGoogleButton()
-                    TeeUpBanner.show(this, "Sign-in failed — check your connection and try again", isError = true)
+                    TeeUpBanner.show(this, getString(R.string.signin_failed_generic), isError = true)
                 }
             }
         }.start()

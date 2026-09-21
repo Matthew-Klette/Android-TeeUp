@@ -8,7 +8,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="TeeUp"
+        android:text="@string/app_name"
         android:textColor="@color/teeup_text_primary"
         android:textSize="28sp"
         android:textStyle="bold" />
