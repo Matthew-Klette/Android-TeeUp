@@ -79,6 +79,12 @@ object TeeUpApiClient {
         return parseRegisteredUser(JSONObject(request("POST", "api/auth/register", body)))
     }
 
+    /** GET /api/profiles/me — the current profile with no register side effect, so a
+     *  screen that only needs to *read* (e.g. NotificationPreferencesActivity, EME-318)
+     *  doesn't have to piggyback on the register call the way Personal/Playing Details do. */
+    fun fetchProfile(): RegisteredUser =
+        parseRegisteredUser(JSONObject(request("GET", "api/profiles/me")))
+
     /**
      * PATCH /api/profiles/me. `homeCourseId`/`handicapIndex` null means "leave unset";
      * `paceOfPlay` is the PaceOfPlay enum ordinal (0=Relaxed, 1=Standard, 2=Brisk).
@@ -96,6 +102,22 @@ object TeeUpApiClient {
             .put("homeCourseId", homeCourseId)
             .put("paceOfPlay", paceOfPlay)
             .put("profileComplete", profileComplete)
+        return parseRegisteredUser(JSONObject(request("PATCH", "api/profiles/me", body)))
+    }
+
+    /** PATCH /api/profiles/me with only a notification-preference field set. Every parameter
+     *  defaults to null ("leave unset"), and the backend leaves a null/omitted field exactly
+     *  as it was (see UpdateProfileRequest's doc comment) — so unlike [updateProfile], this
+     *  never needs the caller to first fetch and resend fields it isn't changing. */
+    fun updateNotificationPreference(
+        joinRequestNotifications: Boolean? = null,
+        teeTimeReminders: Boolean? = null,
+        weatherAlerts: Boolean? = null
+    ): RegisteredUser {
+        val body = JSONObject()
+        joinRequestNotifications?.let { body.put("joinRequestNotifications", it) }
+        teeTimeReminders?.let { body.put("teeTimeReminders", it) }
+        weatherAlerts?.let { body.put("weatherAlerts", it) }
         return parseRegisteredUser(JSONObject(request("PATCH", "api/profiles/me", body)))
     }
 
@@ -142,7 +164,10 @@ object TeeUpApiClient {
         handicapIndex = if (o.isNull("handicapIndex")) null else o.getDouble("handicapIndex"),
         homeCourseId = if (o.isNull("homeCourseId")) null else o.getString("homeCourseId"),
         paceOfPlay = o.getInt("paceOfPlay"),
-        profileComplete = o.getBoolean("profileComplete")
+        profileComplete = o.getBoolean("profileComplete"),
+        joinRequestNotifications = o.getBoolean("joinRequestNotifications"),
+        teeTimeReminders = o.getBoolean("teeTimeReminders"),
+        weatherAlerts = o.getBoolean("weatherAlerts")
     )
 
     private fun parseCourse(o: JSONObject) = Course(

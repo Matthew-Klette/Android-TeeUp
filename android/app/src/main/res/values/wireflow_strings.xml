@@ -34,6 +34,8 @@
     <string name="wireflow_back">Back</string>
     <string name="notification_unavailable">This notification has no available destination.</string>
     <string name="notification_round_missing">The linked tee time is unavailable. Showing My Rounds.</string>
+    <string name="notifications_load_failed">Could not load your notifications. Check your connection and retry.</string>
+    <string name="notifications_empty">No notifications yet.</string>
     <string name="scorecard_summary_preview">View round summary</string>
 
     <!-- Home Screen — inline filter labels/dialogs -->

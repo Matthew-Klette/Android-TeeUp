@@ -112,23 +112,6 @@
     <string name="notifications_title">Izaziso</string>
     <string name="notifications_back">Buyela umva</string>
     <string name="notifications_back_symbol">←</string>
-    <string name="notifications_preview_notice">Izaziso zomzekelo. Uhlaziyo ngokwangoku luyeza kungekudala.</string>
-
-    <string name="notifications_today">NAMHLANJE</string>
-    <string name="notifications_yesterday">IZOLO</string>
-
-    <string name="notifications_join_title">Isicelo Esitsha Sokudibana</string>
-    <string name="notifications_join_body">Yomjikelo wakho we-07:40 e-Fancourt</string>
-
-    <string name="notifications_accepted_title">Isicelo Samkelwe</string>
-    <string name="notifications_accepted_body">Uqala emva kweeyure ezi-2</string>
-
-    <string name="notifications_sync_title">Isikhumbuzo Sokuvumelanisa</string>
-    <string name="notifications_sync_body">Umjikelo omnye ongaxhunyiwe ulindile</string>
-
-    <string name="notifications_weather_title">Isilumkiso Semozulu</string>
-    <string name="notifications_weather_body">Kulindeleke imvula e-Humewood GC</string>
-
     <!-- Shared across Personal/Playing Details -->
     <string name="profile_load_signed_out">Kufuneka ungene ukuze ubone oku</string>
     <string name="profile_load_error_fallback">Ayikwazanga ukulayisha iprofayile yakho</string>
@@ -153,8 +136,9 @@
 
     <!-- Notification Preferences Screen -->
     <string name="notification_prefs_title">Uluhlu Lwezaziso</string>
-    <string name="notification_prefs_subtitle">Khetha oko kubonakala kwisikrini sakho Sezaziso. Kugcinwe kule divayisi kuphela — akukabikho ukuvumelanisa kweenketho secaleni leseva okwangoku.</string>
+    <string name="notification_prefs_subtitle">Iinketho zesicelo sokudibana, isikhumbuzo sexesha lokudlala, nemozulu ziyavumelana negunya lakho kwaye zisebenza kuyo nayiphi na idivayisi ongena kuyo. Izikhumbuzo zokuvumelanisa zigcinwa kule divayisi kuphela.</string>
     <string name="notification_category_join_request">Izicelo ezitsha zokudibana</string>
+    <string name="notification_pref_join_updates">Uhlaziyo lwesicelo sokudibana</string>
     <string name="notification_category_accepted">Izicelo ezamkelweyo</string>
     <string name="notification_category_declined">Izicelo ezaliweyo</string>
     <string name="notification_category_reminder">Izikhumbuzo zexesha lokudlala</string>
@@ -295,6 +279,8 @@
 
     <string name="notification_round_missing">Ixesha lokudlala elidibeneyo alifumaneki. Kuboniswa Imijikelo Yam.</string>
     <string name="notification_unavailable">Esi saziso asinandawo ifumanekayo yokuya kuyo.</string>
+    <string name="notifications_load_failed">Ayikwazanga ukulayisha izaziso zakho. Jonga uxhulumano lwakho uze uzame kwakhona.</string>
+    <string name="notifications_empty">Akukabikho zaziso okwangoku.</string>
 
     <string name="register_error_name_required">Faka igama elibonisiweyo</string>
     <string name="register_error_handicap_invalid">Faka i-handicap esebenzayo phakathi kuka-0 no-54, okanye uyishiye ingenanto</string>
