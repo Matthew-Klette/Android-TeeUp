@@ -69,6 +69,14 @@
     <string name="home_filter_datetime">Date / Time</string>
     <string name="home_filter_players">Players 1–4</string>
     <string name="home_filter_skill">Skill / Pace Filter</string>
+    <string name="home_filter_active">Skill / Pace ✓</string>
+
+    <string name="filter_skill_title">Skill / Pace</string>
+    <string name="filter_max_handicap_hint">Max handicap (optional)</string>
+    <string name="filter_pace_any">Any pace</string>
+    <string name="filter_apply">Apply</string>
+    <string name="filter_clear">Clear</string>
+    <string name="filter_cancel">Cancel</string>
 
     <string name="home_results_heading">NEARBY</string>
     <string name="home_loading">Loading nearby tee times…</string>

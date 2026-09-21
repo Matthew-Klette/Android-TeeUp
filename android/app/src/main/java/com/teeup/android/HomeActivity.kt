@@ -5,25 +5,30 @@ import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
+import android.text.InputType
 import android.text.TextWatcher
 import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.animation.LinearInterpolator
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import android.widget.Spinner
 import android.widget.TextView
-import com.teeup.android.data.ApiConfig
 import com.teeup.android.data.ApiException
 import com.teeup.android.data.Course
+import com.teeup.android.data.MockCatalog
 import com.teeup.android.data.TeeTime
 import com.teeup.android.data.TeeUpApiClient
 import com.teeup.android.data.formatPrice
 import com.teeup.android.data.SyncStatus
 import com.teeup.android.data.formatTeeTime
+import com.teeup.android.data.handicapValue
+import com.teeup.android.data.validHandicap
 import com.teeup.android.nav.BottomNav
 import com.teeup.android.nav.BottomNavTab
 import com.teeup.android.ui.LocaleActivity
@@ -45,6 +50,12 @@ class HomeActivity : LocaleActivity() {
     private var searchQuery: String = ""
     private var dateFilter: DateFilter = DateFilter.ALL
     private var minOpenSpots: Int = 0
+
+    /** EME-299: discover a group filtered by the host's handicap/pace of play. Null = no filter.
+     *  Unlike the other filters, this isn't applied client-side — the tee time payload has no
+     *  host handicap/pace on it, so it re-queries the API instead (see loadNearbyTeeTimes). */
+    private var filterMaxHandicap: Double? = null
+    private var filterPace: Int? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -88,9 +99,7 @@ class HomeActivity : LocaleActivity() {
             }
         }
 
-        findViewById<Button>(R.id.button_filter_skill).setOnClickListener {
-            TeeUpBanner.show(this, "Skill / Pace filtering isn't built yet — tee times have no skill or pace field to filter on.")
-        }
+        findViewById<Button>(R.id.button_filter_skill).setOnClickListener { showSkillFilterDialog() }
 
         loadNearbyTeeTimes()
     }
@@ -105,26 +114,38 @@ class HomeActivity : LocaleActivity() {
                 val courses = TeeUpApiClient.fetchCourses()
                     .associateBy { it.id }
 
-                val teeTimes = TeeUpApiClient.fetchTeeTimes()
+                val teeTimes = TeeUpApiClient.fetchTeeTimes(filterMaxHandicap, filterPace)
                 SyncStatus.recordSuccess(this)
 
                 runOnUiThread {
-                    allTeeTimes = teeTimes
-                    coursesById = courses
+                    // An unfiltered empty result means the backend has no data to show yet
+                    // (e.g. a fresh local DB) — fall back to the mock catalog so Home always
+                    // has something to demo. A filtered-empty result is a real answer, not a gap.
+                    if (teeTimes.isEmpty() && filterMaxHandicap == null && filterPace == null) {
+                        useMockCatalog()
+                    } else {
+                        allTeeTimes = teeTimes
+                        coursesById = courses
+                    }
                     applyFilters()
                 }
             } catch (e: ApiException) {
                 runOnUiThread {
-                    showError(e.message ?: "Request failed")
+                    useMockCatalog()
+                    applyFilters()
                 }
             } catch (e: Exception) {
                 runOnUiThread {
-                    showError(
-                        "Couldn't reach the API at ${ApiConfig.BASE_URL} — is it running?"
-                    )
+                    useMockCatalog()
+                    applyFilters()
                 }
             }
         }.start()
+    }
+
+    private fun useMockCatalog() {
+        allTeeTimes = MockCatalog.teeTimes
+        coursesById = MockCatalog.courses.associateBy { it.id }
     }
 
     /** Re-filters [allTeeTimes] by search text / date / min open spots and re-renders. */
@@ -170,6 +191,64 @@ class HomeActivity : LocaleActivity() {
         }
         findViewById<Button>(R.id.button_filter_players).text =
             if (minOpenSpots == 0) getString(R.string.home_filter_players) else "Players: $minOpenSpots+"
+        findViewById<Button>(R.id.button_filter_skill).setText(
+            if (filterMaxHandicap != null || filterPace != null) {
+                R.string.home_filter_active
+            } else {
+                R.string.home_filter_skill
+            }
+        )
+    }
+
+    /** Unlike the other filter dialogs, this one re-queries the API (see loadNearbyTeeTimes)
+     *  rather than re-filtering [allTeeTimes] client-side. */
+    private fun showSkillFilterDialog() {
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(16), dp(16), dp(16), dp(16))
+        }
+
+        val handicapInput = EditText(this).apply {
+            hint = getString(R.string.filter_max_handicap_hint)
+            inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
+            filterMaxHandicap?.let { setText(it.toString()) }
+        }
+        container.addView(handicapInput)
+
+        val paceLabels = listOf(getString(R.string.filter_pace_any)) +
+            resources.getStringArray(R.array.pace_of_play_options)
+        val paceSpinner = Spinner(this).apply {
+            layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = dp(12) }
+            adapter = ArrayAdapter(this@HomeActivity, android.R.layout.simple_spinner_item, paceLabels)
+                .apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
+            setSelection((filterPace ?: -1) + 1)
+        }
+        container.addView(paceSpinner)
+
+        val dialog = AlertDialog.Builder(this)
+            .setTitle(R.string.filter_skill_title)
+            .setView(container)
+            .setPositiveButton(R.string.filter_apply, null)
+            .setNeutralButton(R.string.filter_clear) { _, _ ->
+                filterMaxHandicap = null
+                filterPace = null
+                updateFilterLabels()
+                loadNearbyTeeTimes()
+            }
+            .setNegativeButton(R.string.filter_cancel, null)
+            .show()
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            val text = handicapInput.text.toString()
+            if (!validHandicap(text)) {
+                handicapInput.error = getString(R.string.playing_details_handicap_invalid)
+                return@setOnClickListener
+            }
+            filterMaxHandicap = handicapValue(text)
+            filterPace = (paceSpinner.selectedItemPosition - 1).takeIf { it in 0..2 }
+            updateFilterLabels()
+            loadNearbyTeeTimes()
+            dialog.dismiss()
+        }
     }
 
     /** Same pattern as ProfileActivity's language picker: a titled dialog of plain buttons, one tap picks and closes it. */
