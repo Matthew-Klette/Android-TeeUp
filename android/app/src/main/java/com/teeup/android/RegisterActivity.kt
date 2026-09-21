@@ -2,6 +2,7 @@ package com.teeup.android
 
 import android.app.Activity
 import android.content.Intent
+import com.teeup.android.ui.runWhenActive
 import android.os.Bundle
 import android.util.Log
 import android.widget.ArrayAdapter
@@ -12,6 +13,9 @@ import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.teeup.android.data.Course
 import com.teeup.android.data.TeeUpApiClient
+import com.teeup.android.data.validDisplayName
+import com.teeup.android.data.validHandicap
+import com.teeup.android.data.handicapValue
 
 /**
  * Register / profile setup, shown right after a new user's first Google
@@ -58,7 +62,7 @@ class RegisterActivity : Activity() {
         Thread {
             try {
                 val fetched = TeeUpApiClient.fetchCourses()
-                runOnUiThread {
+                runWhenActive {
                     courses = fetched
                     populateCourseSpinner(fetched)
                 }
@@ -79,20 +83,23 @@ class RegisterActivity : Activity() {
 
     private fun onContinueClicked() {
         val displayName = nameInput.text.toString().trim()
-        if (displayName.isEmpty()) {
-            Toast.makeText(this, "Enter a display name", Toast.LENGTH_SHORT).show()
+        if (!validDisplayName(displayName)) {
+            nameInput.error = getString(R.string.profile_name_invalid)
+            nameInput.requestFocus()
             return
         }
 
         val handicapText = handicapInput.text.toString().trim()
-        val handicapIndex: Double? = when {
-            handicapText.isEmpty() -> null
-            else -> handicapText.toDoubleOrNull()?.takeIf { it in 0.0..54.0 }
-                ?: run {
-                    Toast.makeText(this, "Enter a valid handicap between 0 and 54, or leave it blank", Toast.LENGTH_LONG)
-                        .show()
-                    return
-                }
+        if (!validHandicap(handicapText)) {
+            handicapInput.error = getString(R.string.profile_handicap_invalid)
+            handicapInput.requestFocus()
+            return
+        }
+        val handicapIndex = handicapValue(handicapText)
+        val pace = paceSpinner.selectedItemPosition
+        if (pace !in 0..2) {
+            Toast.makeText(this, R.string.profile_pace_invalid, Toast.LENGTH_SHORT).show()
+            return
         }
 
         // Index 0 is "No home course yet" (courseSpinner.selectedItemPosition - 1 into courses).
@@ -109,16 +116,16 @@ class RegisterActivity : Activity() {
                     displayName = displayName,
                     handicapIndex = handicapIndex,
                     homeCourseId = homeCourseId,
-                    paceOfPlay = paceSpinner.selectedItemPosition,
+                    paceOfPlay = pace,
                     profileComplete = true
                 )
-                runOnUiThread {
+                runWhenActive {
                     startActivity(Intent(this, HomeActivity::class.java))
                     finish()
                 }
             } catch (e: Exception) {
                 Log.w(tag, "Profile save failed", e)
-                runOnUiThread {
+                runWhenActive {
                     continueButton.isEnabled = true
                     continueButton.setText(R.string.register_continue)
                     Toast.makeText(this, e.message ?: "Couldn't save your profile — try again", Toast.LENGTH_LONG).show()

@@ -102,6 +102,7 @@
     <string name="home_card_availability">%1$d spot(s) open · %2$s</string>
     <string name="home_card_preview">Preview</string>
     <string name="home_card_book">Book</string>
+    <string name="home_empty_no_teetimes">No tee times nearby right now</string>
 
     <!-- Tee Time Detail Screen -->
     <string name="detail_title">Tee Time Detail</string>

@@ -36,6 +36,16 @@ public class RoundService(
 
     public async Task<RoundDto> PostScorecardAsync(Guid teeTimeId, PostScorecardRequest request)
     {
+        // Validate the whole payload before creating a round or writing any holes.
+        if (request.Entries is null || request.Entries.Count is < 1 or > 18 ||
+            request.Entries.Any(e => e is null || e.HoleNumber is < 1 or > 18 ||
+                e.Strokes < 1 || e.Putts < 0 || e.Putts > e.Strokes) ||
+            request.Entries.Select(e => e.HoleNumber).Distinct().Count() != request.Entries.Count)
+        {
+            throw new DomainValidationException(
+                "Provide 1 to 18 unique holes, numbered 1 to 18, with positive strokes and putts between zero and strokes.");
+        }
+
         var teeTime = await teeTimeRepository.GetByIdAsync(teeTimeId)
             ?? throw new NotFoundException($"Tee time {teeTimeId} not found.");
 

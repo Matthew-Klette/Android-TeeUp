@@ -6,6 +6,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.io.IOException
+import java.util.concurrent.TimeUnit
 
 /**
  * Plain `HttpURLConnection` + `org.json` client — no Retrofit/OkHttp yet
@@ -131,10 +133,11 @@ object TeeUpApiClient {
             }
             val code = connection.responseCode
             if (code !in 200..299) {
-                val detail = connection.errorStream?.bufferedReader()?.use { it.readText() }
-                throw ApiException("$method $path failed: HTTP $code${if (detail != null) " — $detail" else ""}")
+                throw ApiException(httpFailureMessage(code))
             }
             return connection.inputStream.bufferedReader().use { it.readText() }
+        } catch (e: IOException) {
+            throw ApiException("Could not connect. Check your connection and try again.")
         } finally {
             connection.disconnect()
         }
@@ -144,7 +147,8 @@ object TeeUpApiClient {
     private fun authorizationHeaderOrNull(): String? {
         val user = FirebaseAuth.getInstance().currentUser ?: return null
         return try {
-            "Bearer " + Tasks.await(user.getIdToken(false)).token
+            Tasks.await(user.getIdToken(false), 15, TimeUnit.SECONDS).token
+                ?.takeIf { it.isNotBlank() }?.let { "Bearer $it" }
         } catch (e: Exception) {
             null
         }

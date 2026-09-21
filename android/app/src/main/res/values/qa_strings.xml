@@ -1,0 +1,4 @@
+<resources>
+    <string name="qa_sign_in_unavailable">Sign-in is unavailable. Please try again.</string>
+    <string name="qa_load_failed">Could not load this screen. Check your connection and try again.</string>
+</resources>

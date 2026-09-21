@@ -2,6 +2,7 @@ package com.teeup.android
 
 import android.app.Activity
 import android.app.AlertDialog
+import com.teeup.android.ui.runWhenActive
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.View
@@ -56,10 +57,12 @@ class TeeTimeDetailActivity : Activity() {
             return
         }
         teeTimeId = id
+        findViewById<View>(R.id.qa_retry).setOnClickListener { loadDetail() }
         loadDetail()
     }
 
     private fun loadDetail() {
+        findViewById<View>(R.id.qa_retry).visibility = View.GONE
         statusText.visibility = View.VISIBLE
         statusText.text = "Loading tee time..."
         contentGroup.visibility = View.GONE
@@ -70,9 +73,9 @@ class TeeTimeDetailActivity : Activity() {
                     ?: throw ApiException("Tee time not found")
                 val course = TeeUpApiClient.fetchCourses().firstOrNull { it.id == teeTime.courseId }
                 val requests = TeeUpApiClient.fetchJoinRequestsForTeeTime(teeTimeId)
-                runOnUiThread { render(teeTime, course, requests) }
+                runWhenActive { render(teeTime, course, requests) }
             } catch (e: Exception) {
-                runOnUiThread { showError(e.message ?: "Couldn't load this tee time") }
+                runWhenActive { showError(e.message ?: "Couldn't load this tee time") }
             }
         }.start()
     }
@@ -138,14 +141,14 @@ class TeeTimeDetailActivity : Activity() {
                 val refreshedCourse = refreshedTeeTime?.let { tt ->
                     TeeUpApiClient.fetchCourses().firstOrNull { it.id == tt.courseId }
                 }
-                runOnUiThread {
+                runWhenActive {
                     Toast.makeText(this, "Request sent", Toast.LENGTH_SHORT).show()
                     if (refreshedTeeTime != null) {
                         render(refreshedTeeTime, refreshedCourse, refreshedRequests)
                     }
                 }
             } catch (e: Exception) {
-                runOnUiThread {
+                runWhenActive {
                     Toast.makeText(this, e.message ?: "Couldn't send the request", Toast.LENGTH_LONG).show()
                     button.isEnabled = true
                     button.text = "Request to Join"
@@ -160,20 +163,28 @@ class TeeTimeDetailActivity : Activity() {
             setPadding(dp(16), dp(16), dp(16), dp(16))
         }
 
+        // EME-305 QA pass: the dialog is built from a snapshot (joinRequests). Once any
+        // row's Accept/Decline succeeds, the snapshot is stale — rather than editing rows
+        // in place, dismiss so the caller re-renders from the refreshed data, and the user
+        // reopens the dialog (via the always-current "N pending" subtitle) to act again.
+        lateinit var dialog: AlertDialog
+
         if (joinRequests.isEmpty()) {
             container.addView(TextView(this).apply { text = "No join requests yet." })
         } else {
-            joinRequests.forEach { request -> container.addView(buildJoinRequestRow(request)) }
+            joinRequests.forEach { request ->
+                container.addView(buildJoinRequestRow(request) { dialog.dismiss() })
+            }
         }
 
-        AlertDialog.Builder(this)
+        dialog = AlertDialog.Builder(this)
             .setTitle("Join requests")
             .setView(container)
             .setNegativeButton("Close", null)
             .show()
     }
 
-    private fun buildJoinRequestRow(request: JoinRequest): View {
+    private fun buildJoinRequestRow(request: JoinRequest, onResponded: () -> Unit): View {
         val row = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { bottomMargin = dp(8) }
@@ -185,34 +196,54 @@ class TeeTimeDetailActivity : Activity() {
         })
 
         if (request.status == JoinRequestStatus.PENDING) {
-            row.addView(Button(this).apply {
-                text = "Accept"
-                setOnClickListener { respondToJoinRequest(request.id, JoinRequestStatus.ACCEPTED) }
-            })
-            row.addView(Button(this).apply {
-                text = "Decline"
-                setOnClickListener { respondToJoinRequest(request.id, JoinRequestStatus.DECLINED) }
-            })
+            val acceptButton = Button(this).apply { text = "Accept" }
+            val declineButton = Button(this).apply { text = "Decline" }
+
+            // EME-305 QA pass: a fast double-tap (Accept then Decline, or a double-tap on
+            // one button) fired two concurrent PATCH requests against the same join request —
+            // not a crash (the API's status guard rejects the second one), but it produced a
+            // confusing error toast on a request that had, in fact, already succeeded.
+            // Disabling both buttons the instant either is tapped removes the race entirely.
+            fun respond(status: Int) {
+                acceptButton.isEnabled = false
+                declineButton.isEnabled = false
+                respondToJoinRequest(request.id, status, onSuccess = onResponded) {
+                    acceptButton.isEnabled = true
+                    declineButton.isEnabled = true
+                }
+            }
+
+            acceptButton.setOnClickListener { respond(JoinRequestStatus.ACCEPTED) }
+            declineButton.setOnClickListener { respond(JoinRequestStatus.DECLINED) }
+            row.addView(acceptButton)
+            row.addView(declineButton)
         }
 
         return row
     }
 
-    private fun respondToJoinRequest(joinRequestId: String, status: Int) {
+    private fun respondToJoinRequest(
+        joinRequestId: String,
+        status: Int,
+        onSuccess: () -> Unit,
+        onFailure: () -> Unit
+    ) {
         Thread {
             try {
                 TeeUpApiClient.updateJoinRequestStatus(joinRequestId, status)
                 val requests = TeeUpApiClient.fetchJoinRequestsForTeeTime(teeTimeId)
                 val teeTime = TeeUpApiClient.fetchTeeTimes().firstOrNull { it.id == teeTimeId }
                 val course = teeTime?.let { tt -> TeeUpApiClient.fetchCourses().firstOrNull { it.id == tt.courseId } }
-                runOnUiThread {
+                runWhenActive {
+                    onSuccess()
                     if (teeTime != null) {
                         render(teeTime, course, requests)
                     }
                     Toast.makeText(this, "Updated", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                runOnUiThread {
+                runWhenActive {
+                    onFailure()
                     Toast.makeText(this, e.message ?: "Couldn't update the request", Toast.LENGTH_LONG).show()
                 }
             }
@@ -220,6 +251,7 @@ class TeeTimeDetailActivity : Activity() {
     }
 
     private fun showError(message: String) {
+        findViewById<View>(R.id.qa_retry).visibility = if (::teeTimeId.isInitialized) View.VISIBLE else View.GONE
         contentGroup.visibility = View.GONE
         statusText.visibility = View.VISIBLE
         statusText.text = message
