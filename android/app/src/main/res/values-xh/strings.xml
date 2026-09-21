@@ -1,4 +1,5 @@
 <resources>
+    <string name="profile_retry">Zama kwakhona</string>
     <!-- Welcome Screen -->
     <string name="sign_in_tagline">FUMANA UMJIKELO WAKHO OLANDELAYO</string>
     <string name="sign_in_google">Qhubeka nge-Google</string>

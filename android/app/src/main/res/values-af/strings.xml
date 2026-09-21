@@ -1,4 +1,5 @@
 <resources>
+    <string name="profile_retry">Probeer weer</string>
     <!-- Welcome Screen -->
     <string name="sign_in_tagline">VIND JOU VOLGENDE RONDTE</string>
     <string name="sign_in_google">Gaan voort met Google</string>

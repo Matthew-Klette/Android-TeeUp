@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">TeeUp</string>
+    <!-- Used by a handful of leftover retry-button placeholders merged in from main's QA hardening (PR #14) -->
+    <string name="profile_retry">Try again</string>
     <!-- Welcome Screen -->
     <string name="sign_in_tagline">FIND YOUR NEXT ROUND</string>
     <string name="sign_in_google">Continue with Google</string>

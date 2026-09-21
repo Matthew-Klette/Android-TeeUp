@@ -28,6 +28,10 @@ public class TeeUpDbContext(DbContextOptions<TeeUpDbContext> options) : DbContex
             b.Property(u => u.HandicapIndex).HasPrecision(4, 1);
             b.Property(u => u.PaceOfPlay).HasConversion<string>();
             b.Property(u => u.Language).HasConversion<string>();
+            // Existing and new profiles start with notification preferences enabled.
+            b.Property(u => u.JoinRequestNotifications).HasDefaultValue(true);
+            b.Property(u => u.TeeTimeReminders).HasDefaultValue(true);
+            b.Property(u => u.WeatherAlerts).HasDefaultValue(true);
             b.HasOne<Course>()
                 .WithMany()
                 .HasForeignKey(u => u.HomeCourseId)

@@ -2,6 +2,8 @@ using TeeUp.Api.Models;
 
 namespace TeeUp.Api.Dtos;
 
+public record ScheduledRoundDto(Guid TeeTimeId, Guid CourseId, DateTime DateTime, RoundDto? Round);
+
 public record ScorecardEntryRequest(int HoleNumber, int Strokes, int Putts);
 
 public record PostScorecardRequest(IReadOnlyList<ScorecardEntryRequest> Entries);

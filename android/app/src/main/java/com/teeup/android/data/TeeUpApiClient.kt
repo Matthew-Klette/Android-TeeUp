@@ -6,6 +6,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.io.IOException
+import java.util.concurrent.TimeUnit
 
 /**
  * Plain `HttpURLConnection` + `org.json` client — no Retrofit/OkHttp yet
@@ -19,9 +21,21 @@ object TeeUpApiClient {
         return (0 until array.length()).map { i -> parseCourse(array.getJSONObject(i)) }
     }
 
-    fun fetchTeeTimes(): List<TeeTime> {
-        val array = JSONArray(request("GET", "api/teetimes"))
+    /** `maxHandicap`/`pace` filter by the tee time's host (EME-299); null means "no filter". */
+    fun fetchTeeTimes(maxHandicap: Double? = null, pace: Int? = null): List<TeeTime> {
+        val query = buildList {
+            maxHandicap?.let { add("maxHandicap=$it") }
+            pace?.let { add("pace=$it") }
+        }.joinToString("&")
+        val path = if (query.isEmpty()) "api/teetimes" else "api/teetimes?$query"
+
+        val array = JSONArray(request("GET", path))
         return (0 until array.length()).map { i -> parseTeeTime(array.getJSONObject(i)) }
+    }
+
+    fun fetchNotifications(): List<AppNotification> {
+        val array = JSONArray(request("GET", "api/notifications"))
+        return (0 until array.length()).map { i -> parseNotification(array.getJSONObject(i)) }
     }
 
     fun register(firebaseUid: String, displayName: String): RegisteredUser {
@@ -91,6 +105,15 @@ object TeeUpApiClient {
         type = o.getInt("type")
     )
 
+    private fun parseNotification(o: JSONObject) = AppNotification(
+        id = o.getString("id"),
+        type = o.getInt("type"),
+        message = o.getString("message"),
+        relatedEntityId = if (o.isNull("relatedEntityId")) null else o.getString("relatedEntityId"),
+        isRead = o.getBoolean("isRead"),
+        createdAt = o.getString("createdAt")
+    )
+
     private fun parseJoinRequest(o: JSONObject) = JoinRequest(
         id = o.getString("id"),
         teeTimeId = o.getString("teeTimeId"),
@@ -113,10 +136,11 @@ object TeeUpApiClient {
             }
             val code = connection.responseCode
             if (code !in 200..299) {
-                val detail = connection.errorStream?.bufferedReader()?.use { it.readText() }
-                throw ApiException("$method $path failed: HTTP $code${if (detail != null) " — $detail" else ""}")
+                throw ApiException(httpFailureMessage(code))
             }
             return connection.inputStream.bufferedReader().use { it.readText() }
+        } catch (e: IOException) {
+            throw ApiException("Could not connect. Check your connection and try again.")
         } finally {
             connection.disconnect()
         }
@@ -126,7 +150,8 @@ object TeeUpApiClient {
     private fun authorizationHeaderOrNull(): String? {
         val user = FirebaseAuth.getInstance().currentUser ?: return null
         return try {
-            "Bearer " + Tasks.await(user.getIdToken(false)).token
+            Tasks.await(user.getIdToken(false), 15, TimeUnit.SECONDS).token
+                ?.takeIf { it.isNotBlank() }?.let { "Bearer $it" }
         } catch (e: Exception) {
             null
         }
