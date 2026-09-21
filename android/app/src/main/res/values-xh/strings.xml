@@ -67,16 +67,30 @@
     <string name="home_filter_datetime">Umhla / Ixesha</string>
     <string name="home_filter_players">Abadlali 1–4</string>
     <string name="home_filter_skill">Isakhono / Isantya Sokuhlungwa</string>
+    <string name="home_filter_course">Ibala</string>
+    <string name="home_filter_course_any">Nayiphi na ibala</string>
+    <string name="home_filter_holes">Izimbobo</string>
+    <string name="home_filter_holes_active_format">Izimbobo: %1$d</string>
 
     <string name="home_results_heading">EKUFUPHI</string>
     <string name="home_loading">Ilayisha amaxesha okudlala akufuphi…</string>
+    <string name="home_load_failed">Ayikwazanga ukulayisha amaqela. Jonga uxhulumano lwakho uze uzame kwakhona.</string>
 
     <string name="home_card_heading">%1$s · %2$s</string>
     <string name="home_card_open_round">UMJIKELO OVULIWEYO</string>
-    <string name="home_card_booking">UKUBHUKISHA</string>
-    <string name="home_card_availability">%1$d indawo evulekileyo · %2$s</string>
+    <string name="home_card_details_format">%1$d izimbobo · %2$d kwi-%3$d izikhundla ezivulekileyo</string>
+    <string name="home_card_hosted_by_format">Ibanjwe ngu-%1$s</string>
+    <string name="home_card_members_heading">ABADLALI</string>
+    <string name="group_host_member_format">%1$s (Umnini-ndlu)</string>
+    <string name="group_member_row_format">%1$s · HCP %2$s · %3$s</string>
+    <string name="group_no_handicap">—</string>
+    <string name="home_card_wanted_format">Ifuna: %1$s</string>
+    <string name="home_card_wanted_handicap_range_format">HCP %1$s–%2$s</string>
+    <string name="home_card_wanted_handicap_max_format">HCP ukuya kuthi ga %1$s</string>
+    <string name="home_card_wanted_handicap_min_format">HCP %1$s+</string>
+    <string name="home_card_wanted_handicap_any">Nayiphi na i-HCP</string>
     <string name="home_card_preview">Jonga Kwangaphambili</string>
-    <string name="home_card_book">Bhukisha</string>
+    <string name="home_card_view_group">Jonga Iqela</string>
 
     <!-- Tee Time Detail Screen -->
     <string name="detail_title">Iinkcukacha Zexesha Lokudlala</string>
@@ -84,6 +98,7 @@
     <string name="detail_back_symbol">←</string>
     <string name="detail_loading">Ilayisha ixesha lokudlala…</string>
     <string name="detail_host">UMNINI-NDLU</string>
+    <string name="detail_members">ABADLALI</string>
     <string name="detail_request_to_join">Cela Ukudibana</string>
     <string name="detail_pending_requests">Izicelo Ezilindileyo</string>
     <string name="detail_preview_course">Jonga Ibala Kwangaphambili</string>
@@ -216,8 +231,8 @@
     <string name="filter_pace_any">Nasiphi isantya</string>
     <string name="filter_skill_title">Isakhono / Isantya</string>
     <string name="home_filter_active">Isakhono / Isantya ✓</string>
-    <string name="home_empty_no_teetimes">Akukho maxesha okudlala akufuphi okwangoku</string>
-    <string name="home_empty_no_matches">Akukho maxesha okudlala afanelana nezihluzi zakho</string>
+    <string name="home_empty_no_teetimes">Akukho maqela afuna abadlali ngoku</string>
+    <string name="home_empty_no_matches">Akukho maqela afanelana nezihluzi zakho</string>
     <string name="home_unknown_course">Ibala elingaziwayo</string>
 
     <string-array name="home_date_filter_options">
@@ -232,6 +247,12 @@
         <item>Iindawo ezivulekileyo ezi-2+</item>
         <item>Iindawo ezivulekileyo ezi-3+</item>
         <item>Iindawo ezivulekileyo ezi-4+</item>
+    </string-array>
+
+    <string-array name="home_holes_filter_options">
+        <item>Nazuphi izimbobo</item>
+        <item>Izimbobo ezi-9</item>
+        <item>Izimbobo ezingu-18</item>
     </string-array>
 
     <string-array name="month_abbreviations">

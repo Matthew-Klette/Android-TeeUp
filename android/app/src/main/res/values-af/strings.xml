@@ -67,16 +67,30 @@
     <string name="home_filter_datetime">Datum / Tyd</string>
     <string name="home_filter_players">Spelers 1–4</string>
     <string name="home_filter_skill">Vaardigheid / Tempo Filter</string>
+    <string name="home_filter_course">Baan</string>
+    <string name="home_filter_course_any">Enige baan</string>
+    <string name="home_filter_holes">Putjies</string>
+    <string name="home_filter_holes_active_format">Putjies: %1$d</string>
 
     <string name="home_results_heading">NABY</string>
     <string name="home_loading">Laai nabygeleë afslaantye…</string>
+    <string name="home_load_failed">Kon nie groepe laai nie. Kontroleer jou verbinding en probeer weer.</string>
 
     <string name="home_card_heading">%1$s · %2$s</string>
     <string name="home_card_open_round">OOP RONDTE</string>
-    <string name="home_card_booking">BESPREKING</string>
-    <string name="home_card_availability">%1$d plek(ke) oop · %2$s</string>
+    <string name="home_card_details_format">%1$d putjies · %2$d van %3$d plekke oop</string>
+    <string name="home_card_hosted_by_format">Aangebied deur %1$s</string>
+    <string name="home_card_members_heading">SPELERS</string>
+    <string name="group_host_member_format">%1$s (Gasheer)</string>
+    <string name="group_member_row_format">%1$s · HCP %2$s · %3$s</string>
+    <string name="group_no_handicap">—</string>
+    <string name="home_card_wanted_format">Soek: %1$s</string>
+    <string name="home_card_wanted_handicap_range_format">HCP %1$s–%2$s</string>
+    <string name="home_card_wanted_handicap_max_format">HCP tot %1$s</string>
+    <string name="home_card_wanted_handicap_min_format">HCP %1$s+</string>
+    <string name="home_card_wanted_handicap_any">Enige voorgee</string>
     <string name="home_card_preview">Voorskou</string>
-    <string name="home_card_book">Bespreek</string>
+    <string name="home_card_view_group">Bekyk Groep</string>
 
     <!-- Tee Time Detail Screen -->
     <string name="detail_title">Afslaantyd Besonderhede</string>
@@ -84,6 +98,7 @@
     <string name="detail_back_symbol">←</string>
     <string name="detail_loading">Laai afslaantyd…</string>
     <string name="detail_host">GASHEER</string>
+    <string name="detail_members">SPELERS</string>
     <string name="detail_request_to_join">Versoek om Aan te Sluit</string>
     <string name="detail_pending_requests">Hangende Versoeke</string>
     <string name="detail_preview_course">Voorskou Baan</string>
@@ -216,8 +231,8 @@
     <string name="filter_pace_any">Enige tempo</string>
     <string name="filter_skill_title">Vaardigheid / Tempo</string>
     <string name="home_filter_active">Vaardigheid / Tempo ✓</string>
-    <string name="home_empty_no_teetimes">Geen afslaantye naby op die oomblik nie</string>
-    <string name="home_empty_no_matches">Geen afslaantye pas by jou filters nie</string>
+    <string name="home_empty_no_teetimes">Geen groepe soek tans spelers nie</string>
+    <string name="home_empty_no_matches">Geen groepe pas by jou filters nie</string>
     <string name="home_unknown_course">Onbekende baan</string>
 
     <string-array name="home_date_filter_options">
@@ -232,6 +247,12 @@
         <item>2+ oop plekke</item>
         <item>3+ oop plekke</item>
         <item>4+ oop plekke</item>
+    </string-array>
+
+    <string-array name="home_holes_filter_options">
+        <item>Enige putjies</item>
+        <item>9 putjies</item>
+        <item>18 putjies</item>
     </string-array>
 
     <string-array name="month_abbreviations">

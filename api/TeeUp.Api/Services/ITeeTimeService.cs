@@ -10,8 +10,13 @@ public interface ITeeTimeService
     /// time's host, for discovering a group by skill/pace compatibility (EME-299).
     /// A tee time with no host is excluded whenever either filter is set, since
     /// there's nothing to match against.
+    /// <paramref name="joinableOnly"/> (EME-312) narrows to groups a guest could
+    /// actually join right now — <see cref="TeeTimeType.OpenRound"/>,
+    /// <see cref="TeeTimeStatus.Open"/>, and still in the future. Defaults to false
+    /// so callers that look up a specific tee time by id (detail screen, refresh
+    /// after accept/decline) keep seeing bookings/full/past/cancelled rows too.
     /// </summary>
-    Task<IReadOnlyList<TeeTimeDto>> GetAllAsync(decimal? maxHandicap = null, PaceOfPlay? pace = null);
+    Task<IReadOnlyList<TeeTimeDto>> GetAllAsync(decimal? maxHandicap = null, PaceOfPlay? pace = null, bool joinableOnly = false);
 
     /// <summary>
     /// Creates a tee time for a solo round, dated right now, hosted by and reserved

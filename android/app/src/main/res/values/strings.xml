@@ -76,6 +76,12 @@
         <item>4+ open spots</item>
     </string-array>
 
+    <string-array name="home_holes_filter_options">
+        <item>Any holes</item>
+        <item>9 holes</item>
+        <item>18 holes</item>
+    </string-array>
+
     <string-array name="month_abbreviations">
         <item>Jan</item>
         <item>Feb</item>
@@ -117,6 +123,10 @@
     <string name="home_filter_players">Players 1–4</string>
     <string name="home_filter_skill">Skill / Pace Filter</string>
     <string name="home_filter_active">Skill / Pace ✓</string>
+    <string name="home_filter_course">Course</string>
+    <string name="home_filter_course_any">Any course</string>
+    <string name="home_filter_holes">Holes</string>
+    <string name="home_filter_holes_active_format">Holes: %1$d</string>
 
     <string name="filter_skill_title">Skill / Pace</string>
     <string name="filter_max_handicap_hint">Max handicap (optional)</string>
@@ -127,13 +137,23 @@
 
     <string name="home_results_heading">NEARBY</string>
     <string name="home_loading">Loading nearby tee times…</string>
+    <string name="home_load_failed">Couldn\'t load groups. Check your connection and try again.</string>
 
     <string name="home_card_heading">%1$s · %2$s</string>
     <string name="home_card_open_round">OPEN ROUND</string>
-    <string name="home_card_booking">BOOKING</string>
-    <string name="home_card_availability">%1$d spot(s) open · %2$s</string>
+    <string name="home_card_details_format">%1$d holes · %2$d of %3$d spots open</string>
+    <string name="home_card_hosted_by_format">Hosted by %1$s</string>
+    <string name="home_card_members_heading">PLAYERS</string>
+    <string name="group_host_member_format">%1$s (Host)</string>
+    <string name="group_member_row_format">%1$s · HCP %2$s · %3$s</string>
+    <string name="group_no_handicap">—</string>
+    <string name="home_card_wanted_format">Looking for: %1$s</string>
+    <string name="home_card_wanted_handicap_range_format">HCP %1$s–%2$s</string>
+    <string name="home_card_wanted_handicap_max_format">HCP up to %1$s</string>
+    <string name="home_card_wanted_handicap_min_format">HCP %1$s+</string>
+    <string name="home_card_wanted_handicap_any">Any handicap</string>
     <string name="home_card_preview">Preview</string>
-    <string name="home_card_book">Book</string>
+    <string name="home_card_view_group">View Group</string>
 
     <!-- Tee Time Detail Screen -->
     <string name="detail_title">Tee Time Detail</string>
@@ -141,6 +161,7 @@
     <string name="detail_back_symbol">←</string>
     <string name="detail_loading">Loading tee time…</string>
     <string name="detail_host">HOST</string>
+    <string name="detail_members">PLAYERS</string>
     <string name="detail_request_to_join">Request to Join</string>
     <string name="detail_pending_requests">Pending Requests</string>
     <string name="detail_preview_course">Preview Course</string>
