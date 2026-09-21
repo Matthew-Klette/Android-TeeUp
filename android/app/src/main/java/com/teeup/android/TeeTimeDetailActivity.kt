@@ -30,8 +30,8 @@ import com.teeup.android.ui.TeeUpBanner
  * Loads the real tee time + course from the API, wires Request to Join
  * (POST /api/teetimes/{id}/joinrequests) and a Pending Requests
  * approve/decline dialog (GET/PATCH added alongside this ticket — see
- * TeeTimesController.GetJoinRequests). Group Chat has no backend/ticket
- * yet, so it's gated with an honest placeholder message, not a fake screen.
+ * TeeTimesController.GetJoinRequests). Messaging (Group Chat) is Part 3
+ * scope and out of this screen entirely for now (EME-317).
  */
 class TeeTimeDetailActivity : LocaleActivity() {
     companion object {
@@ -143,16 +143,6 @@ class TeeTimeDetailActivity : LocaleActivity() {
         findViewById<TextView>(R.id.text_pending_requests_subtitle).text =
             if (pendingCount > 0) getString(R.string.teetime_pending_waiting_format, pendingCount) else getString(R.string.teetime_pending_none)
         findViewById<View>(R.id.row_pending_requests).setOnClickListener { showPendingRequestsDialog() }
-
-        findViewById<TextView>(R.id.text_group_chat_subtitle).text =
-            if (acceptedCount > 0) getString(R.string.teetime_group_chat_tap_open) else getString(R.string.teetime_group_chat_locked_subtitle)
-        findViewById<View>(R.id.row_group_chat).setOnClickListener {
-            if (acceptedCount > 0) {
-                TeeUpBanner.show(this, getString(R.string.teetime_group_chat_not_built))
-            } else {
-                TeeUpBanner.show(this, getString(R.string.teetime_group_chat_locked_banner))
-            }
-        }
     }
 
     private fun onRequestToJoinClicked() {

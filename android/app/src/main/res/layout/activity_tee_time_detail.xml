@@ -186,36 +186,6 @@
 
             </LinearLayout>
 
-            <!-- Group chat -->
-            <LinearLayout
-                android:id="@+id/row_group_chat"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:minHeight="@dimen/touch_target"
-                android:background="@drawable/bg_card_interactive"
-                android:elevation="@dimen/elevation_card"
-                android:clickable="true"
-                android:focusable="true"
-                android:orientation="vertical"
-                android:padding="@dimen/space_lg">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/detail_group_chat"
-                    android:textColor="@color/teeup_text_primary"
-                    android:textSize="@dimen/text_body_large" />
-
-                <TextView
-                    android:id="@+id/text_group_chat_subtitle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/space_xs"
-                    android:textColor="@color/teeup_text_secondary"
-                    android:textSize="@dimen/text_body" />
-
-            </LinearLayout>
-
         </LinearLayout>
 
     </LinearLayout>
