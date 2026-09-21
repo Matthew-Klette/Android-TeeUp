@@ -143,7 +143,6 @@
     <string name="detail_host">HOST</string>
     <string name="detail_request_to_join">Request to Join</string>
     <string name="detail_pending_requests">Pending Requests</string>
-    <string name="detail_group_chat">Group Chat</string>
     <string name="detail_preview_course">Preview Course</string>
 
     <!-- Course Preview Screen -->

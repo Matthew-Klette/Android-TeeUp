@@ -64,10 +64,6 @@
     <string name="teetime_request_to_join">Request to Join</string>
     <string name="teetime_pending_waiting_format">%1$d waiting — tap to approve or decline</string>
     <string name="teetime_pending_none">None pending</string>
-    <string name="teetime_group_chat_tap_open">Tap to open</string>
-    <string name="teetime_group_chat_locked_subtitle">Opens once a request is accepted</string>
-    <string name="teetime_group_chat_not_built">Group chat isn\'t built yet — no ticket/backend for it.</string>
-    <string name="teetime_group_chat_locked_banner">Opens once a join request is accepted</string>
     <string name="teetime_sending">Sending...</string>
     <string name="teetime_signin_again">Please sign in again to request to join</string>
     <string name="teetime_request_failed_fallback">Couldn\'t send the request</string>

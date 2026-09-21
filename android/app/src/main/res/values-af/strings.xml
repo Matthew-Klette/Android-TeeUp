@@ -86,7 +86,6 @@
     <string name="detail_host">GASHEER</string>
     <string name="detail_request_to_join">Versoek om Aan te Sluit</string>
     <string name="detail_pending_requests">Hangende Versoeke</string>
-    <string name="detail_group_chat">Groepklets</string>
     <string name="detail_preview_course">Voorskou Baan</string>
 
     <!-- Course Preview Screen -->
@@ -372,10 +371,6 @@
     <string name="teetime_request_to_join">Versoek om Aan te Sluit</string>
     <string name="teetime_pending_waiting_format">%1$d wag — tik om goed te keur of te weier</string>
     <string name="teetime_pending_none">Geen hangend nie</string>
-    <string name="teetime_group_chat_tap_open">Tik om oop te maak</string>
-    <string name="teetime_group_chat_locked_subtitle">Maak oop sodra \'n versoek aanvaar is</string>
-    <string name="teetime_group_chat_not_built">Groepklets is nog nie gebou nie — geen kaartjie/bediener daarvoor nie.</string>
-    <string name="teetime_group_chat_locked_banner">Maak oop sodra \'n aansluitversoek aanvaar is</string>
     <string name="teetime_sending">Stuur tans...</string>
     <string name="teetime_signin_again">Meld asseblief weer aan om aan te sluit te versoek</string>
     <string name="teetime_request_failed_fallback">Kon nie die versoek stuur nie</string>

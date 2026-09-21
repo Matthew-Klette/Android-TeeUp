@@ -86,7 +86,6 @@
     <string name="detail_host">UMNINI-NDLU</string>
     <string name="detail_request_to_join">Cela Ukudibana</string>
     <string name="detail_pending_requests">Izicelo Ezilindileyo</string>
-    <string name="detail_group_chat">Incoko Yeqela</string>
     <string name="detail_preview_course">Jonga Ibala Kwangaphambili</string>
 
     <!-- Course Preview Screen -->
@@ -372,10 +371,6 @@
     <string name="teetime_request_to_join">Cela Ukudibana</string>
     <string name="teetime_pending_waiting_format">%1$d balindile — cofa ukuvuma okanye ukwala</string>
     <string name="teetime_pending_none">Akukho kulindileyo</string>
-    <string name="teetime_group_chat_tap_open">Cofa ukuze uvule</string>
-    <string name="teetime_group_chat_locked_subtitle">Ivula xa isicelo samkelwe</string>
-    <string name="teetime_group_chat_not_built">Incoko yeqela ayikenziwa okwangoku — akukho tikithi/iseva yayo.</string>
-    <string name="teetime_group_chat_locked_banner">Ivula xa isicelo sokudibana samkelwe</string>
     <string name="teetime_sending">Iyathumela...</string>
     <string name="teetime_signin_again">Nceda ungene kwakhona ukuze ucele ukudibana</string>
     <string name="teetime_request_failed_fallback">Ayikwazanga ukuthumela isicelo</string>
