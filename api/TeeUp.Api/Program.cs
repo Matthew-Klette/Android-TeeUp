@@ -20,19 +20,47 @@ builder.Services.AddScoped<ICurrentUserService, HttpContextCurrentUserService>()
 // (and future key rotations) from its OIDC metadata automatically.
 var firebaseProjectId = builder.Configuration["Firebase:ProjectId"];
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+// Dev-only bypass so the app is testable end-to-end without a real Firebase
+// project's google-services.json wired up locally (see SignInActivity's doc
+// comment on the Android side). Two independent gates: the host must actually
+// be running in Development (ASPNETCORE_ENVIRONMENT), AND the config must
+// explicitly opt in — either one being false is enough to keep this out of
+// the pipeline entirely, so it can't reach a real deployment by accident.
+var devAuthEnabled = builder.Environment.IsDevelopment() &&
+    builder.Configuration.GetValue<bool>("DevAuth:Enabled");
+
+var authBuilder = builder.Services.AddAuthentication(
+    devAuthEnabled ? "JwtOrDevBypass" : JwtBearerDefaults.AuthenticationScheme);
+
+authBuilder.AddJwtBearer(options =>
+{
+    options.Authority = $"https://securetoken.google.com/{firebaseProjectId}";
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        options.Authority = $"https://securetoken.google.com/{firebaseProjectId}";
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidIssuer = $"https://securetoken.google.com/{firebaseProjectId}",
-            ValidateAudience = true,
-            ValidAudience = firebaseProjectId,
-            ValidateLifetime = true
-        };
+        ValidateIssuer = true,
+        ValidIssuer = $"https://securetoken.google.com/{firebaseProjectId}",
+        ValidateAudience = true,
+        ValidAudience = firebaseProjectId,
+        ValidateLifetime = true
+    };
+});
+
+if (devAuthEnabled)
+{
+    authBuilder.AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, DevBypassAuthHandler>(
+        DevBypassAuthHandler.SchemeName, _ => { });
+
+    // A real bearer token still wins when present, so this coexists cleanly
+    // with a real Firebase project once one is wired up — only requests with
+    // no Authorization header fall back to the dev header.
+    authBuilder.AddPolicyScheme("JwtOrDevBypass", "JWT bearer or dev bypass", options =>
+    {
+        options.ForwardDefaultSelector = context =>
+            context.Request.Headers.ContainsKey("Authorization")
+                ? JwtBearerDefaults.AuthenticationScheme
+                : DevBypassAuthHandler.SchemeName;
     });
+}
 
 builder.Services.AddAuthorization();
 

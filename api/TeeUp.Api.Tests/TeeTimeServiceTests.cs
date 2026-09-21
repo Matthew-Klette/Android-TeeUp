@@ -11,7 +11,7 @@ public class TeeTimeServiceTests
     {
         var teeTimes = new InMemoryTeeTimeRepository();
         var users = new InMemoryUserRepository();
-        return (new TeeTimeService(teeTimes, users), teeTimes, users);
+        return (new TeeTimeService(teeTimes, users, new InMemoryCourseRepository()), teeTimes, users);
     }
 
     private static async Task<User> AddHost(InMemoryUserRepository users, decimal? handicap, PaceOfPlay pace)

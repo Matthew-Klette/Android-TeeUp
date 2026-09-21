@@ -48,9 +48,9 @@ class PlayingDetailsActivity : LocaleActivity() {
 
         paceSpinner.adapter = ArrayAdapter(
             this,
-            android.R.layout.simple_spinner_item,
+            R.layout.spinner_item,
             resources.getStringArray(R.array.pace_of_play_options)
-        ).apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
+        ).apply { setDropDownViewResource(R.layout.spinner_dropdown_item) }
 
         saveButton.setOnClickListener { onSaveClicked() }
 
@@ -84,8 +84,8 @@ class PlayingDetailsActivity : LocaleActivity() {
         handicapInput.setText(user.handicapIndex?.toString().orEmpty())
 
         val labels = listOf(getString(R.string.register_home_course_none)) + fetchedCourses.map { it.name }
-        courseSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, labels).apply {
-            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        courseSpinner.adapter = ArrayAdapter(this, R.layout.spinner_item, labels).apply {
+            setDropDownViewResource(R.layout.spinner_dropdown_item)
         }
         val selectedCourseIndex = fetchedCourses.indexOfFirst { it.id == user.homeCourseId }
         courseSpinner.setSelection(if (selectedCourseIndex >= 0) selectedCourseIndex + 1 else 0)

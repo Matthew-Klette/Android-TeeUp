@@ -8,6 +8,9 @@ data class ScheduledRound(val teeTimeId: String, val courseId: String, val dateT
 data class PlayedRound(val id: String, val teeTimeId: String, val scorecard: List<HoleScore>)
 data class HoleScore(val id: String, val holeNumber: Int, val strokes: Int, val putts: Int, val synced: Boolean)
 
+/** What POST /api/rounds/{id}/scorecard accepts per hole — no id/synced yet, those come back from the server. */
+data class HoleScoreInput(val holeNumber: Int, val strokes: Int, val putts: Int)
+
 // ASP.NET may emit a UTC DateTime without a suffix for older stored rows.
 fun roundTimestamp(value: String): Long {
     val match = Regex("^(\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2})(?:\\.(\\d{1,7}))?(Z|[+-]\\d{2}:\\d{2})?$")

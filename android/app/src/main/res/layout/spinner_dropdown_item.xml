@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Replaces android.R.layout.simple_spinner_dropdown_item for the open dropdown
+     list — same dark-text-on-dark-theme problem as spinner_item.xml, just for the
+     popup's row layout instead of the closed view. -->
+<CheckedTextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/text1"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="?android:attr/listPreferredItemHeight"
+    android:gravity="center_vertical"
+    android:paddingStart="@dimen/space_lg"
+    android:paddingEnd="@dimen/space_lg"
+    android:background="@color/teeup_surface"
+    android:textColor="@color/teeup_text_primary"
+    android:textSize="@dimen/text_body_large"
+    android:checkMark="?android:attr/listChoiceIndicatorSingle"
+    android:ellipsize="end" />

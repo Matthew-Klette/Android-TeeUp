@@ -1,12 +1,15 @@
 package com.teeup.android.data
 
 import android.content.Context
+import com.teeup.android.BuildConfig
 import com.google.firebase.auth.FirebaseAuth
 
 /**
  * Registers the signed-in Firebase user (EME-295's Google SSO) against
  * POST /api/auth/register (idempotent server-side — see AuthService.RegisterAsync)
- * and caches the backend user id.
+ * and caches the backend user id. Falls back to [DevIdentity] in debug builds when
+ * there's no real Firebase user (see SignInActivity's dev bypass) — same endpoint,
+ * just keyed by the dev id instead of a real Firebase uid.
  */
 object LocalIdentity {
     private const val PREFS = "teeup_local_identity"
@@ -39,9 +42,13 @@ object LocalIdentity {
 
     private fun register(context: Context): BackendIdentity {
         val firebaseUser = FirebaseAuth.getInstance().currentUser
-            ?: throw IllegalStateException("register called with no signed-in Firebase user")
+        val (uid, displayName) = when {
+            firebaseUser != null -> firebaseUser.uid to (firebaseUser.displayName ?: "TeeUp Golfer")
+            BuildConfig.DEBUG -> DevIdentity.deviceId to "TeeUp Golfer (Dev)"
+            else -> throw IllegalStateException("register called with no signed-in Firebase user")
+        }
 
-        val user = TeeUpApiClient.register(firebaseUser.uid, firebaseUser.displayName ?: "TeeUp Golfer")
+        val user = TeeUpApiClient.register(uid, displayName)
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY_USER_ID, user.id).apply()
         return BackendIdentity(user.id, user.profileComplete)
     }

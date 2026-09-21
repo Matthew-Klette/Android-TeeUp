@@ -43,9 +43,9 @@ class RegisterActivity : LocaleActivity() {
 
         paceSpinner.adapter = ArrayAdapter(
             this,
-            android.R.layout.simple_spinner_item,
+            R.layout.spinner_item,
             resources.getStringArray(R.array.pace_of_play_options)
-        ).apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
+        ).apply { setDropDownViewResource(R.layout.spinner_dropdown_item) }
         paceSpinner.setSelection(PACE_STANDARD_INDEX)
 
         populateCourseSpinner(emptyList())
@@ -72,8 +72,8 @@ class RegisterActivity : LocaleActivity() {
 
     private fun populateCourseSpinner(courseList: List<Course>) {
         val labels = listOf(getString(R.string.register_home_course_none)) + courseList.map { it.name }
-        courseSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, labels).apply {
-            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        courseSpinner.adapter = ArrayAdapter(this, R.layout.spinner_item, labels).apply {
+            setDropDownViewResource(R.layout.spinner_dropdown_item)
         }
     }
 

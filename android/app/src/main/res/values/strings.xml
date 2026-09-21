@@ -115,26 +115,23 @@
 
     <!-- Scoreboard Screen -->
     <string name="scorecard_title">Scorecard</string>
-    <string name="scorecard_preview_notice">Sample round preview. Live scoring is coming soon.</string>
-    <string name="scorecard_sample_hole">HOLE 7 · PAR 4</string>
-
-    <string name="scorecard_distance_label">GPS TO GREEN</string>
-    <string name="scorecard_sample_distance">152 m</string>
-    <string name="scorecard_map_label">HOLE MAP</string>
-    <string name="scorecard_map_placeholder">Not available yet</string>
+    <string name="scorecard_entry_notice">Enter your score for each hole, then finish the round to save it to your scorecard.</string>
+    <string name="scorecard_hole_heading">HOLE %1$d</string>
 
     <string name="scorecard_strokes">Strokes</string>
     <string name="scorecard_putts">Putts</string>
-    <string name="scorecard_sample_strokes">4</string>
-    <string name="scorecard_sample_putts">2</string>
+    <string name="scorecard_strokes_hint">e.g. 4</string>
+    <string name="scorecard_putts_hint">e.g. 2</string>
 
-    <string name="scorecard_group_heading">GROUP SCORECARD</string>
-    <string name="scorecard_sample_player_two">Player 2 · Through hole 7</string>
-    <string name="scorecard_sample_player_three">Player 3 · Through hole 6</string>
-    <string name="scorecard_sample_player_four">Player 4 · Through hole 5</string>
-
-    <string name="scorecard_save_notice">Preview only — scores are not saved.</string>
-    <string name="scorecard_next_hole">Next Hole / Finish Round</string>
+    <string name="scorecard_next_hole">Save &amp; Next Hole</string>
+    <string name="scorecard_finish_round">Finish Round</string>
+    <string name="scorecard_finish_early">Finish round now</string>
+    <string name="scorecard_progress_format">%1$d of %2$d holes saved this round</string>
+    <string name="scorecard_validation_error">Enter strokes (1 or more) and putts (0 up to strokes) for this hole.</string>
+    <string name="scorecard_finish_empty_error">Enter at least one hole before finishing the round.</string>
+    <string name="scorecard_finish_success">Round saved.</string>
+    <string name="scorecard_missing_round">No round selected. Choose one from My Rounds.</string>
+    <string name="scorecard_already_complete">This round already has all 18 holes scored.</string>
 
     <!-- Notification Screen -->
     <string name="notifications_title">Notifications</string>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Provides the rounded-rect outline the logo ImageView clips to (see logo_radius) —
+     transparent fill since the image itself covers the same bounds. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@android:color/transparent" />
+    <corners android:radius="@dimen/logo_radius" />
+</shape>

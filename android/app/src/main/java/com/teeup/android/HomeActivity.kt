@@ -219,8 +219,8 @@ class HomeActivity : LocaleActivity() {
             resources.getStringArray(R.array.pace_of_play_options)
         val paceSpinner = Spinner(this).apply {
             layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = dp(12) }
-            adapter = ArrayAdapter(this@HomeActivity, android.R.layout.simple_spinner_item, paceLabels)
-                .apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
+            adapter = ArrayAdapter(this@HomeActivity, R.layout.spinner_item, paceLabels)
+                .apply { setDropDownViewResource(R.layout.spinner_dropdown_item) }
             setSelection((filterPace ?: -1) + 1)
         }
         container.addView(paceSpinner)
