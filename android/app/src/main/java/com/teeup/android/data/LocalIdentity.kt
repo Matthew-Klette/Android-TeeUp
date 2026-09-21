@@ -18,6 +18,11 @@ object LocalIdentity {
     fun cachedUserIdOrNull(context: Context): String? =
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_USER_ID, null)
 
+    /** Called on sign-out (PrivacyDataActivity) so the next sign-in doesn't reuse a stale cached id. */
+    fun clearCache(context: Context) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().remove(KEY_USER_ID).apply()
+    }
+
     /** Blocks on network calls the first time; must be called off the main thread, after a Firebase sign-in. */
     fun ensureRegistered(context: Context): String {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)

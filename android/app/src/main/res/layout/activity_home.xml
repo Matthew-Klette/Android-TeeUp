@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/teeup_background">
+    android:background="@drawable/bg_screen_gradient">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -25,8 +25,8 @@
                 android:orientation="horizontal">
 
                 <View
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
                     android:background="@drawable/bg_avatar_circle"
                     android:importantForAccessibility="no" />
 
@@ -40,20 +40,23 @@
                     android:textSize="@dimen/text_subheading"
                     android:textStyle="bold" />
 
-                <TextView
+                <FrameLayout
                     android:id="@+id/button_notifications"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:minHeight="@dimen/touch_target"
-                    android:minWidth="@dimen/touch_target"
-                    android:background="?android:attr/selectableItemBackground"
+                    android:layout_width="@dimen/touch_target"
+                    android:layout_height="@dimen/touch_target"
+                    android:background="@drawable/bg_nav_item"
                     android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:padding="@dimen/space_sm"
-                    android:text="@string/home_notifications"
-                    android:textColor="@color/teeup_accent"
-                    android:textSize="@dimen/text_body" />
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_bell"
+                        android:tint="@color/teeup_text_primary"
+                        android:contentDescription="@string/home_notifications" />
+
+                </FrameLayout>
 
             </LinearLayout>
 
@@ -61,20 +64,18 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_lg"
+                android:layout_marginTop="@dimen/space_xl"
                 android:text="@string/home_title"
                 android:textColor="@color/teeup_text_primary"
                 android:textSize="@dimen/text_heading"
                 android:textStyle="bold" />
 
             <TextView
+                style="@style/TeeUpEyebrow"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_xs"
                 android:layout_marginBottom="@dimen/space_lg"
-                android:text="@string/home_area"
-                android:textColor="@color/teeup_accent_secondary"
-                android:textSize="@dimen/text_caption" />
+                android:text="@string/home_area" />
 
             <!-- Search -->
             <EditText
@@ -82,6 +83,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/space_md"
+                android:drawableStart="@drawable/ic_search"
+                android:drawablePadding="@dimen/space_sm"
                 android:hint="@string/home_search_hint"
                 android:inputType="text"
                 android:imeOptions="actionSearch"
@@ -121,19 +124,17 @@
 
             <!-- Results -->
             <TextView
+                style="@style/TeeUpEyebrow"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/space_md"
-                android:text="@string/home_results_heading"
-                android:textColor="@color/teeup_text_secondary"
-                android:textSize="@dimen/text_caption"
-                android:textStyle="bold" />
+                android:text="@string/home_results_heading" />
 
             <TextView
                 android:id="@+id/text_status"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_card"
+                android:elevation="@dimen/elevation_card"
                 android:gravity="center"
                 android:padding="@dimen/screen_padding"
                 android:accessibilityLiveRegion="polite"

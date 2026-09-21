@@ -11,11 +11,22 @@
 
     <!-- Controls and navigation -->
     <dimen name="touch_target">48dp</dimen>
-    <dimen name="nav_height">64dp</dimen>
+    <dimen name="nav_height">72dp</dimen>
+    <dimen name="nav_icon_size">22dp</dimen>
+    <dimen name="nav_pill_width">56dp</dimen>
+    <dimen name="nav_pill_height">32dp</dimen>
 
-    <!-- Rounded corners -->
-    <dimen name="card_radius">12dp</dimen>
-    <dimen name="button_radius">24dp</dimen>
+    <!-- Rounded corners: restrained, not pill-shaped. Nav pill stays fully
+         rounded since a stadium indicator is the deliberate exception. -->
+    <dimen name="card_radius">10dp</dimen>
+    <dimen name="button_radius">8dp</dimen>
+    <dimen name="pill_radius">999dp</dimen>
+
+    <!-- Elevation: soft lift so surfaces read as layered, not flat -->
+    <dimen name="elevation_card">3dp</dimen>
+    <dimen name="elevation_button">2dp</dimen>
+    <dimen name="elevation_nav">10dp</dimen>
+    <dimen name="elevation_banner">10dp</dimen>
 
     <!-- Shared text sizes -->
     <dimen name="text_caption">12sp</dimen>

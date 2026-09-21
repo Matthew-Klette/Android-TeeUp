@@ -1,0 +1,238 @@
+<resources>
+    <string name="profile_retry">Probeer weer</string>
+    <!-- Welcome Screen -->
+    <string name="sign_in_tagline">VIND JOU VOLGENDE RONDTE</string>
+    <string name="sign_in_google">Gaan voort met Google</string>
+    <string name="sign_in_google_progress">Meld tans aan…</string>
+    <string name="sign_in_email">Gaan voort met E-pos</string>
+    <string name="sign_in_biometric">Gebruik Gesig / Vingerafdruk</string>
+    <string name="sign_in_register">Nuut hier? Registreer</string>
+    <string name="sign_in_terms">Deur voort te gaan stem jy in tot ons Bepalings en POPIA-belynde Privaatheidskennisgewing</string>
+
+    <!-- Profile Screen -->
+    <string name="profile_title">Profiel &amp; Instellings</string>
+    <string name="profile_name_placeholder">Vertoonnaam</string>
+    <string name="profile_details_placeholder">Voorgee · Tuisbaan</string>
+
+    <string name="profile_stat_rounds">Rondtes</string>
+    <string name="profile_stat_handicap">Voorgee</string>
+    <string name="profile_stat_friends">Vriende</string>
+
+    <string name="profile_section_account">REKENING</string>
+    <string name="profile_personal_details">Persoonlike Besonderhede</string>
+    <string name="profile_playing_details">Spelbesonderhede</string>
+    <string name="profile_notification_preferences">Kennisgewingvoorkeure</string>
+    <string name="profile_language">Taal</string>
+    <string name="profile_language_dialog_title">Kies taal</string>
+    <string name="profile_biometric_login">Biometriese Aanmelding</string>
+    <string name="profile_offline_sync">Aflyn Data &amp; Sinkroniseringstatus</string>
+    <string name="profile_privacy">Privaatheid &amp; Data (POPIA)</string>
+
+    <!-- Navigation Bar -->
+    <string name="nav_home">Tuis</string>
+    <string name="nav_rounds">Rondtes</string>
+    <string name="nav_scorecard">Telkaart</string>
+    <string name="nav_profile">Profiel</string>
+
+    <!-- Register Screen -->
+    <string name="register_title">Skep jou profiel</string>
+    <string name="register_subtitle">Vertel ons bietjie van jou spel.</string>
+
+    <string name="register_display_name">Vertoonnaam</string>
+    <string name="register_display_name_hint">Voer jou naam in</string>
+
+    <string name="register_handicap">Voorgee-indeks</string>
+    <string name="register_handicap_hint">Byvoorbeeld, 14.5</string>
+
+    <string name="register_home_course">Tuisbaan</string>
+    <string name="register_home_course_none">Nog geen tuisbaan nie</string>
+
+    <string name="register_pace">Speeltempo</string>
+
+    <string name="register_continue">Gaan voort</string>
+    <string name="register_saving">Stoor tans...</string>
+
+    <string-array name="pace_of_play_options">
+        <item>Ontspanne</item>
+        <item>Standaard</item>
+        <item>Vinnig</item>
+    </string-array>
+
+    <!-- Home Screen -->
+    <string name="home_notifications">Kennisgewings</string>
+    <string name="home_title">Vind jou volgende rondte</string>
+    <string name="home_area">PORT ELIZABETH EN OMGEWING</string>
+    <string name="home_search_hint">Soek baan of area</string>
+
+    <string name="home_filter_datetime">Datum / Tyd</string>
+    <string name="home_filter_players">Spelers 1–4</string>
+    <string name="home_filter_skill">Vaardigheid / Tempo Filter</string>
+
+    <string name="home_results_heading">NABY</string>
+    <string name="home_loading">Laai nabygeleë afslaantye…</string>
+
+    <string name="home_card_heading">%1$s · %2$s</string>
+    <string name="home_card_open_round">OOP RONDTE</string>
+    <string name="home_card_booking">BESPREKING</string>
+    <string name="home_card_availability">%1$d plek(ke) oop · %2$s</string>
+    <string name="home_card_preview">Voorskou</string>
+    <string name="home_card_book">Bespreek</string>
+
+    <!-- Tee Time Detail Screen -->
+    <string name="detail_title">Afslaantyd Besonderhede</string>
+    <string name="detail_back">Gaan terug</string>
+    <string name="detail_back_symbol">←</string>
+    <string name="detail_loading">Laai afslaantyd…</string>
+    <string name="detail_host">GASHEER</string>
+    <string name="detail_request_to_join">Versoek om Aan te Sluit</string>
+    <string name="detail_pending_requests">Hangende Versoeke</string>
+    <string name="detail_group_chat">Groepklets</string>
+    <string name="detail_preview_course">Voorskou Baan</string>
+
+    <!-- Course Preview Screen -->
+    <string name="course_preview_title">Baan Voorskou</string>
+    <string name="course_preview_loading">Laai baan…</string>
+    <string name="course_preview_error">Kon nie die baankaart laai nie</string>
+    <string name="course_preview_rating_format">Gradering %.1f</string>
+    <string name="course_preview_open_maps">Maak oop in Kaarte</string>
+
+    <!-- Rounds Screen -->
+    <string name="rounds_title">My Rondtes</string>
+    <string name="rounds_subtitle">Jou komende rondtes en speelgeskiedenis.</string>
+    <string name="rounds_placeholder">Jou rondtes sal hier verskyn sodra hierdie funksie beskikbaar is.</string>
+
+    <!-- Scoreboard Screen -->
+    <string name="scorecard_title">Telkaart</string>
+    <string name="scorecard_preview_notice">Voorbeeldrondte-voorskou. Intydse telling kom binnekort.</string>
+    <string name="scorecard_sample_hole">GAT 7 · PAR 4</string>
+
+    <string name="scorecard_distance_label">GPS NA GROEN</string>
+    <string name="scorecard_sample_distance">152 m</string>
+    <string name="scorecard_map_label">GATKAART</string>
+    <string name="scorecard_map_placeholder">Nog nie beskikbaar nie</string>
+
+    <string name="scorecard_strokes">Houe</string>
+    <string name="scorecard_putts">Putte</string>
+    <string name="scorecard_sample_strokes">4</string>
+    <string name="scorecard_sample_putts">2</string>
+
+    <string name="scorecard_group_heading">GROEP TELKAART</string>
+    <string name="scorecard_sample_player_two">Speler 2 · Deur gat 7</string>
+    <string name="scorecard_sample_player_three">Speler 3 · Deur gat 6</string>
+    <string name="scorecard_sample_player_four">Speler 4 · Deur gat 5</string>
+
+    <string name="scorecard_save_notice">Slegs voorskou — tellings word nie gestoor nie.</string>
+    <string name="scorecard_next_hole">Volgende Gat / Voltooi Rondte</string>
+
+    <!-- Notification Screen -->
+    <string name="notifications_title">Kennisgewings</string>
+    <string name="notifications_back">Gaan terug</string>
+    <string name="notifications_back_symbol">←</string>
+    <string name="notifications_preview_notice">Voorbeeldkennisgewings. Intydse opdaterings kom binnekort.</string>
+
+    <string name="notifications_today">VANDAG</string>
+    <string name="notifications_yesterday">GISTER</string>
+
+    <string name="notifications_join_title">Nuwe Aansluitversoek</string>
+    <string name="notifications_join_body">Vir jou 07:40 Fancourt-rondte</string>
+
+    <string name="notifications_accepted_title">Versoek Aanvaar</string>
+    <string name="notifications_accepted_body">Slaan af oor 2 uur</string>
+
+    <string name="notifications_sync_title">Sinkroniseringsherinnering</string>
+    <string name="notifications_sync_body">1 aflyn rondte hangend</string>
+
+    <string name="notifications_weather_title">Weerwaarskuwing</string>
+    <string name="notifications_weather_body">Reën verwag by Humewood GC</string>
+
+    <!-- Shared across Personal/Playing Details -->
+    <string name="profile_load_signed_out">Jy moet aangemeld wees om dit te sien</string>
+    <string name="profile_load_error_fallback">Kon nie jou profiel laai nie</string>
+    <string name="profile_save_error_fallback">Kon nie stoor nie — probeer weer</string>
+
+    <!-- Personal Details Screen -->
+    <string name="personal_details_title">Persoonlike Besonderhede</string>
+    <string name="personal_details_loading">Laai jou profiel…</string>
+    <string name="personal_details_display_name">Vertoonnaam</string>
+    <string name="personal_details_email_label">E-POS</string>
+    <string name="personal_details_email_none">Geen e-pos op hierdie rekening nie (aangemeld met Gesig/Vingerafdruk of E-pos-plekhouer)</string>
+    <string name="personal_details_save">Stoor</string>
+    <string name="personal_details_saving">Stoor tans…</string>
+    <string name="personal_details_name_required">Voer \'n vertoonnaam in</string>
+
+    <!-- Playing Details Screen -->
+    <string name="playing_details_title">Spelbesonderhede</string>
+    <string name="playing_details_loading">Laai jou profiel…</string>
+    <string name="playing_details_save">Stoor</string>
+    <string name="playing_details_saving">Stoor tans…</string>
+    <string name="playing_details_handicap_invalid">Voer \'n geldige voorgee tussen 0 en 54 in, of los dit leeg</string>
+
+    <!-- Notification Preferences Screen -->
+    <string name="notification_prefs_title">Kennisgewingvoorkeure</string>
+    <string name="notification_prefs_subtitle">Kies wat op jou Kennisgewings-skerm wys. Slegs op hierdie toestel gestoor — daar is nog geen bediener-kant voorkeursinkronisasie nie.</string>
+    <string name="notification_category_join_request">Nuwe aansluitversoeke</string>
+    <string name="notification_category_accepted">Aanvaarde versoeke</string>
+    <string name="notification_category_declined">Geweierde versoeke</string>
+    <string name="notification_category_reminder">Afslaantyd-herinneringe</string>
+    <string name="notification_category_sync">Sinkroniseringsherinneringe</string>
+    <string name="notification_category_weather">Weerwaarskuwings</string>
+
+    <!-- Biometric Login Screen -->
+    <string name="biometric_title">Biometriese Aanmelding</string>
+    <string name="biometric_toggle_label">Vereis Gesig / Vingerafdruk om TeeUp oop te maak</string>
+    <string name="biometric_checking">Kontroleer jou toestel…</string>
+    <string name="biometric_confirming">Bevestig om dit aan te skakel…</string>
+    <string name="biometric_enforcement_notice">Wanneer aan, sal die app jou vra om Gesig/Vingerafdruk te bevestig reg na Aanmelding, voordat Tuis oopmaak.</string>
+    <string name="biometric_available">Jou toestel ondersteun biometriese aanmelding.</string>
+    <string name="biometric_unavailable_format">Biometriese aanmelding is nie beskikbaar nie: %1$s</string>
+    <string name="biometric_reason_no_hardware">geen biometriese hardeware op hierdie toestel nie</string>
+    <string name="biometric_reason_hw_unavailable">biometriese hardeware is tans nie beskikbaar nie</string>
+    <string name="biometric_reason_none_enrolled">geen vingerafdruk of gesig is nog op hierdie toestel geregistreer nie</string>
+    <string name="biometric_reason_security_update">\'n sekuriteitsopdatering word vereis</string>
+    <string name="biometric_reason_unsupported">nie ondersteun op hierdie toestel nie</string>
+    <string name="biometric_reason_unknown">onbekende rede</string>
+    <string name="biometric_prompt_title">Bevestig dit is jy</string>
+    <string name="biometric_prompt_subtitle">Dit skakel Biometriese Aanmelding vir TeeUp aan</string>
+    <string name="biometric_prompt_cancel">Kanselleer</string>
+    <string name="biometric_confirm_error_format">Kon nie bevestig nie: %1$s</string>
+    <string name="biometric_turned_on">Biometriese aanmelding is aangeskakel</string>
+    <string name="biometric_turned_off">Biometriese aanmelding is afgeskakel</string>
+
+    <!-- Biometric Unlock Screen (enforcement gate before Home) -->
+    <string name="biometric_unlock_prompt_subtitle">Bevestig dit is jy om voort te gaan</string>
+    <string name="biometric_unlock_prompt_title">Ontsluit TeeUp</string>
+    <string name="biometric_unlock_try_again">Probeer Weer</string>
+    <string name="biometric_unlock_sign_out_instead">Meld eerder af</string>
+
+    <!-- Offline Data &amp; Sync Status Screen -->
+    <string name="offline_sync_title">Aflyn Data &amp; Sinkroniseringstatus</string>
+    <string name="offline_sync_no_cache_notice">TeeUp stoor nog nie data vir aflyn gebruik nie — elke skerm het \'n lewendige verbinding nodig. Hierdie bladsy wys wat regtig is: jou verbinding en die laaste suksesvolle sinkronisasie, nie \'n vals hangende-rondtes-teller nie.</string>
+    <string name="offline_sync_last_synced_label">LAASTE GESINKRONISEER</string>
+    <string name="offline_sync_never">Nooit — niks het nog van die API gelaai nie</string>
+    <string name="offline_sync_connection_label">VERBINDING</string>
+    <string name="offline_sync_check_now">Kontroleer Nou</string>
+    <string name="offline_sync_checking">Kontroleer tans…</string>
+    <string name="offline_sync_no_connection">Geen verbinding nie</string>
+    <string name="offline_sync_connected_wifi">Verbind — Wi-Fi</string>
+    <string name="offline_sync_connected_mobile">Verbind — Mobiele data</string>
+    <string name="offline_sync_connected_ethernet">Verbind — Ethernet</string>
+    <string name="offline_sync_connected_generic">Verbind</string>
+    <string name="offline_sync_reachable">API is bereikbaar</string>
+    <string name="offline_sync_request_failed_fallback">API-versoek het misluk</string>
+    <string name="offline_sync_unreachable">Kon nie die API bereik nie</string>
+    <string name="sync_relative_just_now">Nou net</string>
+    <string name="sync_relative_minutes_ago">%1$d minuut/minute gelede</string>
+    <string name="sync_relative_hours_ago">%1$d uur/ure gelede</string>
+    <string name="sync_relative_days_ago">%1$d dag/dae gelede</string>
+
+    <!-- Privacy &amp; Data (POPIA) Screen -->
+    <string name="privacy_title">Privaatheid &amp; Data (POPIA)</string>
+    <string name="privacy_section_collect">WAT ONS VERSAMEL</string>
+    <string name="privacy_body_collect">Jou vertoonnaam, voorgee-indeks, tuisbaan, en speeltempo-voorkeur — almal wysigbaar onder Persoonlike Besonderhede en Spelbesonderhede — plus die identiteit wat Firebase uitreik wanneer jy met Google aanmeld. Jou taalvoorkeur (Profiel → Taal) word slegs op hierdie toestel gestoor, nie op die bediener nie.</string>
+    <string name="privacy_section_usage">HOE DIT GEBRUIK WORD</string>
+    <string name="privacy_body_usage">Om jou nabygeleë afslaantye te wys, jou met rondtes te pas, en gashere te laat sien wie versoek om aan te sluit. Dit word nie verkoop of met derde partye gedeel nie.</string>
+    <string name="privacy_section_controls">JOU BEHEER</string>
+    <string name="privacy_body_controls">Jy kan jou profielvelde enige tyd wysig of uitvee onder Persoonlike Besonderhede / Spelbesonderhede, en hieronder afmeld. Rekeninguitvee binne die app is nog nie beskikbaar nie — versoek dit intussen direk van die span.</string>
+    <string name="privacy_sign_out">Meld Af</string>
+    <string name="privacy_signing_out">Meld tans af…</string>
+</resources>

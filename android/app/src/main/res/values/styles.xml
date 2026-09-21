@@ -29,6 +29,28 @@
         <item name="android:stateListAnimator">@null</item>
     </style>
 
+    <!-- The one strong call-to-action per screen: solid fill, white text -->
+    <style name="TeeUpButton.Primary">
+        <item name="android:background">@drawable/bg_button_primary</item>
+        <item name="android:textColor">@color/teeup_text_on_primary</item>
+        <item name="android:elevation">@dimen/elevation_button</item>
+    </style>
+
+    <!-- Destructive / decline action -->
+    <style name="TeeUpButton.Danger">
+        <item name="android:background">@drawable/bg_button_danger_outline</item>
+        <item name="android:textColor">@color/teeup_danger</item>
+    </style>
+
+    <!-- Compact variant for buttons placed side by side in a row -->
+    <style name="TeeUpButton.Compact">
+        <item name="android:minHeight">36dp</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:paddingTop">@dimen/space_sm</item>
+        <item name="android:paddingBottom">@dimen/space_sm</item>
+        <item name="android:textSize">@dimen/text_caption</item>
+    </style>
+
     <!-- Shared input-field appearance -->
     <style name="TeeUpInput" parent="android:Widget.Material.EditText">
         <item name="android:background">@drawable/bg_input</item>
@@ -72,14 +94,33 @@
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_weight">1</item>
+        <item name="android:orientation">vertical</item>
 
         <item name="android:minHeight">@dimen/nav_height</item>
-        <item name="android:padding">@dimen/space_sm</item>
+        <item name="android:paddingTop">@dimen/space_sm</item>
+        <item name="android:paddingBottom">@dimen/space_xs</item>
         <item name="android:gravity">center</item>
 
         <item name="android:background">@drawable/bg_nav_item</item>
         <item name="android:clickable">true</item>
         <item name="android:focusable">true</item>
+    </style>
+
+    <!-- The soft pill highlight behind the icon of the selected tab -->
+    <style name="TeeUpNavIconPill" parent="">
+        <item name="android:layout_width">@dimen/nav_pill_width</item>
+        <item name="android:layout_height">@dimen/nav_pill_height</item>
+        <item name="android:layout_marginBottom">2dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:background">@drawable/bg_nav_pill</item>
+        <item name="android:duplicateParentState">true</item>
+    </style>
+
+    <style name="TeeUpNavIcon" parent="">
+        <item name="android:layout_width">@dimen/nav_icon_size</item>
+        <item name="android:layout_height">@dimen/nav_icon_size</item>
+        <item name="android:tint">@color/nav_text</item>
+        <item name="android:duplicateParentState">true</item>
     </style>
 
     <!-- Label inherits its parent tab's selected state -->
@@ -88,9 +129,20 @@
         <item name="android:layout_height">wrap_content</item>
 
         <item name="android:gravity">center</item>
-        <item name="android:textSize">@dimen/text_caption</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
         <item name="android:textColor">@color/nav_text</item>
         <item name="android:duplicateParentState">true</item>
+    </style>
+
+    <!-- Small caps section eyebrow (e.g. "NEARBY", "ACCOUNT") -->
+    <style name="TeeUpEyebrow" parent="TeeUpText">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">@dimen/text_caption</item>
+        <item name="android:textColor">@color/teeup_text_secondary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0.08</item>
     </style>
 
 </resources>

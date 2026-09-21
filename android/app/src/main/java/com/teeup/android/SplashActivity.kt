@@ -3,9 +3,10 @@ package com.teeup.android
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
+import com.teeup.android.data.BiometricPreference
+import com.teeup.android.ui.LocaleComponentActivity
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 
@@ -13,7 +14,7 @@ import kotlinx.coroutines.launch
  * Screen 0 · Splash. Checks Firebase auth state before routing to Sign In or
  * Home. No interactive UI, so it should be on/off screen almost instantly.
  */
-class SplashActivity : ComponentActivity() {
+class SplashActivity : LocaleComponentActivity() {
     private val viewModel: SplashViewModel by viewModels()
     private val tag = "SplashActivity"
 
@@ -26,10 +27,18 @@ class SplashActivity : ComponentActivity() {
             viewModel.destination.filterNotNull().collect { destination ->
                 Log.d(tag, "routing to $destination")
                 val target = when (destination) {
-                    SplashDestination.HOME -> HomeActivity::class.java
+                    // Biometric Login (Profile) gates Home behind a real BiometricPrompt
+                    // when turned on — see BiometricUnlockActivity.
+                    SplashDestination.HOME ->
+                        if (BiometricPreference.isEnabled(this@SplashActivity)) {
+                            BiometricUnlockActivity::class.java
+                        } else {
+                            HomeActivity::class.java
+                        }
                     SplashDestination.SIGN_IN -> SignInActivity::class.java
                 }
                 startActivity(Intent(this@SplashActivity, target))
+                overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
                 finish()
             }
         }

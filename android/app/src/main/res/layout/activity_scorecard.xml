@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/teeup_background">
+    android:background="@drawable/bg_screen_gradient">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -40,13 +40,11 @@
                 android:textSize="@dimen/text_body" />
 
             <TextView
+                style="@style/TeeUpEyebrow"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/space_md"
-                android:text="@string/scorecard_sample_hole"
-                android:textColor="@color/teeup_accent_secondary"
                 android:textSize="@dimen/text_body"
-                android:textStyle="bold" />
+                android:text="@string/scorecard_sample_hole" />
 
             <!-- Distance and map preview -->
             <LinearLayout
@@ -62,6 +60,7 @@
                     android:layout_marginEnd="@dimen/space_sm"
                     android:layout_weight="1"
                     android:background="@drawable/bg_card"
+                    android:elevation="@dimen/elevation_card"
                     android:orientation="vertical"
                     android:padding="@dimen/space_lg">
 
@@ -88,6 +87,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:background="@drawable/bg_card"
+                    android:elevation="@dimen/elevation_card"
                     android:orientation="vertical"
                     android:padding="@dimen/space_lg">
 
@@ -116,6 +116,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/space_xl"
                 android:background="@drawable/bg_card_outline"
+                android:elevation="@dimen/elevation_card"
                 android:orientation="vertical"
                 android:padding="@dimen/space_lg">
 
@@ -131,7 +132,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/scorecard_strokes"
-                        android:textColor="@color/teeup_accent"
+                        android:textColor="@color/teeup_text_secondary"
                         android:textSize="@dimen/text_body_large" />
 
                     <TextView
@@ -156,7 +157,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/scorecard_putts"
-                        android:textColor="@color/teeup_accent"
+                        android:textColor="@color/teeup_text_secondary"
                         android:textSize="@dimen/text_body_large" />
 
                     <TextView
@@ -173,19 +174,17 @@
             </LinearLayout>
 
             <TextView
+                style="@style/TeeUpEyebrow"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/space_md"
-                android:text="@string/scorecard_group_heading"
-                android:textColor="@color/teeup_text_secondary"
-                android:textSize="@dimen/text_caption"
-                android:textStyle="bold" />
+                android:text="@string/scorecard_group_heading" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/space_sm"
                 android:background="@drawable/bg_card"
+                android:elevation="@dimen/elevation_card"
                 android:padding="@dimen/space_lg"
                 android:text="@string/scorecard_sample_player_two"
                 android:textColor="@color/teeup_text_primary"
@@ -196,6 +195,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/space_sm"
                 android:background="@drawable/bg_card"
+                android:elevation="@dimen/elevation_card"
                 android:padding="@dimen/space_lg"
                 android:text="@string/scorecard_sample_player_three"
                 android:textColor="@color/teeup_text_primary"
@@ -206,6 +206,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/space_lg"
                 android:background="@drawable/bg_card"
+                android:elevation="@dimen/elevation_card"
                 android:padding="@dimen/space_lg"
                 android:text="@string/scorecard_sample_player_four"
                 android:textColor="@color/teeup_text_primary"
@@ -223,6 +224,7 @@
 
             <Button
                 android:id="@+id/button_next_hole"
+                style="@style/TeeUpButton.Primary"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/scorecard_summary_preview" />

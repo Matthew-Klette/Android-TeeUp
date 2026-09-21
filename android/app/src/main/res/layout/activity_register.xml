@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:background="@color/teeup_background">
+    android:background="@drawable/bg_screen_gradient">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -98,6 +98,7 @@
 
         <Button
             android:id="@+id/button_continue"
+            style="@style/TeeUpButton.Primary"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/register_continue" />

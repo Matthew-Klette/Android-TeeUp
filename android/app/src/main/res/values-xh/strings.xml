@@ -1,0 +1,238 @@
+<resources>
+    <string name="profile_retry">Zama kwakhona</string>
+    <!-- Welcome Screen -->
+    <string name="sign_in_tagline">FUMANA UMJIKELO WAKHO OLANDELAYO</string>
+    <string name="sign_in_google">Qhubeka nge-Google</string>
+    <string name="sign_in_google_progress">Iyangena…</string>
+    <string name="sign_in_email">Qhubeka nge-Imeyili</string>
+    <string name="sign_in_biometric">Sebenzisa Ubuso / Umnwe</string>
+    <string name="sign_in_register">Mtsha apha? Bhalisa</string>
+    <string name="sign_in_terms">Ngokuqhubeka uyavuma kwiMigaqo yethu nakwiSaziso soBumfihlo esihambelana ne-POPIA</string>
+
+    <!-- Profile Screen -->
+    <string name="profile_title">Iprofayile &amp; Useto</string>
+    <string name="profile_name_placeholder">Igama Elibonisiweyo</string>
+    <string name="profile_details_placeholder">I-Handicap · Ibala Lasekhaya</string>
+
+    <string name="profile_stat_rounds">Imijikelo</string>
+    <string name="profile_stat_handicap">I-Handicap</string>
+    <string name="profile_stat_friends">Abahlobo</string>
+
+    <string name="profile_section_account">IAKHAWUNTI</string>
+    <string name="profile_personal_details">Iinkcukacha Zomntu</string>
+    <string name="profile_playing_details">Iinkcukacha Zokudlala</string>
+    <string name="profile_notification_preferences">Uluhlu Lwezaziso</string>
+    <string name="profile_language">Ulwimi</string>
+    <string name="profile_language_dialog_title">Khetha ulwimi</string>
+    <string name="profile_biometric_login">Ukungena nge-Biometric</string>
+    <string name="profile_offline_sync">Idatha Engaxhunyiwe &amp; Imeko Yokuvumelanisa</string>
+    <string name="profile_privacy">Ubumfihlo &amp; Idatha (POPIA)</string>
+
+    <!-- Navigation Bar -->
+    <string name="nav_home">Ikhaya</string>
+    <string name="nav_rounds">Imijikelo</string>
+    <string name="nav_scorecard">Ikhadi Lamanqaku</string>
+    <string name="nav_profile">Iprofayile</string>
+
+    <!-- Register Screen -->
+    <string name="register_title">Yenza iprofayile yakho</string>
+    <string name="register_subtitle">Sixelele kancinci ngomdlalo wakho.</string>
+
+    <string name="register_display_name">Igama elibonisiweyo</string>
+    <string name="register_display_name_hint">Faka igama lakho</string>
+
+    <string name="register_handicap">Inkomba ye-Handicap</string>
+    <string name="register_handicap_hint">Umzekelo, 14.5</string>
+
+    <string name="register_home_course">Ibala lasekhaya</string>
+    <string name="register_home_course_none">Akukabikho bala lasekhaya</string>
+
+    <string name="register_pace">Isantya sokudlala</string>
+
+    <string name="register_continue">Qhubeka</string>
+    <string name="register_saving">Iyagcina...</string>
+
+    <string-array name="pace_of_play_options">
+        <item>Ukhululekile</item>
+        <item>Eqhelekileyo</item>
+        <item>Ekhawulezayo</item>
+    </string-array>
+
+    <!-- Home Screen -->
+    <string name="home_notifications">Izaziso</string>
+    <string name="home_title">Fumana umjikelo wakho olandelayo</string>
+    <string name="home_area">PORT ELIZABETH NENDAWO EZIKUFUPHI</string>
+    <string name="home_search_hint">Khangela ibala okanye indawo</string>
+
+    <string name="home_filter_datetime">Umhla / Ixesha</string>
+    <string name="home_filter_players">Abadlali 1–4</string>
+    <string name="home_filter_skill">Isakhono / Isantya Sokuhlungwa</string>
+
+    <string name="home_results_heading">EKUFUPHI</string>
+    <string name="home_loading">Ilayisha amaxesha okudlala akufuphi…</string>
+
+    <string name="home_card_heading">%1$s · %2$s</string>
+    <string name="home_card_open_round">UMJIKELO OVULIWEYO</string>
+    <string name="home_card_booking">UKUBHUKISHA</string>
+    <string name="home_card_availability">%1$d indawo evulekileyo · %2$s</string>
+    <string name="home_card_preview">Jonga Kwangaphambili</string>
+    <string name="home_card_book">Bhukisha</string>
+
+    <!-- Tee Time Detail Screen -->
+    <string name="detail_title">Iinkcukacha Zexesha Lokudlala</string>
+    <string name="detail_back">Buyela umva</string>
+    <string name="detail_back_symbol">←</string>
+    <string name="detail_loading">Ilayisha ixesha lokudlala…</string>
+    <string name="detail_host">UMNINI-NDLU</string>
+    <string name="detail_request_to_join">Cela Ukudibana</string>
+    <string name="detail_pending_requests">Izicelo Ezilindileyo</string>
+    <string name="detail_group_chat">Incoko Yeqela</string>
+    <string name="detail_preview_course">Jonga Ibala Kwangaphambili</string>
+
+    <!-- Course Preview Screen -->
+    <string name="course_preview_title">Ukujonga Ibala Kwangaphambili</string>
+    <string name="course_preview_loading">Ilayisha ibala…</string>
+    <string name="course_preview_error">Ayikwazanga ukulayisha imephu yebala</string>
+    <string name="course_preview_rating_format">Isilinganiselo %.1f</string>
+    <string name="course_preview_open_maps">Vula kwiiMephu</string>
+
+    <!-- Rounds Screen -->
+    <string name="rounds_title">Imijikelo Yam</string>
+    <string name="rounds_subtitle">Imijikelo yakho ezayo nembali yokudlala.</string>
+    <string name="rounds_placeholder">Imijikelo yakho iya kubonakala apha xa esi sixhobo sifumaneka.</string>
+
+    <!-- Scoreboard Screen -->
+    <string name="scorecard_title">Ikhadi Lamanqaku</string>
+    <string name="scorecard_preview_notice">Umzekelo womjikelo wokujonga kwangaphambili. Ukubala amanqaku ngokwangoku kuyeza kungekudala.</string>
+    <string name="scorecard_sample_hole">IMBOBO 7 · PAR 4</string>
+
+    <string name="scorecard_distance_label">I-GPS UKUYA KUMHLAZA</string>
+    <string name="scorecard_sample_distance">152 m</string>
+    <string name="scorecard_map_label">IMEPHU YEMBOBO</string>
+    <string name="scorecard_map_placeholder">Ayikafumaneki okwangoku</string>
+
+    <string name="scorecard_strokes">Iintshaya</string>
+    <string name="scorecard_putts">Ii-Putt</string>
+    <string name="scorecard_sample_strokes">4</string>
+    <string name="scorecard_sample_putts">2</string>
+
+    <string name="scorecard_group_heading">IKHADI LAMANQAKU LEQELA</string>
+    <string name="scorecard_sample_player_two">Umdlali 2 · Kwimbobo 7</string>
+    <string name="scorecard_sample_player_three">Umdlali 3 · Kwimbobo 6</string>
+    <string name="scorecard_sample_player_four">Umdlali 4 · Kwimbobo 5</string>
+
+    <string name="scorecard_save_notice">Kukujonga kwangaphambili kuphela — amanqaku awagcinwa.</string>
+    <string name="scorecard_next_hole">Imbobo Elandelayo / Gqiba Umjikelo</string>
+
+    <!-- Notification Screen -->
+    <string name="notifications_title">Izaziso</string>
+    <string name="notifications_back">Buyela umva</string>
+    <string name="notifications_back_symbol">←</string>
+    <string name="notifications_preview_notice">Izaziso zomzekelo. Uhlaziyo ngokwangoku luyeza kungekudala.</string>
+
+    <string name="notifications_today">NAMHLANJE</string>
+    <string name="notifications_yesterday">IZOLO</string>
+
+    <string name="notifications_join_title">Isicelo Esitsha Sokudibana</string>
+    <string name="notifications_join_body">Yomjikelo wakho we-07:40 e-Fancourt</string>
+
+    <string name="notifications_accepted_title">Isicelo Samkelwe</string>
+    <string name="notifications_accepted_body">Uqala emva kweeyure ezi-2</string>
+
+    <string name="notifications_sync_title">Isikhumbuzo Sokuvumelanisa</string>
+    <string name="notifications_sync_body">Umjikelo omnye ongaxhunyiwe ulindile</string>
+
+    <string name="notifications_weather_title">Isilumkiso Semozulu</string>
+    <string name="notifications_weather_body">Kulindeleke imvula e-Humewood GC</string>
+
+    <!-- Shared across Personal/Playing Details -->
+    <string name="profile_load_signed_out">Kufuneka ungene ukuze ubone oku</string>
+    <string name="profile_load_error_fallback">Ayikwazanga ukulayisha iprofayile yakho</string>
+    <string name="profile_save_error_fallback">Ayikwazanga ukugcina — zama kwakhona</string>
+
+    <!-- Personal Details Screen -->
+    <string name="personal_details_title">Iinkcukacha Zomntu</string>
+    <string name="personal_details_loading">Ilayisha iprofayile yakho…</string>
+    <string name="personal_details_display_name">Igama elibonisiweyo</string>
+    <string name="personal_details_email_label">I-IMEYILI</string>
+    <string name="personal_details_email_none">Akukho imeyili kule akhawunti (ungene ngoBuso/uMnwe okanye i-imeyili yesibonelelo)</string>
+    <string name="personal_details_save">Gcina</string>
+    <string name="personal_details_saving">Iyagcina…</string>
+    <string name="personal_details_name_required">Faka igama elibonisiweyo</string>
+
+    <!-- Playing Details Screen -->
+    <string name="playing_details_title">Iinkcukacha Zokudlala</string>
+    <string name="playing_details_loading">Ilayisha iprofayile yakho…</string>
+    <string name="playing_details_save">Gcina</string>
+    <string name="playing_details_saving">Iyagcina…</string>
+    <string name="playing_details_handicap_invalid">Faka i-handicap esebenzayo phakathi kuka-0 no-54, okanye uyishiye ingenanto</string>
+
+    <!-- Notification Preferences Screen -->
+    <string name="notification_prefs_title">Uluhlu Lwezaziso</string>
+    <string name="notification_prefs_subtitle">Khetha oko kubonakala kwisikrini sakho Sezaziso. Kugcinwe kule divayisi kuphela — akukabikho ukuvumelanisa kweenketho secaleni leseva okwangoku.</string>
+    <string name="notification_category_join_request">Izicelo ezitsha zokudibana</string>
+    <string name="notification_category_accepted">Izicelo ezamkelweyo</string>
+    <string name="notification_category_declined">Izicelo ezaliweyo</string>
+    <string name="notification_category_reminder">Izikhumbuzo zexesha lokudlala</string>
+    <string name="notification_category_sync">Izikhumbuzo zokuvumelanisa</string>
+    <string name="notification_category_weather">Izilumkiso zemozulu</string>
+
+    <!-- Biometric Login Screen -->
+    <string name="biometric_title">Ukungena nge-Biometric</string>
+    <string name="biometric_toggle_label">Funa Ubuso / Umnwe ukuze uvule i-TeeUp</string>
+    <string name="biometric_checking">Ijonga idivayisi yakho…</string>
+    <string name="biometric_confirming">Qinisekisa ukuze uyivule…</string>
+    <string name="biometric_enforcement_notice">Xa ivuliwe, i-app iya kucela ukuba uqinisekise Ubuso/Umnwe emva kokungena, phambi kokuba iKhaya livuleke.</string>
+    <string name="biometric_available">Idivayisi yakho ixhasa ukungena nge-biometric.</string>
+    <string name="biometric_unavailable_format">Ukungena nge-biometric akufumaneki: %1$s</string>
+    <string name="biometric_reason_no_hardware">akukho izixhobo ze-biometric kule divayisi</string>
+    <string name="biometric_reason_hw_unavailable">izixhobo ze-biometric azifumaneki okwangoku</string>
+    <string name="biometric_reason_none_enrolled">akukabikho mnwe okanye ubuso obubhalisiweyo kule divayisi</string>
+    <string name="biometric_reason_security_update">kufuneka uhlaziyo lokhuseleko</string>
+    <string name="biometric_reason_unsupported">ayixhaswa kule divayisi</string>
+    <string name="biometric_reason_unknown">isizathu esingaziwayo</string>
+    <string name="biometric_prompt_title">Qinisekisa ukuba nguwe</string>
+    <string name="biometric_prompt_subtitle">Oku kuvula Ukungena nge-Biometric ye-TeeUp</string>
+    <string name="biometric_prompt_cancel">Rhoxisa</string>
+    <string name="biometric_confirm_error_format">Ayikwazanga ukuqinisekisa: %1$s</string>
+    <string name="biometric_turned_on">Ukungena nge-biometric kuvuliwe</string>
+    <string name="biometric_turned_off">Ukungena nge-biometric kuvaliwe</string>
+
+    <!-- Biometric Unlock Screen (enforcement gate before Home) -->
+    <string name="biometric_unlock_prompt_subtitle">Qinisekisa ukuba nguwe ukuze uqhubeke</string>
+    <string name="biometric_unlock_prompt_title">Vula i-TeeUp</string>
+    <string name="biometric_unlock_try_again">Zama Kwakhona</string>
+    <string name="biometric_unlock_sign_out_instead">Phuma kunoko</string>
+
+    <!-- Offline Data &amp; Sync Status Screen -->
+    <string name="offline_sync_title">Idatha Engaxhunyiwe &amp; Imeko Yokuvumelanisa</string>
+    <string name="offline_sync_no_cache_notice">I-TeeUp ayikagcini idatha yokusetyenziswa ngaphandle kwe-intanethi okwangoku — sonke isikrini sifuna uxhulumano oluphilayo. Eli phepha libonisa oko kuyinyani: uxhulumano lwakho nokuvumelaniswa kokugqibela okuphumeleleyo, hayi isibalo somjikelo olindileyo obumbeke.</string>
+    <string name="offline_sync_last_synced_label">IGQIBELE UKUVUMELANISWA</string>
+    <string name="offline_sync_never">Akuzange kwenzeke — akukho nto ilayishiweyo kwi-API okwangoku</string>
+    <string name="offline_sync_connection_label">UXHULUMANO</string>
+    <string name="offline_sync_check_now">Jonga Ngoku</string>
+    <string name="offline_sync_checking">Iyajonga…</string>
+    <string name="offline_sync_no_connection">Akukho xhulumano</string>
+    <string name="offline_sync_connected_wifi">Ixhunyiwe — Wi-Fi</string>
+    <string name="offline_sync_connected_mobile">Ixhunyiwe — Idatha yeselula</string>
+    <string name="offline_sync_connected_ethernet">Ixhunyiwe — Ethernet</string>
+    <string name="offline_sync_connected_generic">Ixhunyiwe</string>
+    <string name="offline_sync_reachable">I-API iyafikeleleka</string>
+    <string name="offline_sync_request_failed_fallback">Isicelo se-API asiphumelelanga</string>
+    <string name="offline_sync_unreachable">Ayikwazanga ukufikelela kwi-API</string>
+    <string name="sync_relative_just_now">Ngoku nje</string>
+    <string name="sync_relative_minutes_ago">Kwimizuzu engu-%1$d eyadlulayo</string>
+    <string name="sync_relative_hours_ago">Kwiiyure ezingu-%1$d eyadlulayo</string>
+    <string name="sync_relative_days_ago">Kwiintsuku ezingu-%1$d eyadlulayo</string>
+
+    <!-- Privacy &amp; Data (POPIA) Screen -->
+    <string name="privacy_title">Ubumfihlo &amp; Idatha (POPIA)</string>
+    <string name="privacy_section_collect">OKU SIKUQOKELELAYO</string>
+    <string name="privacy_body_collect">Igama lakho elibonisiweyo, inkomba ye-handicap, ibala lasekhaya, kunye nenketho yesantya sokudlala — konke kunokuhlelwa ngaphantsi kweInkcukacha Zomntu neInkcukacha Zokudlala — kunye nesazisi i-Firebase esikhuphayo xa ungena nge-Google. Inketho yakho yolwimi (Iprofayile → Ulwimi) igcinwa kule divayisi kuphela, hayi kwiseva.</string>
+    <string name="privacy_section_usage">INDLELA ESISETYENZISWA NGAYO</string>
+    <string name="privacy_body_usage">Ukukubonisa amaxesha okudlala akufuphi, ukukudibanisa nemijikelo, nokuvumela abanini-ndlu ukuba babone ukuba ngubani ocela ukudibana. Ayithengiswa okanye yabelwane namaqela wesithathu.</string>
+    <string name="privacy_section_controls">OLAWULO LWAKHO</string>
+    <string name="privacy_body_controls">Ungahlela okanye ucime amabala eprofayile yakho nangaliphi na ixesha ngaphantsi kweInkcukacha Zomntu / Inkcukacha Zokudlala, kwaye uphume ngezantsi. Ukucima iakhawunti ngaphakathi kwe-app akukafumaneki okwangoku — cela oko ngokuthe ngqo kwiqela okwangoku.</string>
+    <string name="privacy_sign_out">Phuma</string>
+    <string name="privacy_signing_out">Iyaphuma…</string>
+</resources>

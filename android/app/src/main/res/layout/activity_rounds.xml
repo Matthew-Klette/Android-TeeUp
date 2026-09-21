@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/teeup_background">
+    android:background="@drawable/bg_screen_gradient">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -58,6 +58,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_card"
+                android:elevation="@dimen/elevation_card"
                 android:gravity="center"
                 android:padding="@dimen/screen_padding"
                 android:text="@string/rounds_placeholder"

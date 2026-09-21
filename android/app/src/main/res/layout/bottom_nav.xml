@@ -2,48 +2,88 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:baselineAligned="false"
-    android:padding="@dimen/space_xs"
-    android:background="@color/teeup_surface">
+    android:orientation="vertical"
+    android:background="@color/teeup_surface"
+    android:elevation="@dimen/elevation_nav">
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/teeup_border" />
 
     <LinearLayout
-        android:id="@+id/nav_home"
-        style="@style/TeeUpNavItem">
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:baselineAligned="false">
 
-        <TextView
-            style="@style/TeeUpNavLabel"
-            android:text="@string/nav_home" />
+        <LinearLayout
+            android:id="@+id/nav_home"
+            style="@style/TeeUpNavItem">
 
-    </LinearLayout>
+            <LinearLayout style="@style/TeeUpNavIconPill">
+                <ImageView
+                    style="@style/TeeUpNavIcon"
+                    android:src="@drawable/ic_nav_home"
+                    android:importantForAccessibility="no" />
+            </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/nav_rounds"
-        style="@style/TeeUpNavItem">
+            <TextView
+                style="@style/TeeUpNavLabel"
+                android:text="@string/nav_home" />
 
-        <TextView
-            style="@style/TeeUpNavLabel"
-            android:text="@string/nav_rounds" />
+        </LinearLayout>
 
-    </LinearLayout>
+        <LinearLayout
+            android:id="@+id/nav_rounds"
+            style="@style/TeeUpNavItem">
 
-    <LinearLayout
-        android:id="@+id/nav_scorecard"
-        style="@style/TeeUpNavItem">
+            <LinearLayout style="@style/TeeUpNavIconPill">
+                <ImageView
+                    style="@style/TeeUpNavIcon"
+                    android:src="@drawable/ic_nav_rounds"
+                    android:importantForAccessibility="no" />
+            </LinearLayout>
 
-        <TextView
-            style="@style/TeeUpNavLabel"
-            android:text="@string/nav_scorecard" />
+            <TextView
+                style="@style/TeeUpNavLabel"
+                android:text="@string/nav_rounds" />
 
-    </LinearLayout>
+        </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/nav_profile"
-        style="@style/TeeUpNavItem">
+        <LinearLayout
+            android:id="@+id/nav_scorecard"
+            style="@style/TeeUpNavItem">
 
-        <TextView
-            style="@style/TeeUpNavLabel"
-            android:text="@string/nav_profile" />
+            <LinearLayout style="@style/TeeUpNavIconPill">
+                <ImageView
+                    style="@style/TeeUpNavIcon"
+                    android:src="@drawable/ic_nav_scorecard"
+                    android:importantForAccessibility="no" />
+            </LinearLayout>
+
+            <TextView
+                style="@style/TeeUpNavLabel"
+                android:text="@string/nav_scorecard" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/nav_profile"
+            style="@style/TeeUpNavItem">
+
+            <LinearLayout style="@style/TeeUpNavIconPill">
+                <ImageView
+                    style="@style/TeeUpNavIcon"
+                    android:src="@drawable/ic_nav_profile"
+                    android:importantForAccessibility="no" />
+            </LinearLayout>
+
+            <TextView
+                style="@style/TeeUpNavLabel"
+                android:text="@string/nav_profile" />
+
+        </LinearLayout>
 
     </LinearLayout>
 

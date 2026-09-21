@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 
     <application
         android:allowBackup="true"
@@ -22,11 +24,17 @@
         <activity android:name=".HomeActivity" android:exported="false" />
         <activity android:name=".RoundsActivity" android:exported="false" />
         <activity android:name=".TeeTimeDetailActivity" android:exported="false" />
+        <activity android:name=".CoursePreviewActivity" android:exported="false" />
         <activity android:name=".ScorecardActivity" android:exported="false" />
-        <activity android:name=".LiveScorecardActivity" android:exported="false" />
-        <activity android:name=".PostRoundSummaryActivity" android:exported="false" />
         <activity android:name=".ProfileActivity" android:exported="false" />
         <activity android:name=".NotificationsActivity" android:exported="false" />
+        <activity android:name=".PersonalDetailsActivity" android:exported="false" />
+        <activity android:name=".PlayingDetailsActivity" android:exported="false" />
+        <activity android:name=".NotificationPreferencesActivity" android:exported="false" />
+        <activity android:name=".BiometricLoginActivity" android:exported="false" />
+        <activity android:name=".BiometricUnlockActivity" android:exported="false" />
+        <activity android:name=".OfflineSyncStatusActivity" android:exported="false" />
+        <activity android:name=".PrivacyDataActivity" android:exported="false" />
 
     </application>
 

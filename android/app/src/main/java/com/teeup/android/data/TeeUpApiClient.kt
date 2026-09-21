@@ -81,6 +81,9 @@ object TeeUpApiClient {
     private fun parseRegisteredUser(o: JSONObject) = RegisteredUser(
         id = o.getString("id"),
         displayName = o.getString("displayName"),
+        handicapIndex = if (o.isNull("handicapIndex")) null else o.getDouble("handicapIndex"),
+        homeCourseId = if (o.isNull("homeCourseId")) null else o.getString("homeCourseId"),
+        paceOfPlay = o.getInt("paceOfPlay"),
         profileComplete = o.getBoolean("profileComplete")
     )
 

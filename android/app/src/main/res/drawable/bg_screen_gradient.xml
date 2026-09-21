@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <!-- centerX/centerY only apply to radial/sweep gradients, not linear ones —
+         a plain 2-stop linear gradient is the only reliably deterministic option
+         here. Kept deliberately subtle: this is depth, not a green wash. -->
+    <gradient
+        android:type="linear"
+        android:angle="270"
+        android:startColor="@color/teeup_background_top"
+        android:endColor="@color/teeup_background" />
+</shape>
