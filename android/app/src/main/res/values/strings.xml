@@ -181,23 +181,6 @@
     <string name="notifications_title">Notifications</string>
     <string name="notifications_back">Go back</string>
     <string name="notifications_back_symbol">←</string>
-    <string name="notifications_preview_notice">Sample notifications. Live updates are coming soon.</string>
-
-    <string name="notifications_today">TODAY</string>
-    <string name="notifications_yesterday">YESTERDAY</string>
-
-    <string name="notifications_join_title">New Join Request</string>
-    <string name="notifications_join_body">For your 07:40 Fancourt round</string>
-
-    <string name="notifications_accepted_title">Request Accepted</string>
-    <string name="notifications_accepted_body">Tee off in 2 hours</string>
-
-    <string name="notifications_sync_title">Sync Reminder</string>
-    <string name="notifications_sync_body">1 offline round pending</string>
-
-    <string name="notifications_weather_title">Weather Alert</string>
-    <string name="notifications_weather_body">Rain expected at Humewood GC</string>
-
     <!-- Shared across Personal/Playing Details -->
     <string name="profile_load_signed_out">You need to be signed in to view this</string>
     <string name="profile_load_error_fallback">Couldn\'t load your profile</string>
@@ -222,8 +205,9 @@
 
     <!-- Notification Preferences Screen -->
     <string name="notification_prefs_title">Notification Preferences</string>
-    <string name="notification_prefs_subtitle">Choose what shows on your Notifications screen. Stored on this device only — there\'s no server-side preference sync yet.</string>
+    <string name="notification_prefs_subtitle">Join request, tee time reminder, and weather preferences sync to your account and apply on any device you sign into. Sync reminders are stored on this device only.</string>
     <string name="notification_category_join_request">New join requests</string>
+    <string name="notification_pref_join_updates">Join request updates</string>
     <string name="notification_category_accepted">Accepted requests</string>
     <string name="notification_category_declined">Declined requests</string>
     <string name="notification_category_reminder">Tee time reminders</string>

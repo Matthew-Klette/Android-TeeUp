@@ -47,9 +47,11 @@ object JoinRequestStatus {
 /**
  * Mirrors the API's UserDto (api/TeeUp.Api/Dtos/AuthDtos.cs). paceOfPlay: 0=Relaxed,
  * 1=Standard, 2=Brisk (api/TeeUp.Api/Models/Enums.cs PaceOfPlay). POST /api/auth/register
- * is idempotent and returns this full record for an already-registered user, which is
- * how PersonalDetailsActivity/PlayingDetailsActivity read the current profile before
- * editing it — there's no separate GET /api/profiles/me endpoint.
+ * is idempotent and returns this full record for an already-registered user, which is how
+ * PersonalDetailsActivity/PlayingDetailsActivity read the current profile before editing
+ * it. GET /api/profiles/me (TeeUpApiClient.fetchProfile) returns the same shape without
+ * the register side effect — that's what NotificationPreferencesActivity reads from
+ * (EME-318); an earlier version of this comment claimed that GET endpoint didn't exist.
  */
 data class RegisteredUser(
     val id: String,
@@ -57,7 +59,10 @@ data class RegisteredUser(
     val handicapIndex: Double?,
     val homeCourseId: String?,
     val paceOfPlay: Int,
-    val profileComplete: Boolean
+    val profileComplete: Boolean,
+    val joinRequestNotifications: Boolean,
+    val teeTimeReminders: Boolean,
+    val weatherAlerts: Boolean
 )
 
 /** Mirrors the API's NotificationDto (api/TeeUp.Api/Dtos/NotificationDtos.cs). */

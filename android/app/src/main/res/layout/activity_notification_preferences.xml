@@ -52,11 +52,42 @@
             android:textColor="@color/teeup_text_secondary"
             android:textSize="@dimen/text_body" />
 
-        <LinearLayout
-            android:id="@+id/toggle_container"
+        <TextView
+            android:id="@+id/text_status"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical" />
+            android:layout_marginBottom="@dimen/space_md"
+            android:background="@drawable/bg_card"
+            android:elevation="@dimen/elevation_card"
+            android:gravity="center"
+            android:padding="@dimen/screen_padding"
+            android:accessibilityLiveRegion="polite"
+            android:text="@string/personal_details_loading"
+            android:textColor="@color/teeup_text_secondary"
+            android:textSize="@dimen/text_body" />
+
+        <Button
+            android:id="@+id/button_retry"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_md"
+            android:text="@string/profile_retry"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/group_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:id="@+id/toggle_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+        </LinearLayout>
 
     </LinearLayout>
 
