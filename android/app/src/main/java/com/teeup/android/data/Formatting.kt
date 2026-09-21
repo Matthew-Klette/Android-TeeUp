@@ -50,7 +50,7 @@ fun canRequestToJoin(existing: List<JoinRequest>, userId: String): Boolean =
  *  member's own handicap (EME-312) as well as a wanted-range endpoint value. */
 fun formatHandicap(handicap: Double?): String {
     if (handicap == null) {
-        return TeeUpApplication.appContextOrNull?.getString(R.string.home_card_no_handicap) ?: "No handicap"
+        return TeeUpApplication.appContextOrNull?.getString(R.string.group_no_handicap) ?: "No handicap"
     }
     return if (handicap == handicap.toInt().toDouble()) handicap.toInt().toString() else "%.1f".format(handicap)
 }

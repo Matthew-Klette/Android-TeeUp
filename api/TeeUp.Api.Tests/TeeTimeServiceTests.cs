@@ -9,12 +9,12 @@ namespace TeeUp.Api.Tests;
 public class TeeTimeServiceTests
 {
     private static (TeeTimeService Service, InMemoryTeeTimeRepository TeeTimes, InMemoryUserRepository Users, InMemoryCourseRepository Courses)
-        CreateService()
+        CreateService(InMemoryJoinRequestRepository? joinRequests = null)
     {
         var teeTimes = new InMemoryTeeTimeRepository();
         var users = new InMemoryUserRepository();
         var courses = new InMemoryCourseRepository();
-        return (new TeeTimeService(teeTimes, users, courses, new InMemoryJoinRequestRepository()), teeTimes, users, courses);
+        return (new TeeTimeService(teeTimes, users, courses, joinRequests ?? new InMemoryJoinRequestRepository()), teeTimes, users, courses);
     }
 
     private static async Task<User> AddHost(InMemoryUserRepository users, decimal? handicap, PaceOfPlay pace)
@@ -33,13 +33,13 @@ public class TeeTimeServiceTests
 
     private static TeeTime MakeTeeTime(
         Guid? hostUserId, TeeTimeType type = TeeTimeType.OpenRound,
-        TeeTimeStatus status = TeeTimeStatus.Open, DateTime? dateTime = null) => new()
+        TeeTimeStatus status = TeeTimeStatus.Open, DateTime? dateTime = null, int openSpots = 2) => new()
     {
         Id = Guid.NewGuid(),
         HostUserId = hostUserId,
         CourseId = Guid.NewGuid(),
         DateTime = dateTime ?? DateTime.UtcNow.AddDays(1),
-        OpenSpots = 2,
+        OpenSpots = openSpots,
         Price = 0,
         Type = type,
         Status = status
@@ -151,6 +151,35 @@ public class TeeTimeServiceTests
 
         var onlyResult = Assert.Single(result);
         Assert.Equal(joinableGroup.Id, onlyResult.Id);
+    }
+
+    [Fact]
+    public async Task GetAllAsync_JoinableOnly_ExcludesOpenGroupsWithNoRemainingCapacity()
+    {
+        var joinRequests = new InMemoryJoinRequestRepository();
+        var (service, teeTimes, users, _) = CreateService(joinRequests);
+        var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
+
+        // Status alone says Open (e.g. a row that predates Status being kept in sync, or a
+        // migration default), but its single spot has already been accepted — must still
+        // be excluded, since Status can't be trusted as the sole signal of "still joinable".
+        var fullButStillOpen = MakeTeeTime(host.Id, openSpots: 1);
+        await teeTimes.AddAsync(fullButStillOpen);
+        await joinRequests.AddAsync(new JoinRequest
+        {
+            Id = Guid.NewGuid(),
+            TeeTimeId = fullButStillOpen.Id,
+            GuestUserId = Guid.NewGuid(),
+            Status = JoinRequestStatus.Accepted
+        });
+
+        var trulyOpen = MakeTeeTime(host.Id, openSpots: 1);
+        await teeTimes.AddAsync(trulyOpen);
+
+        var result = await service.GetAllAsync(joinableOnly: true);
+
+        var onlyResult = Assert.Single(result);
+        Assert.Equal(trulyOpen.Id, onlyResult.Id);
     }
 
     [Fact]

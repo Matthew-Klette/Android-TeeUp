@@ -19,12 +19,21 @@ public class TeeTimeService(
         if (pace is { } paceFilter && !Enum.IsDefined(paceFilter))
             throw new DomainValidationException("Select a valid pace of play.");
         var teeTimes = await teeTimeRepository.GetAllAsync();
+        var joinRequests = await joinRequestRepository.GetAllAsync();
+        var acceptedByTeeTime = joinRequests
+            .Where(j => j.Status == JoinRequestStatus.Accepted)
+            .ToLookup(j => j.TeeTimeId);
 
+        // Status alone isn't trusted here: a row that existed before Status was added
+        // (or before it was consistently kept in sync) can still read Open while its
+        // guest capacity is already filled, so joinableOnly also recomputes remaining
+        // spots directly from accepted join requests rather than relying on the flag.
         IReadOnlyList<TeeTime> joinable = joinableOnly
             ? teeTimes
                 .Where(t => t.Type == TeeTimeType.OpenRound
                     && t.Status == TeeTimeStatus.Open
-                    && t.DateTime > DateTime.UtcNow)
+                    && t.DateTime > DateTime.UtcNow
+                    && acceptedByTeeTime[t.Id].Count() < t.OpenSpots)
                 .ToList()
             : teeTimes;
 
@@ -33,10 +42,6 @@ public class TeeTimeService(
             : await FilterByHostSkillAsync(joinable, maxHandicap, pace);
 
         var usersById = (await userRepository.GetAllAsync()).ToDictionary(u => u.Id);
-        var joinRequests = await joinRequestRepository.GetAllAsync();
-        var acceptedByTeeTime = joinRequests
-            .Where(j => j.Status == JoinRequestStatus.Accepted)
-            .ToLookup(j => j.TeeTimeId);
 
         return filtered
             .Select(t => TeeTimeDto.From(t, BuildMemberList(t, usersById, acceptedByTeeTime[t.Id])))

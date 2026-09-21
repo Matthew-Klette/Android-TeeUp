@@ -12,6 +12,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import com.teeup.android.data.ApiException
 import com.teeup.android.data.Course
+import com.teeup.android.data.GroupMember
 import com.teeup.android.data.JoinRequest
 import com.teeup.android.data.JoinRequestStatus
 import com.teeup.android.data.LocalIdentity
@@ -21,8 +22,10 @@ import com.teeup.android.data.TeeTime
 import com.teeup.android.data.TeeTimeStatus
 import com.teeup.android.data.TeeUpApiClient
 import com.teeup.android.data.canRequestToJoin
+import com.teeup.android.data.formatHandicap
 import com.teeup.android.data.formatPrice
 import com.teeup.android.data.formatTeeTime
+import com.teeup.android.data.paceLabel
 import com.teeup.android.ui.LocaleActivity
 import com.teeup.android.ui.TeeUpBanner
 
@@ -134,6 +137,8 @@ class TeeTimeDetailActivity : LocaleActivity() {
         findViewById<TextView>(R.id.text_host_subtitle).text =
             getString(R.string.teetime_host_subtitle_format, acceptedCount, pendingCount)
 
+        renderMembers(teeTime.members)
+
         val requestButton = findViewById<Button>(R.id.button_request_to_join)
         val myUserIdIfKnown = LocalIdentity.cachedUserIdOrNull(this)
         val alreadyRequested = myUserIdIfKnown != null && !canRequestToJoin(requests, myUserIdIfKnown)
@@ -149,6 +154,22 @@ class TeeTimeDetailActivity : LocaleActivity() {
         findViewById<TextView>(R.id.text_pending_requests_subtitle).text =
             if (pendingCount > 0) getString(R.string.teetime_pending_waiting_format, pendingCount) else getString(R.string.teetime_pending_none)
         findViewById<View>(R.id.row_pending_requests).setOnClickListener { showPendingRequestsDialog() }
+    }
+
+    /** EME-312: every current member (host + accepted guests) with their handicap/pace —
+     *  the accepted/pending counts above only say how many, not who. */
+    private fun renderMembers(members: List<GroupMember>) {
+        val container = findViewById<LinearLayout>(R.id.members_container)
+        container.removeAllViews()
+        members.forEach { member -> container.addView(buildMemberRow(member)) }
+    }
+
+    private fun buildMemberRow(member: GroupMember): View = TextView(this).apply {
+        val name = if (member.isHost) getString(R.string.group_host_member_format, member.displayName) else member.displayName
+        text = getString(R.string.group_member_row_format, name, formatHandicap(member.handicapIndex), paceLabel(this@TeeTimeDetailActivity, member.paceOfPlay))
+        setTextColor(colorOf(R.color.teeup_text_secondary))
+        setTextSize(TypedValue.COMPLEX_UNIT_PX, resources.getDimension(R.dimen.text_body))
+        layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = dp(4) }
     }
 
     private fun onRequestToJoinClicked() {

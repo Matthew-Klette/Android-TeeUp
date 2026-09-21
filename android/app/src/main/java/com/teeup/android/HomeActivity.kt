@@ -420,9 +420,9 @@ class HomeActivity : LocaleActivity() {
         if (teeTime.members.isNotEmpty()) {
             addLine(getString(R.string.home_card_members_heading), R.color.teeup_text_secondary, R.dimen.text_caption, bottomMarginRes = R.dimen.space_xs)
             teeTime.members.forEach { member ->
-                val name = if (member.isHost) getString(R.string.home_card_host_member_format, member.displayName) else member.displayName
+                val name = if (member.isHost) getString(R.string.group_host_member_format, member.displayName) else member.displayName
                 addLine(
-                    getString(R.string.home_card_member_row_format, name, formatHandicap(member.handicapIndex), paceLabel(this, member.paceOfPlay)),
+                    getString(R.string.group_member_row_format, name, formatHandicap(member.handicapIndex), paceLabel(this, member.paceOfPlay)),
                     R.color.teeup_text_secondary, R.dimen.text_caption
                 )
             }
