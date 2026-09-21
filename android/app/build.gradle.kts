@@ -50,6 +50,27 @@ android {
     }
 }
 
+// iCloud Drive's "Desktop & Documents Folders" sync (this repo lives under
+// ~/Documents) occasionally races with Gradle/git and duplicates a file as
+// "name N.ext", e.g. "fade_in 3.xml". A space is never valid in an Android
+// resource filename, so resource merging hard-fails the build when one of
+// these appears. Purge any such stray files from res/ before every resource
+// merge so a sync glitch can't break the build.
+val cleanDuplicateResFiles = tasks.register("cleanDuplicateResFiles") {
+    doFirst {
+        fileTree("src").matching { include("**/res/**") }
+            .filter { it.name.matches(Regex(""".* \d+\..+""")) }
+            .forEach {
+                logger.warn("Removing stray duplicate resource file (iCloud/Finder sync artifact): ${it.path}")
+                it.delete()
+            }
+    }
+}
+
+tasks.matching { it.name.matches(Regex("merge.*Resources")) }.configureEach {
+    dependsOn(cleanDuplicateResFiles)
+}
+
 dependencies {
     implementation("com.google.firebase:firebase-database:22.0.2")
     implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
