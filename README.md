@@ -20,9 +20,9 @@ See `android/README.md` and `api/README.md` for module-specific setup.
 
 - **Client**: Kotlin Android app. Never talks to the database directly —
   all persistence goes through the REST API.
-- **API**: ASP.NET Core Web API backed by Azure Database for PostgreSQL via
-  EF Core. Six controllers: Auth, TeeTimes, JoinRequests, Rounds, Profiles,
-  Courses.
+- **API**: ASP.NET Core Web API, deployed to Azure App Service, backed by a
+  Supabase-hosted PostgreSQL database via EF Core (see `infra/README.md`).
+  Six controllers: Auth, TeeTimes, JoinRequests, Rounds, Profiles, Courses.
 - **Auth**: Firebase Authentication issues ID tokens on the client; the API
   verifies them as JWT bearer tokens against Firebase's public keys.
 
