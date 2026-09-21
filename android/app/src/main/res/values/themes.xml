@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.TeeUp" parent="android:Theme.Material.NoActionBar">
+    <style name="Base.Theme.TeeUp" parent="android:Theme.Material.NoActionBar">
 
         <!-- General appearance -->
         <item name="android:fontFamily">sans</item>
@@ -27,8 +27,11 @@
         <item name="android:statusBarColor">@color/teeup_background</item>
         <item name="android:navigationBarColor">@color/teeup_background</item>
         <item name="android:windowLightStatusBar">true</item>
-        <item name="android:windowLightNavigationBar">true</item>
 
     </style>
+
+    <!-- windowLightNavigationBar is API 27+; the v27 override below adds it on top
+         of the base theme so devices on minSdk 24-26 still get everything else. -->
+    <style name="Theme.TeeUp" parent="Base.Theme.TeeUp" />
 
 </resources>
