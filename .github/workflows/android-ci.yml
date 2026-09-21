@@ -53,6 +53,8 @@ jobs:
 
       - name: Upload test reports
         if: always()
+        # Transient GitHub artifact-storage 403 shouldn't fail the job (actions/upload-artifact#560)
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: android-test-reports
