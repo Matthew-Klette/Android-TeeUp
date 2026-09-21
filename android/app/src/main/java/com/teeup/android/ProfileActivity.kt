@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.LinearLayout
+import com.teeup.android.data.AuthSession
 import com.teeup.android.nav.BottomNav
 import com.teeup.android.nav.BottomNavTab
 import com.teeup.android.ui.LocaleActivity
@@ -34,6 +35,8 @@ class ProfileActivity : LocaleActivity() {
                 overridePendingTransition(R.anim.slide_in_right, R.anim.fade_out_slight)
             }
         }
+
+        findViewById<Button>(R.id.button_sign_out).setOnClickListener { AuthSession.signOut(this) }
     }
 
     private fun showLanguageDialog() {

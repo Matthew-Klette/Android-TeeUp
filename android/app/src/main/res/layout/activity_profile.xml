@@ -26,11 +26,12 @@
                 android:textSize="@dimen/text_heading"
                 android:textStyle="bold" />
 
-            <View
+            <ImageView
                 android:layout_width="72dp"
                 android:layout_height="72dp"
                 android:layout_gravity="center_horizontal"
-                android:background="@drawable/bg_avatar_circle"
+                android:src="@drawable/ic_logo"
+                android:scaleType="centerCrop"
                 android:importantForAccessibility="no" />
 
             <TextView
@@ -163,6 +164,14 @@
                 android:id="@+id/row_privacy"
                 style="@style/ProfileRow"
                 android:text="@string/profile_privacy" />
+
+            <Button
+                android:id="@+id/button_sign_out"
+                style="@style/TeeUpButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_xl"
+                android:text="@string/privacy_sign_out" />
 
         </LinearLayout>
     </ScrollView>

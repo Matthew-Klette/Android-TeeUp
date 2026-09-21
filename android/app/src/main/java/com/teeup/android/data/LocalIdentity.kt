@@ -18,7 +18,7 @@ object LocalIdentity {
     fun cachedUserIdOrNull(context: Context): String? =
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_USER_ID, null)
 
-    /** Called on sign-out (PrivacyDataActivity) so the next sign-in doesn't reuse a stale cached id. */
+    /** Called on sign-out (AuthSession) so the next sign-in doesn't reuse a stale cached id. */
     fun clearCache(context: Context) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().remove(KEY_USER_ID).apply()
     }

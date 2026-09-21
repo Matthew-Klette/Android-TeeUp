@@ -15,6 +15,7 @@ import com.teeup.android.data.Course
 import com.teeup.android.data.JoinRequest
 import com.teeup.android.data.JoinRequestStatus
 import com.teeup.android.data.LocalIdentity
+import com.teeup.android.data.MockCatalog
 import com.teeup.android.data.SyncStatus
 import com.teeup.android.data.TeeTime
 import com.teeup.android.data.TeeUpApiClient
@@ -71,11 +72,31 @@ class TeeTimeDetailActivity : LocaleActivity() {
 
         Thread {
             try {
-                val teeTime = TeeUpApiClient.fetchTeeTimes().firstOrNull { it.id == teeTimeId }
-                    ?: throw ApiException("Tee time not found")
-                val course = TeeUpApiClient.fetchCourses().firstOrNull { it.id == teeTime.courseId }
-                val requests = TeeUpApiClient.fetchJoinRequestsForTeeTime(teeTimeId)
-                SyncStatus.recordSuccess(this)
+                var reachedApi = false
+
+                val teeTime = try {
+                    val result = TeeUpApiClient.fetchTeeTimes().firstOrNull { it.id == teeTimeId }
+                    reachedApi = true
+                    result
+                } catch (e: Exception) {
+                    null
+                } ?: MockCatalog.teeTimeById(teeTimeId) ?: throw ApiException("Tee time not found")
+
+                val course = try {
+                    TeeUpApiClient.fetchCourses().firstOrNull { it.id == teeTime.courseId }
+                } catch (e: Exception) {
+                    null
+                } ?: MockCatalog.courseById(teeTime.courseId)
+
+                val requests = try {
+                    TeeUpApiClient.fetchJoinRequestsForTeeTime(teeTimeId)
+                } catch (e: Exception) {
+                    emptyList()
+                }
+
+                // Only a genuine API round trip counts as a sync (see SyncStatus's doc
+                // comment) — a tee time resolved purely from MockCatalog isn't one.
+                if (reachedApi) SyncStatus.recordSuccess(this)
                 runOnUiThread { render(teeTime, course, requests) }
             } catch (e: Exception) {
                 runOnUiThread { showError(e.message ?: "Couldn't load this tee time") }

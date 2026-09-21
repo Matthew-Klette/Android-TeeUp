@@ -7,11 +7,12 @@
     android:padding="@dimen/screen_padding"
     android:background="@drawable/bg_screen_gradient">
 
-    <View
+    <ImageView
         android:layout_width="72dp"
         android:layout_height="72dp"
         android:layout_marginBottom="@dimen/space_lg"
-        android:background="@drawable/bg_avatar_circle"
+        android:src="@drawable/ic_logo"
+        android:scaleType="centerCrop"
         android:importantForAccessibility="no" />
 
     <TextView

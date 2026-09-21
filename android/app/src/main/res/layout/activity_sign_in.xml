@@ -15,12 +15,13 @@
         android:paddingBottom="@dimen/screen_padding">
 
         <!-- Brand mark -->
-        <View
+        <ImageView
             android:layout_width="64dp"
             android:layout_height="64dp"
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="@dimen/space_lg"
-            android:background="@drawable/bg_avatar_circle"
+            android:src="@drawable/ic_logo"
+            android:scaleType="centerCrop"
             android:importantForAccessibility="no" />
 
         <!-- App title -->
