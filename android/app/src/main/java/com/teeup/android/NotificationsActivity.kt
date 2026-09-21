@@ -2,6 +2,7 @@ package com.teeup.android
 
 import android.app.Activity
 import android.content.Intent
+import com.teeup.android.ui.runWhenActive
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.View
@@ -29,11 +30,13 @@ class NotificationsActivity : Activity() {
         container = findViewById(R.id.notifications_container)
 
         findViewById<View>(R.id.button_back).setOnClickListener { finish() }
+        findViewById<View>(R.id.qa_retry).setOnClickListener { loadNotifications() }
 
         loadNotifications()
     }
 
     private fun loadNotifications() {
+        findViewById<View>(R.id.qa_retry).visibility = View.GONE
         statusText.visibility = View.VISIBLE
         statusText.setText(R.string.notifications_loading)
         container.removeAllViews()
@@ -41,11 +44,11 @@ class NotificationsActivity : Activity() {
         Thread {
             try {
                 val notifications = TeeUpApiClient.fetchNotifications()
-                runOnUiThread { render(notifications) }
+                runWhenActive { render(notifications) }
             } catch (e: ApiException) {
-                runOnUiThread { showError(e.message ?: "Couldn't load notifications") }
+                runWhenActive { showError(e.message ?: "Couldn't load notifications") }
             } catch (e: Exception) {
-                runOnUiThread { showError(getString(R.string.notifications_load_failed)) }
+                runWhenActive { showError(getString(R.string.notifications_load_failed)) }
             }
         }.start()
     }
@@ -63,6 +66,7 @@ class NotificationsActivity : Activity() {
     }
 
     private fun showError(message: String) {
+        findViewById<View>(R.id.qa_retry).visibility = View.VISIBLE
         container.removeAllViews()
         statusText.visibility = View.VISIBLE
         statusText.text = message

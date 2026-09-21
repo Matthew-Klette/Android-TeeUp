@@ -14,12 +14,14 @@ private val MONTH_NAMES = arrayOf(
 )
 
 fun formatTeeTime(isoDateTime: String): String {
-    require(isoDateTime.length >= 16) { "Expected an ISO-8601 timestamp, got: $isoDateTime" }
-    val day = isoDateTime.substring(8, 10).toInt()
-    val month = isoDateTime.substring(5, 7).toInt()
+    if (!Regex("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}.*$").matches(isoDateTime)) return "Date unavailable"
+    val day = isoDateTime.substring(8, 10).toIntOrNull() ?: return "Date unavailable"
+    val month = isoDateTime.substring(5, 7).toIntOrNull() ?: return "Date unavailable"
     val hour = isoDateTime.substring(11, 13)
     val minute = isoDateTime.substring(14, 16)
-    val monthName = MONTH_NAMES[(month - 1).coerceIn(0, 11)]
+    if (day !in 1..31 || month !in 1..12 || hour.toInt() !in 0..23 || minute.toInt() !in 0..59)
+        return "Date unavailable"
+    val monthName = MONTH_NAMES[month - 1]
     return "$day $monthName · $hour:$minute"
 }
 

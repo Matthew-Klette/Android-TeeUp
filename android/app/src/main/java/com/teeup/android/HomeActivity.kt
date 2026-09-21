@@ -3,6 +3,7 @@ package com.teeup.android
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
+import com.teeup.android.ui.runWhenActive
 import android.os.Bundle
 import android.text.InputType
 import android.util.TypedValue
@@ -15,13 +16,14 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
-import com.teeup.android.data.ApiConfig
 import com.teeup.android.data.ApiException
 import com.teeup.android.data.Course
 import com.teeup.android.data.TeeTime
 import com.teeup.android.data.TeeUpApiClient
 import com.teeup.android.data.formatPrice
 import com.teeup.android.data.formatTeeTime
+import com.teeup.android.data.validHandicap
+import com.teeup.android.data.handicapValue
 import com.teeup.android.nav.BottomNav
 import com.teeup.android.nav.BottomNavTab
 
@@ -34,6 +36,7 @@ class HomeActivity : Activity() {
     /** EME-299: discover a group filtered by the host's handicap/pace of play. Null = no filter. */
     private var filterMaxHandicap: Double? = null
     private var filterPace: Int? = null
+    private var loadGeneration = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,6 +53,7 @@ class HomeActivity : Activity() {
         }
 
         skillFilterButton.setOnClickListener { showSkillFilterDialog() }
+        findViewById<View>(R.id.qa_retry).setOnClickListener { loadNearbyTeeTimes() }
 
         loadNearbyTeeTimes()
     }
@@ -77,14 +81,10 @@ class HomeActivity : Activity() {
         }
         container.addView(paceSpinner)
 
-        AlertDialog.Builder(this)
+        val dialog = AlertDialog.Builder(this)
             .setTitle(R.string.filter_skill_title)
             .setView(container)
-            .setPositiveButton(R.string.filter_apply) { _, _ ->
-                filterMaxHandicap = handicapInput.text.toString().trim().toDoubleOrNull()
-                filterPace = (paceSpinner.selectedItemPosition - 1).takeIf { it >= 0 }
-                applyFilterState()
-            }
+            .setPositiveButton(R.string.filter_apply, null)
             .setNeutralButton(R.string.filter_clear) { _, _ ->
                 filterMaxHandicap = null
                 filterPace = null
@@ -92,6 +92,17 @@ class HomeActivity : Activity() {
             }
             .setNegativeButton(R.string.filter_cancel, null)
             .show()
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            val text = handicapInput.text.toString()
+            if (!validHandicap(text)) {
+                handicapInput.error = getString(R.string.profile_handicap_invalid)
+                return@setOnClickListener
+            }
+            filterMaxHandicap = handicapValue(text)
+            filterPace = (paceSpinner.selectedItemPosition - 1).takeIf { it in 0..2 }
+            applyFilterState()
+            dialog.dismiss()
+        }
     }
 
     private fun applyFilterState() {
@@ -106,6 +117,10 @@ class HomeActivity : Activity() {
     }
 
     private fun loadNearbyTeeTimes() {
+        val generation = ++loadGeneration
+        val handicap = filterMaxHandicap
+        val pace = filterPace
+        findViewById<View>(R.id.qa_retry).visibility = View.GONE
         statusText.visibility = View.VISIBLE
         statusText.setText(R.string.home_loading)
         teeTimesContainer.removeAllViews()
@@ -115,20 +130,18 @@ class HomeActivity : Activity() {
                 val courses = TeeUpApiClient.fetchCourses()
                     .associateBy { it.id }
 
-                val teeTimes = TeeUpApiClient.fetchTeeTimes(filterMaxHandicap, filterPace)
+                val teeTimes = TeeUpApiClient.fetchTeeTimes(handicap, pace)
 
-                runOnUiThread {
-                    renderTeeTimes(teeTimes, courses)
+                runWhenActive {
+                    if (generation == loadGeneration) renderTeeTimes(teeTimes, courses)
                 }
             } catch (e: ApiException) {
-                runOnUiThread {
-                    showError(e.message ?: "Request failed")
+                runWhenActive {
+                    if (generation == loadGeneration) showError(e.message ?: getString(R.string.qa_load_failed))
                 }
             } catch (e: Exception) {
-                runOnUiThread {
-                    showError(
-                        "Couldn't reach the API at ${ApiConfig.BASE_URL} — is it running?"
-                    )
+                runWhenActive {
+                    if (generation == loadGeneration) showError(getString(R.string.qa_load_failed))
                 }
             }
         }.start()
@@ -139,7 +152,8 @@ class HomeActivity : Activity() {
         courses: Map<String, Course>
     ) {
         if (teeTimes.isEmpty()) {
-            showError("No tee times nearby right now")
+            showError(getString(R.string.home_empty_no_teetimes))
+            findViewById<View>(R.id.qa_retry).visibility = View.GONE
             return
         }
 
@@ -157,6 +171,7 @@ class HomeActivity : Activity() {
     }
 
     private fun showError(message: String) {
+        findViewById<View>(R.id.qa_retry).visibility = View.VISIBLE
         teeTimesContainer.removeAllViews()
         statusText.visibility = View.VISIBLE
         statusText.text = message

@@ -2,6 +2,7 @@ package com.teeup.android
 
 import android.app.Activity
 import android.content.Intent
+import com.teeup.android.ui.runWhenActive
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -15,6 +16,7 @@ import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.teeup.android.data.LocalIdentity
+import java.util.concurrent.TimeUnit
 
 /**
  * Screen 1 · Sign In. "Continue with Google" is the real Firebase Google SSO
@@ -51,9 +53,15 @@ class SignInActivity : Activity() {
     }
 
     private fun onGoogleSignInClicked() {
+        if (!googleButton.isEnabled) return
         googleButton.isEnabled = false
         googleButton.setText(R.string.sign_in_google_progress)
-        startActivityForResult(googleSignInClient.signInIntent, RC_GOOGLE_SIGN_IN)
+        try {
+            startActivityForResult(googleSignInClient.signInIntent, RC_GOOGLE_SIGN_IN)
+        } catch (e: Exception) {
+            resetGoogleButton()
+            Toast.makeText(this, R.string.qa_sign_in_unavailable, Toast.LENGTH_LONG).show()
+        }
     }
 
     @Deprecated("Deprecated in Java")
@@ -74,6 +82,9 @@ class SignInActivity : Activity() {
                 Log.w(tag, "Google sign-in failed: ${e.statusCode}", e)
                 Toast.makeText(this, "Google sign-in failed — please try again", Toast.LENGTH_SHORT).show()
             }
+        } catch (e: Exception) {
+            resetGoogleButton()
+            Toast.makeText(this, R.string.qa_sign_in_unavailable, Toast.LENGTH_LONG).show()
         }
     }
 
@@ -81,16 +92,16 @@ class SignInActivity : Activity() {
         Thread {
             try {
                 val credential = GoogleAuthProvider.getCredential(googleIdToken, null)
-                Tasks.await(FirebaseAuth.getInstance().signInWithCredential(credential))
+                Tasks.await(FirebaseAuth.getInstance().signInWithCredential(credential), 30, TimeUnit.SECONDS)
                 val identity = LocalIdentity.registerFresh(this)
-                runOnUiThread {
+                runWhenActive {
                     val destination = if (identity.profileComplete) HomeActivity::class.java else RegisterActivity::class.java
                     startActivity(Intent(this, destination))
                     finish()
                 }
             } catch (e: Exception) {
                 Log.w(tag, "Firebase sign-in failed", e)
-                runOnUiThread {
+                runWhenActive {
                     resetGoogleButton()
                     Toast.makeText(this, "Sign-in failed — check your connection and try again", Toast.LENGTH_SHORT)
                         .show()
