@@ -159,6 +159,7 @@ object TeeUpApiClient {
         courseId = o.getString("courseId"),
         dateTime = o.getString("dateTime"),
         openSpots = o.getInt("openSpots"),
+        spotsRemaining = o.getInt("spotsRemaining"),
         price = o.getDouble("price"),
         type = o.getInt("type"),
         holes = if (o.isNull("holes")) null else o.getInt("holes"),

@@ -18,6 +18,7 @@ import com.teeup.android.data.LocalIdentity
 import com.teeup.android.data.MockCatalog
 import com.teeup.android.data.SyncStatus
 import com.teeup.android.data.TeeTime
+import com.teeup.android.data.TeeTimeStatus
 import com.teeup.android.data.TeeUpApiClient
 import com.teeup.android.data.canRequestToJoin
 import com.teeup.android.data.formatPrice
@@ -112,7 +113,7 @@ class TeeTimeDetailActivity : LocaleActivity() {
         findViewById<TextView>(R.id.text_teetime_title).text =
             "${course?.name ?: getString(R.string.teetime_unknown_course)} · ${formatTeeTime(teeTime.dateTime)}"
         findViewById<TextView>(R.id.text_teetime_subtitle).text =
-            getString(R.string.teetime_subtitle_format, teeTime.openSpots, formatPrice(teeTime.price))
+            getString(R.string.teetime_subtitle_format, teeTime.spotsRemaining, formatPrice(teeTime.price))
 
         findViewById<Button>(R.id.button_preview_course).setOnClickListener {
             openCoursePreview(course)
@@ -136,8 +137,13 @@ class TeeTimeDetailActivity : LocaleActivity() {
         val requestButton = findViewById<Button>(R.id.button_request_to_join)
         val myUserIdIfKnown = LocalIdentity.cachedUserIdOrNull(this)
         val alreadyRequested = myUserIdIfKnown != null && !canRequestToJoin(requests, myUserIdIfKnown)
-        requestButton.isEnabled = !alreadyRequested
-        requestButton.text = if (alreadyRequested) getString(R.string.teetime_request_sent) else getString(R.string.teetime_request_to_join)
+        val isFull = teeTime.status == TeeTimeStatus.FULL || teeTime.spotsRemaining <= 0
+        requestButton.isEnabled = !alreadyRequested && !isFull
+        requestButton.text = when {
+            alreadyRequested -> getString(R.string.teetime_request_sent)
+            isFull -> getString(R.string.teetime_full)
+            else -> getString(R.string.teetime_request_to_join)
+        }
         requestButton.setOnClickListener { onRequestToJoinClicked() }
 
         findViewById<TextView>(R.id.text_pending_requests_subtitle).text =

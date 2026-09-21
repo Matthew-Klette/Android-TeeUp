@@ -157,13 +157,29 @@ public class TeeTimeServiceTests
     }
 
     [Fact]
-    public async Task CreateGroupAsync_ForUnknownCourse_ThrowsNotFound()
+    public async Task CreateGroupAsync_ForUnknownCourse_ThrowsValidationError()
     {
         var (service, _, users, _) = CreateService();
         var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
 
-        await Assert.ThrowsAsync<NotFoundException>(() =>
+        // CourseId is a request-body field, not a URL resource — an unknown value is a bad
+        // request (400), not a missing resource (404). See DomainException.cs's mapping.
+        var ex = await Assert.ThrowsAsync<DomainValidationException>(() =>
             service.CreateGroupAsync(host.Id, MakeGroupRequest(Guid.NewGuid())));
+        Assert.Contains("does not exist", ex.Message);
+    }
+
+    [Fact]
+    public async Task CreateGroupAsync_ForFreshGroup_SpotsRemainingEqualsOpenSpots()
+    {
+        var (service, _, users, courses) = CreateService();
+        var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
+        var course = await AddCourse(courses);
+
+        var result = await service.CreateGroupAsync(host.Id, MakeGroupRequest(course.Id, openSpots: 3));
+
+        Assert.Equal(3, result.OpenSpots);
+        Assert.Equal(3, result.SpotsRemaining);
     }
 
     [Fact]

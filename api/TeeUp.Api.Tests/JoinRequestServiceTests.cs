@@ -65,6 +65,22 @@ public class JoinRequestServiceTests
     }
 
     [Fact]
+    public async Task UpdateStatusAsync_AcceptingTheLastOpenSpot_MarksTeeTimeFull()
+    {
+        var (service, teeTimes, _, _) = CreateService();
+        var teeTime = MakeTeeTime(openSpots: 2);
+        await teeTimes.AddAsync(teeTime);
+        var first = await service.CreateAsync(teeTime.Id, Guid.NewGuid());
+        var second = await service.CreateAsync(teeTime.Id, Guid.NewGuid());
+
+        await service.UpdateStatusAsync(first.Id, JoinRequestStatus.Accepted);
+        Assert.Equal(TeeTimeStatus.Open, (await teeTimes.GetByIdAsync(teeTime.Id))!.Status);
+
+        await service.UpdateStatusAsync(second.Id, JoinRequestStatus.Accepted);
+        Assert.Equal(TeeTimeStatus.Full, (await teeTimes.GetByIdAsync(teeTime.Id))!.Status);
+    }
+
+    [Fact]
     public async Task UpdateStatusAsync_AcceptingBeyondOpenSpots_ThrowsDomainValidation()
     {
         var (service, teeTimes, _, _) = CreateService();

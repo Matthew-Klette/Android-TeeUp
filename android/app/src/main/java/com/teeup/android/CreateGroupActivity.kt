@@ -15,13 +15,15 @@ import android.widget.Spinner
 import android.widget.TextView
 import com.teeup.android.data.Course
 import com.teeup.android.data.TeeUpApiClient
-import com.teeup.android.data.formatTeeTime
 import com.teeup.android.data.handicapValue
 import com.teeup.android.data.roundTimestamp
 import com.teeup.android.data.validHandicap
 import com.teeup.android.ui.LocaleActivity
 import com.teeup.android.ui.TeeUpBanner
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 import java.util.TimeZone
 
 /**
@@ -111,20 +113,49 @@ class CreateGroupActivity : LocaleActivity() {
         ).apply { setDropDownViewResource(R.layout.spinner_dropdown_item) }
     }
 
+    /**
+     * The date/month/hour/minute the picker widgets return are plain wall-clock numbers with no
+     * time zone attached — they mean "the device's local time", same as what the user sees on
+     * their phone's own clock. Build the picked instant in the device's default (local) time
+     * zone, then convert *that* to a genuine UTC instant for the API — previously this appended
+     * "Z" directly to the locally-picked digits, so e.g. picking 10:00 in SAST (UTC+2) silently
+     * booked the tee time for 08:00 UTC, i.e. an hour that isn't what was chosen once anyone
+     * (or the server) interprets "Z" as it's actually defined.
+     */
     private fun showDateTimePicker() {
-        val now = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+        val now = Calendar.getInstance()
         DatePickerDialog(
             this,
             { _, year, month, dayOfMonth ->
                 showTimePicker(now) { hourOfDay, minute ->
-                    pickedDateTimeIso = "%04d-%02d-%02dT%02d:%02d:00Z".format(year, month + 1, dayOfMonth, hourOfDay, minute)
-                    pickDateTimeButton.text = formatTeeTime(pickedDateTimeIso!!)
+                    val local = Calendar.getInstance().apply {
+                        set(year, month, dayOfMonth, hourOfDay, minute, 0)
+                        set(Calendar.MILLISECOND, 0)
+                    }
+                    pickedDateTimeIso = toUtcIso(local)
+                    pickDateTimeButton.text = formatLocalDateTime(local)
                 }
             },
             now.get(Calendar.YEAR),
             now.get(Calendar.MONTH),
             now.get(Calendar.DAY_OF_MONTH)
         ).apply { datePicker.minDate = now.timeInMillis }.show()
+    }
+
+    private fun toUtcIso(local: Calendar): String =
+        SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }.format(Date(local.timeInMillis))
+
+    /** Mirrors formatTeeTime's "21 Sep · 18:38" style, but from local wall-clock fields — the
+     *  picker button must echo back exactly what the user chose, not a UTC-shifted value. */
+    private fun formatLocalDateTime(local: Calendar): String {
+        val day = local.get(Calendar.DAY_OF_MONTH)
+        val month = local.get(Calendar.MONTH)
+        val hour = local.get(Calendar.HOUR_OF_DAY)
+        val minute = local.get(Calendar.MINUTE)
+        val monthName = resources.getStringArray(R.array.month_abbreviations).getOrNull(month) ?: ""
+        return "%d %s · %02d:%02d".format(day, monthName, hour, minute)
     }
 
     /**

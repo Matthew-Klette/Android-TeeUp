@@ -176,7 +176,7 @@ class HomeActivity : LocaleActivity() {
                 DateFilter.TODAY -> isoDateOnly(teeTime.dateTime) == isoDate(0)
                 DateFilter.TOMORROW -> isoDateOnly(teeTime.dateTime) == isoDate(1)
             }
-            val matchesPlayers = teeTime.openSpots >= minOpenSpots
+            val matchesPlayers = teeTime.spotsRemaining >= minOpenSpots
             matchesSearch && matchesDate && matchesPlayers
         }
 
@@ -420,7 +420,7 @@ class HomeActivity : LocaleActivity() {
         card.addView(TextView(this).apply {
             text = getString(
                 R.string.home_card_availability,
-                teeTime.openSpots,
+                teeTime.spotsRemaining,
                 formatPrice(teeTime.price)
             )
 

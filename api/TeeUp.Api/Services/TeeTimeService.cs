@@ -90,7 +90,7 @@ public class TeeTimeService(
     public async Task<TeeTimeDto> CreateGroupAsync(Guid hostUserId, CreateGroupRequest request)
     {
         _ = await courseRepository.GetByIdAsync(request.CourseId)
-            ?? throw new NotFoundException($"Course {request.CourseId} not found.");
+            ?? throw new DomainValidationException($"Course {request.CourseId} does not exist.");
 
         if (request.DateTime <= DateTime.UtcNow)
             throw new DomainValidationException("The tee time must be in the future.");

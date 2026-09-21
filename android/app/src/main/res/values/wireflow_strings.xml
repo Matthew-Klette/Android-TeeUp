@@ -62,6 +62,7 @@
     <string name="teetime_host_subtitle_format">%1$d accepted · %2$d pending</string>
     <string name="teetime_request_sent">Request sent</string>
     <string name="teetime_request_to_join">Request to Join</string>
+    <string name="teetime_full">Group is full</string>
     <string name="teetime_pending_waiting_format">%1$d waiting — tap to approve or decline</string>
     <string name="teetime_pending_none">None pending</string>
     <string name="teetime_group_chat_tap_open">Tap to open</string>

@@ -27,6 +27,7 @@ public record TeeTimeDto(
     Guid CourseId,
     DateTime DateTime,
     int OpenSpots,
+    int SpotsRemaining,
     decimal Price,
     TeeTimeType Type,
     int? Holes,
@@ -39,9 +40,20 @@ public record TeeTimeDto(
     /// <summary>No member list available (e.g. right after creating a solo round) — Members comes back empty.</summary>
     public static TeeTimeDto From(TeeTime teeTime) => From(teeTime, []);
 
-    public static TeeTimeDto From(TeeTime teeTime, IReadOnlyList<GroupMemberDto> members) => new(
-        teeTime.Id, teeTime.HostUserId, teeTime.CourseId, teeTime.DateTime,
-        teeTime.OpenSpots, teeTime.Price, teeTime.Type,
-        teeTime.Holes, teeTime.WantedHandicapMin, teeTime.WantedHandicapMax, teeTime.WantedPace,
-        teeTime.Status, members);
+    /// <summary>
+    /// <paramref name="teeTime"/>.OpenSpots is the fixed guest capacity set at creation and never
+    /// changes; SpotsRemaining is capacity minus accepted guests, so clients (Android's Home list,
+    /// filters and the tee time detail screen) show/filter on how many spots are actually still
+    /// open rather than the original capacity.
+    /// </summary>
+    public static TeeTimeDto From(TeeTime teeTime, IReadOnlyList<GroupMemberDto> members)
+    {
+        var acceptedGuestCount = members.Count(m => !m.IsHost);
+        var spotsRemaining = Math.Max(0, teeTime.OpenSpots - acceptedGuestCount);
+        return new(
+            teeTime.Id, teeTime.HostUserId, teeTime.CourseId, teeTime.DateTime,
+            teeTime.OpenSpots, spotsRemaining, teeTime.Price, teeTime.Type,
+            teeTime.Holes, teeTime.WantedHandicapMin, teeTime.WantedHandicapMax, teeTime.WantedPace,
+            teeTime.Status, members);
+    }
 }

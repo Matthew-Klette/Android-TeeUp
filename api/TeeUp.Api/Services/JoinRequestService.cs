@@ -43,6 +43,8 @@ public class JoinRequestService(
                 $"Join request {joinRequestId} is already {joinRequest.Status} and cannot be changed.");
         }
 
+        TeeTime? acceptedTeeTime = null;
+
         if (status == JoinRequestStatus.Accepted)
         {
             var teeTime = await teeTimeRepository.GetByIdAsync(joinRequest.TeeTimeId)
@@ -56,10 +58,23 @@ public class JoinRequestService(
                 throw new DomainValidationException(
                     $"Tee time {teeTime.Id} already has its {teeTime.OpenSpots} open spot(s) filled.");
             }
+
+            // This acceptance is the last open spot — flip Open -> Full so clients stop
+            // advertising/allowing further join requests against this tee time.
+            if (acceptedCount + 1 >= teeTime.OpenSpots)
+            {
+                teeTime.Status = TeeTimeStatus.Full;
+                acceptedTeeTime = teeTime;
+            }
         }
 
         joinRequest.Status = status;
         await joinRequestRepository.UpdateAsync(joinRequest);
+
+        if (acceptedTeeTime is not null)
+        {
+            await teeTimeRepository.UpdateAsync(acceptedTeeTime);
+        }
 
         await notificationRepository.AddAsync(new Notification
         {
