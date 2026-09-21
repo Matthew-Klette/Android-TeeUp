@@ -31,15 +31,18 @@ public class TeeTimeServiceTests
         return host;
     }
 
-    private static TeeTime MakeTeeTime(Guid? hostUserId) => new()
+    private static TeeTime MakeTeeTime(
+        Guid? hostUserId, TeeTimeType type = TeeTimeType.OpenRound,
+        TeeTimeStatus status = TeeTimeStatus.Open, DateTime? dateTime = null) => new()
     {
         Id = Guid.NewGuid(),
         HostUserId = hostUserId,
         CourseId = Guid.NewGuid(),
-        DateTime = DateTime.UtcNow.AddDays(1),
+        DateTime = dateTime ?? DateTime.UtcNow.AddDays(1),
         OpenSpots = 2,
         Price = 0,
-        Type = TeeTimeType.OpenRound
+        Type = type,
+        Status = status
     };
 
     [Fact]
@@ -124,6 +127,47 @@ public class TeeTimeServiceTests
         var member = Assert.Single(onlyResult.Members);
         Assert.Equal(host.Id, member.UserId);
         Assert.True(member.IsHost);
+    }
+
+    [Fact]
+    public async Task GetAllAsync_JoinableOnly_ExcludesBookingsFullCancelledAndPastGroups()
+    {
+        var (service, teeTimes, users, _) = CreateService();
+        var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
+
+        var joinableGroup = MakeTeeTime(host.Id);
+        var booking = MakeTeeTime(host.Id, type: TeeTimeType.Booking);
+        var full = MakeTeeTime(host.Id, status: TeeTimeStatus.Full);
+        var cancelled = MakeTeeTime(host.Id, status: TeeTimeStatus.Cancelled);
+        var past = MakeTeeTime(host.Id, dateTime: DateTime.UtcNow.AddDays(-1));
+
+        await teeTimes.AddAsync(joinableGroup);
+        await teeTimes.AddAsync(booking);
+        await teeTimes.AddAsync(full);
+        await teeTimes.AddAsync(cancelled);
+        await teeTimes.AddAsync(past);
+
+        var result = await service.GetAllAsync(joinableOnly: true);
+
+        var onlyResult = Assert.Single(result);
+        Assert.Equal(joinableGroup.Id, onlyResult.Id);
+    }
+
+    [Fact]
+    public async Task GetAllAsync_JoinableOnlyFalse_StillReturnsBookingsFullCancelledAndPastGroups()
+    {
+        var (service, teeTimes, users, _) = CreateService();
+        var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
+
+        await teeTimes.AddAsync(MakeTeeTime(host.Id));
+        await teeTimes.AddAsync(MakeTeeTime(host.Id, type: TeeTimeType.Booking));
+        await teeTimes.AddAsync(MakeTeeTime(host.Id, status: TeeTimeStatus.Full));
+        await teeTimes.AddAsync(MakeTeeTime(host.Id, status: TeeTimeStatus.Cancelled));
+        await teeTimes.AddAsync(MakeTeeTime(host.Id, dateTime: DateTime.UtcNow.AddDays(-1)));
+
+        var result = await service.GetAllAsync();
+
+        Assert.Equal(5, result.Count);
     }
 
     private static async Task<Course> AddCourse(InMemoryCourseRepository courses)

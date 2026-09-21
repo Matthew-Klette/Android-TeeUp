@@ -11,7 +11,7 @@ public class TeeTimeService(
     ICourseRepository courseRepository,
     IJoinRequestRepository joinRequestRepository) : ITeeTimeService
 {
-    public async Task<IReadOnlyList<TeeTimeDto>> GetAllAsync(decimal? maxHandicap = null, PaceOfPlay? pace = null)
+    public async Task<IReadOnlyList<TeeTimeDto>> GetAllAsync(decimal? maxHandicap = null, PaceOfPlay? pace = null, bool joinableOnly = false)
     {
         if (maxHandicap is decimal handicapFilter &&
             (handicapFilter < 0 || handicapFilter > 54 || decimal.Round(handicapFilter, 1) != handicapFilter))
@@ -20,9 +20,17 @@ public class TeeTimeService(
             throw new DomainValidationException("Select a valid pace of play.");
         var teeTimes = await teeTimeRepository.GetAllAsync();
 
-        var filtered = maxHandicap is null && pace is null
+        IReadOnlyList<TeeTime> joinable = joinableOnly
             ? teeTimes
-            : await FilterByHostSkillAsync(teeTimes, maxHandicap, pace);
+                .Where(t => t.Type == TeeTimeType.OpenRound
+                    && t.Status == TeeTimeStatus.Open
+                    && t.DateTime > DateTime.UtcNow)
+                .ToList()
+            : teeTimes;
+
+        var filtered = maxHandicap is null && pace is null
+            ? joinable
+            : await FilterByHostSkillAsync(joinable, maxHandicap, pace);
 
         var usersById = (await userRepository.GetAllAsync()).ToDictionary(u => u.Id);
         var joinRequests = await joinRequestRepository.GetAllAsync();

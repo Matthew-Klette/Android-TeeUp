@@ -1,5 +1,6 @@
 package com.teeup.android.data
 
+import android.content.Context
 import com.teeup.android.R
 import com.teeup.android.TeeUpApplication
 
@@ -44,3 +45,20 @@ fun formatPrice(price: Double): String = when {
 /** True if `userId` has no Pending or Accepted request against this tee time already. */
 fun canRequestToJoin(existing: List<JoinRequest>, userId: String): Boolean =
     existing.none { it.guestUserId == userId && it.status != JoinRequestStatus.DECLINED }
+
+/** "14.5", "20" (no trailing .0), or a localized fallback when null — used for a group
+ *  member's own handicap (EME-312) as well as a wanted-range endpoint value. */
+fun formatHandicap(handicap: Double?): String {
+    if (handicap == null) {
+        return TeeUpApplication.appContextOrNull?.getString(R.string.home_card_no_handicap) ?: "No handicap"
+    }
+    return if (handicap == handicap.toInt().toDouble()) handicap.toInt().toString() else "%.1f".format(handicap)
+}
+
+/** Labels a PaceOfPlay ordinal (0=Relaxed, 1=Standard, 2=Brisk) via the same array every
+ *  pace spinner in the app already uses, so a bad/out-of-range value can't crash — it just
+ *  falls back to the first label instead. */
+fun paceLabel(context: Context, paceOfPlay: Int): String {
+    val options = context.resources.getStringArray(R.array.pace_of_play_options)
+    return options.getOrElse(paceOfPlay) { options[0] }
+}

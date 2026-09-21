@@ -19,15 +19,14 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
-import com.teeup.android.data.ApiException
 import com.teeup.android.data.Course
-import com.teeup.android.data.MockCatalog
 import com.teeup.android.data.TeeTime
 import com.teeup.android.data.TeeUpApiClient
-import com.teeup.android.data.formatPrice
 import com.teeup.android.data.SyncStatus
+import com.teeup.android.data.formatHandicap
 import com.teeup.android.data.formatTeeTime
 import com.teeup.android.data.handicapValue
+import com.teeup.android.data.paceLabel
 import com.teeup.android.data.validHandicap
 import com.teeup.android.nav.BottomNav
 import com.teeup.android.nav.BottomNavTab
@@ -41,6 +40,7 @@ class HomeActivity : LocaleActivity() {
     private enum class DateFilter { ALL, TODAY, TOMORROW }
 
     private lateinit var statusText: TextView
+    private lateinit var retryButton: View
     private lateinit var teeTimesContainer: LinearLayout
 
     // Loaded once from the API; filters below are applied client-side against these.
@@ -50,6 +50,11 @@ class HomeActivity : LocaleActivity() {
     private var searchQuery: String = ""
     private var dateFilter: DateFilter = DateFilter.ALL
     private var minOpenSpots: Int = 0
+
+    /** EME-312: course/holes filters — both fields already sit on TeeTimeDto, so these are
+     *  applied client-side against [allTeeTimes] same as date/players, no new API params needed. */
+    private var courseFilterId: String? = null
+    private var holesFilter: Int? = null
 
     /** EME-299: discover a group filtered by the host's handicap/pace of play. Null = no filter.
      *  Unlike the other filters, this isn't applied client-side — the tee time payload has no
@@ -65,7 +70,9 @@ class HomeActivity : LocaleActivity() {
         BottomNav.wire(this, BottomNavTab.HOME)
 
         statusText = findViewById(R.id.text_status)
+        retryButton = findViewById(R.id.button_retry)
         teeTimesContainer = findViewById(R.id.tee_times_container)
+        retryButton.setOnClickListener { loadNearbyTeeTimes() }
 
         findViewById<View>(R.id.button_notifications).setOnClickListener {
             startActivity(Intent(this, NotificationsActivity::class.java))
@@ -104,6 +111,8 @@ class HomeActivity : LocaleActivity() {
         }
 
         findViewById<Button>(R.id.button_filter_skill).setOnClickListener { showSkillFilterDialog() }
+        findViewById<Button>(R.id.button_filter_course).setOnClickListener { showCourseFilterDialog() }
+        findViewById<Button>(R.id.button_filter_holes).setOnClickListener { showHolesFilterDialog() }
 
         findViewById<Button>(R.id.button_create_group).setOnClickListener {
             startActivity(Intent(this, CreateGroupActivity::class.java))
@@ -122,52 +131,42 @@ class HomeActivity : LocaleActivity() {
         hasLoadedOnce = true
     }
 
+    /** EME-312: only real API data now — no more silent MockCatalog substitution on an error
+     *  or an empty result. A failure shows a distinct, visible error state with a retry button
+     *  instead of quietly swapping in fake groups the user has no way of knowing aren't real. */
     private fun loadNearbyTeeTimes() {
         statusText.visibility = View.GONE
+        retryButton.visibility = View.GONE
         teeTimesContainer.removeAllViews()
         repeat(2) { teeTimesContainer.addView(buildShimmerCard()) }
 
         Thread {
             try {
-                val courses = TeeUpApiClient.fetchCourses()
-                    .associateBy { it.id }
-
-                val teeTimes = TeeUpApiClient.fetchTeeTimes(filterMaxHandicap, filterPace)
+                val courses = TeeUpApiClient.fetchCourses().associateBy { it.id }
+                val teeTimes = TeeUpApiClient.fetchTeeTimes(filterMaxHandicap, filterPace, joinableOnly = true)
                 SyncStatus.recordSuccess(this)
 
                 runOnUiThread {
-                    // An unfiltered empty result means the backend has no data to show yet
-                    // (e.g. a fresh local DB) — fall back to the mock catalog so Home always
-                    // has something to demo. A filtered-empty result is a real answer, not a gap.
-                    if (teeTimes.isEmpty() && filterMaxHandicap == null && filterPace == null) {
-                        useMockCatalog()
-                    } else {
-                        allTeeTimes = teeTimes
-                        coursesById = courses
-                    }
-                    applyFilters()
-                }
-            } catch (e: ApiException) {
-                runOnUiThread {
-                    useMockCatalog()
+                    allTeeTimes = teeTimes
+                    coursesById = courses
                     applyFilters()
                 }
             } catch (e: Exception) {
                 runOnUiThread {
-                    useMockCatalog()
-                    applyFilters()
+                    allTeeTimes = emptyList()
+                    showError(e.message ?: getString(R.string.home_load_failed))
                 }
             }
         }.start()
     }
 
-    private fun useMockCatalog() {
-        allTeeTimes = MockCatalog.teeTimes
-        coursesById = MockCatalog.courses.associateBy { it.id }
-    }
-
-    /** Re-filters [allTeeTimes] by search text / date / min open spots and re-renders. */
+    /** Re-filters [allTeeTimes] by search text / date / players / course / holes and re-renders. */
     private fun applyFilters() {
+        if (allTeeTimes.isEmpty()) {
+            showError(getString(R.string.home_empty_no_teetimes))
+            return
+        }
+
         val filtered = allTeeTimes.filter { teeTime ->
             val courseName = coursesById[teeTime.courseId]?.name.orEmpty()
             val matchesSearch = searchQuery.isBlank() || courseName.contains(searchQuery, ignoreCase = true)
@@ -177,11 +176,13 @@ class HomeActivity : LocaleActivity() {
                 DateFilter.TOMORROW -> isoDateOnly(teeTime.dateTime) == isoDate(1)
             }
             val matchesPlayers = teeTime.spotsRemaining >= minOpenSpots
-            matchesSearch && matchesDate && matchesPlayers
+            val matchesCourse = courseFilterId == null || teeTime.courseId == courseFilterId
+            val matchesHoles = holesFilter == null || teeTime.holes == holesFilter
+            matchesSearch && matchesDate && matchesPlayers && matchesCourse && matchesHoles
         }
 
         if (filtered.isEmpty()) {
-            showError(if (allTeeTimes.isEmpty()) getString(R.string.home_empty_no_teetimes) else getString(R.string.home_empty_no_matches))
+            showError(getString(R.string.home_empty_no_matches))
         } else {
             renderTeeTimes(filtered)
         }
@@ -216,6 +217,10 @@ class HomeActivity : LocaleActivity() {
                 R.string.home_filter_skill
             }
         )
+        findViewById<Button>(R.id.button_filter_course).text =
+            courseFilterId?.let { coursesById[it]?.name } ?: getString(R.string.home_filter_course)
+        findViewById<Button>(R.id.button_filter_holes).text =
+            holesFilter?.let { getString(R.string.home_filter_holes_active_format, it) } ?: getString(R.string.home_filter_holes)
     }
 
     /** Unlike the other filter dialogs, this one re-queries the API (see loadNearbyTeeTimes)
@@ -269,6 +274,27 @@ class HomeActivity : LocaleActivity() {
         }
     }
 
+    /** Course/holes are already on every loaded [TeeTime], so both filter client-side against
+     *  [allTeeTimes]/[coursesById] like date/players — no new query params needed (EME-312). */
+    private fun showCourseFilterDialog() {
+        val sortedCourses = coursesById.values.sortedBy { it.name }
+        val options = listOf(getString(R.string.home_filter_course_any)) + sortedCourses.map { it.name }
+        showOptionsDialog(getString(R.string.home_filter_course), options) { index ->
+            courseFilterId = if (index == 0) null else sortedCourses[index - 1].id
+            updateFilterLabels()
+            applyFilters()
+        }
+    }
+
+    private fun showHolesFilterDialog() {
+        val options = resources.getStringArray(R.array.home_holes_filter_options).toList()
+        showOptionsDialog(getString(R.string.home_filter_holes), options) { index ->
+            holesFilter = when (index) { 1 -> 9; 2 -> 18; else -> null }
+            updateFilterLabels()
+            applyFilters()
+        }
+    }
+
     /** Same pattern as ProfileActivity's language picker: a titled dialog of plain buttons, one tap picks and closes it. */
     private fun showOptionsDialog(title: String, options: List<String>, onSelected: (Int) -> Unit) {
         val container = LinearLayout(this).apply {
@@ -304,6 +330,7 @@ class HomeActivity : LocaleActivity() {
 
     private fun renderTeeTimes(teeTimes: List<TeeTime>) {
         statusText.visibility = View.GONE
+        retryButton.visibility = View.GONE
         teeTimesContainer.removeAllViews()
 
         teeTimes.forEachIndexed { index, teeTime ->
@@ -329,32 +356,27 @@ class HomeActivity : LocaleActivity() {
         teeTimesContainer.removeAllViews()
         statusText.visibility = View.VISIBLE
         statusText.text = message
+        retryButton.visibility = View.VISIBLE
     }
 
+    /** EME-312: a group looking for players — course/date/holes/spots, the host, every current
+     *  member with their handicap+pace, and the wanted range. Home only ever loads OpenRound
+     *  groups now (joinableOnly=true, see loadNearbyTeeTimes), so there's no Booking-card path
+     *  to branch on any more. */
     private fun buildTeeTimeCard(
         teeTime: TeeTime,
         course: Course?
     ): View {
         val courseName = course?.name ?: getString(R.string.home_unknown_course)
-        val isOpenRound = teeTime.type == 1
 
         val card = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
 
-            layoutParams = LinearLayout.LayoutParams(
-                MATCH_PARENT,
-                WRAP_CONTENT
-            ).apply {
+            layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
                 bottomMargin = space(R.dimen.space_md)
             }
 
-            setBackgroundResource(
-                if (isOpenRound) {
-                    R.drawable.bg_card_outline_interactive
-                } else {
-                    R.drawable.bg_card_interactive
-                }
-            )
+            setBackgroundResource(R.drawable.bg_card_outline_interactive)
             elevation = resources.getDimension(R.dimen.elevation_card)
 
             val padding = space(R.dimen.space_lg)
@@ -368,125 +390,92 @@ class HomeActivity : LocaleActivity() {
             }
         }
 
-        val roundType = getString(
-            if (isOpenRound) {
-                R.string.home_card_open_round
-            } else {
-                R.string.home_card_booking
-            }
+        fun addLine(text: String, colorRes: Int, sizeRes: Int, bold: Boolean = false, bottomMarginRes: Int = R.dimen.space_xs) {
+            card.addView(TextView(this).apply {
+                this.text = text
+                setTextColor(colorOf(colorRes))
+                setTextSize(TypedValue.COMPLEX_UNIT_PX, resources.getDimension(sizeRes))
+                if (bold) setTypeface(typeface, android.graphics.Typeface.BOLD)
+                layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
+                    bottomMargin = space(bottomMarginRes)
+                }
+            })
+        }
+
+        addLine(
+            getString(R.string.home_card_heading, courseName.uppercase(), getString(R.string.home_card_open_round)),
+            R.color.teeup_text_secondary, R.dimen.text_caption
+        )
+        addLine(formatTeeTime(teeTime.dateTime), R.color.teeup_text_primary, R.dimen.text_body_large, bold = true)
+        addLine(
+            getString(R.string.home_card_details_format, teeTime.holes ?: 18, teeTime.spotsRemaining, teeTime.openSpots),
+            R.color.teeup_text_secondary, R.dimen.text_body
         )
 
-        card.addView(TextView(this).apply {
-            text = getString(
-                R.string.home_card_heading,
-                courseName.uppercase(),
-                roundType
-            )
+        val hostName = teeTime.members.firstOrNull { it.isHost }?.displayName
+        if (hostName != null) {
+            addLine(getString(R.string.home_card_hosted_by_format, hostName), R.color.teeup_text_secondary, R.dimen.text_body)
+        }
 
-            setTextColor(colorOf(R.color.teeup_text_secondary))
-
-            setTextSize(
-                TypedValue.COMPLEX_UNIT_PX,
-                resources.getDimension(R.dimen.text_caption)
-            )
-
-            layoutParams = LinearLayout.LayoutParams(
-                MATCH_PARENT,
-                WRAP_CONTENT
-            ).apply {
-                bottomMargin = space(R.dimen.space_xs)
+        if (teeTime.members.isNotEmpty()) {
+            addLine(getString(R.string.home_card_members_heading), R.color.teeup_text_secondary, R.dimen.text_caption, bottomMarginRes = R.dimen.space_xs)
+            teeTime.members.forEach { member ->
+                val name = if (member.isHost) getString(R.string.home_card_host_member_format, member.displayName) else member.displayName
+                addLine(
+                    getString(R.string.home_card_member_row_format, name, formatHandicap(member.handicapIndex), paceLabel(this, member.paceOfPlay)),
+                    R.color.teeup_text_secondary, R.dimen.text_caption
+                )
             }
-        })
+        }
 
-        card.addView(TextView(this).apply {
-            text = formatTeeTime(teeTime.dateTime)
-            setTextColor(colorOf(R.color.teeup_text_primary))
-
-            setTextSize(
-                TypedValue.COMPLEX_UNIT_PX,
-                resources.getDimension(R.dimen.text_body_large)
-            )
-
-            setTypeface(typeface, android.graphics.Typeface.BOLD)
-
-            layoutParams = LinearLayout.LayoutParams(
-                MATCH_PARENT,
-                WRAP_CONTENT
-            ).apply {
-                bottomMargin = space(R.dimen.space_xs)
-            }
-        })
-
-        card.addView(TextView(this).apply {
-            text = getString(
-                R.string.home_card_availability,
-                teeTime.spotsRemaining,
-                formatPrice(teeTime.price)
-            )
-
-            setTextColor(colorOf(R.color.teeup_text_secondary))
-
-            setTextSize(
-                TypedValue.COMPLEX_UNIT_PX,
-                resources.getDimension(R.dimen.text_body)
-            )
-
-            layoutParams = LinearLayout.LayoutParams(
-                MATCH_PARENT,
-                WRAP_CONTENT
-            ).apply {
-                bottomMargin = space(R.dimen.space_lg)
-            }
-        })
+        addLine(
+            getString(R.string.home_card_wanted_format, wantedSummary(teeTime)),
+            R.color.teeup_text_secondary, R.dimen.text_body, bottomMarginRes = R.dimen.space_lg
+        )
 
         val buttonRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             isBaselineAligned = false
-
-            layoutParams = LinearLayout.LayoutParams(
-                MATCH_PARENT,
-                WRAP_CONTENT
-            )
+            layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
         }
 
         // Preview inherits the theme's default (secondary/outline) button style;
-        // Book is the primary action for this card, so it gets the solid-fill style.
+        // View Group is the primary action for this card, so it gets the solid-fill style.
         buttonRow.addView(Button(this).apply {
             setText(R.string.home_card_preview)
-
-            layoutParams = LinearLayout.LayoutParams(
-                0,
-                WRAP_CONTENT,
-                1f
-            ).apply {
+            layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f).apply {
                 marginEnd = space(R.dimen.space_sm)
             }
-
-            setOnClickListener {
-                openCoursePreview(course)
-            }
+            setOnClickListener { openCoursePreview(course) }
         })
 
         buttonRow.addView(Button(this).apply {
-            setText(R.string.home_card_book)
+            setText(R.string.home_card_view_group)
             setBackgroundResource(R.drawable.bg_button_primary)
             setTextColor(colorOf(R.color.teeup_text_on_primary))
             elevation = resources.getDimension(R.dimen.elevation_button)
             stateListAnimator = null
-
-            layoutParams = LinearLayout.LayoutParams(
-                0,
-                WRAP_CONTENT,
-                1f
-            )
-
-            setOnClickListener {
-                openTeeTimeDetail(teeTime.id)
-            }
+            layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)
+            setOnClickListener { openTeeTimeDetail(teeTime.id) }
         })
 
         card.addView(buttonRow)
         return card
+    }
+
+    /** "HCP up to 20 · Relaxed pace", "HCP 5–20 · Any pace", "Any handicap · Standard pace", etc. */
+    private fun wantedSummary(teeTime: TeeTime): String {
+        val handicapPart = when {
+            teeTime.wantedHandicapMin != null && teeTime.wantedHandicapMax != null ->
+                getString(R.string.home_card_wanted_handicap_range_format, formatHandicap(teeTime.wantedHandicapMin), formatHandicap(teeTime.wantedHandicapMax))
+            teeTime.wantedHandicapMax != null ->
+                getString(R.string.home_card_wanted_handicap_max_format, formatHandicap(teeTime.wantedHandicapMax))
+            teeTime.wantedHandicapMin != null ->
+                getString(R.string.home_card_wanted_handicap_min_format, formatHandicap(teeTime.wantedHandicapMin))
+            else -> getString(R.string.home_card_wanted_handicap_any)
+        }
+        val pacePart = teeTime.wantedPace?.let { paceLabel(this, it) } ?: getString(R.string.filter_pace_any)
+        return "$handicapPart · $pacePart"
     }
 
     /** A skeleton placeholder shown in place of a real card while the network call is in flight. */

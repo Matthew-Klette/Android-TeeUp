@@ -24,11 +24,15 @@ object TeeUpApiClient {
         return (0 until array.length()).map { i -> parseCourse(array.getJSONObject(i)) }
     }
 
-    /** `maxHandicap`/`pace` filter by the tee time's host (EME-299); null means "no filter". */
-    fun fetchTeeTimes(maxHandicap: Double? = null, pace: Int? = null): List<TeeTime> {
+    /** `maxHandicap`/`pace` filter by the tee time's host (EME-299); null means "no filter".
+     *  `joinableOnly` (EME-312) narrows to groups a guest could actually join right now —
+     *  false (the default) keeps returning bookings/full/past/cancelled rows too, which
+     *  TeeTimeDetailActivity's by-id lookups still need. */
+    fun fetchTeeTimes(maxHandicap: Double? = null, pace: Int? = null, joinableOnly: Boolean = false): List<TeeTime> {
         val query = buildList {
             maxHandicap?.let { add("maxHandicap=$it") }
             pace?.let { add("pace=$it") }
+            if (joinableOnly) add("joinableOnly=true")
         }.joinToString("&")
         val path = if (query.isEmpty()) "api/teetimes" else "api/teetimes?$query"
 

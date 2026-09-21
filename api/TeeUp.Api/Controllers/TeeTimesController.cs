@@ -18,9 +18,9 @@ public class TeeTimesController(
 {
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<TeeTimeDto>>> GetAll(
-        [FromQuery] decimal? maxHandicap, [FromQuery] PaceOfPlay? pace)
+        [FromQuery] decimal? maxHandicap, [FromQuery] PaceOfPlay? pace, [FromQuery] bool joinableOnly = false)
     {
-        return Ok(await teeTimeService.GetAllAsync(maxHandicap, pace));
+        return Ok(await teeTimeService.GetAllAsync(maxHandicap, pace, joinableOnly));
     }
 
     [Authorize]

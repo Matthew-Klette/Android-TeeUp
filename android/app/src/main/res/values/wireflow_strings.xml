@@ -41,8 +41,8 @@
     <string name="home_filter_date_tomorrow">Date: Tomorrow</string>
     <string name="home_filter_players_min_format">Players: %1$d+</string>
     <string name="dialog_cancel">Cancel</string>
-    <string name="home_empty_no_teetimes">No tee times nearby right now</string>
-    <string name="home_empty_no_matches">No tee times match your filters</string>
+    <string name="home_empty_no_teetimes">No groups are looking for players right now</string>
+    <string name="home_empty_no_matches">No groups match your filters</string>
     <string name="home_unknown_course">Unknown course</string>
 
     <!-- Tee Time Detail Screen -->
