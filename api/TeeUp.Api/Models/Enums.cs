@@ -20,6 +20,13 @@ public enum TeeTimeType
     OpenRound
 }
 
+public enum TeeTimeStatus
+{
+    Open,
+    Full,
+    Cancelled
+}
+
 public enum JoinRequestStatus
 {
     Pending,

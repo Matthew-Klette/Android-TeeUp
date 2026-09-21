@@ -12,7 +12,12 @@ data class Course(
     val rating: Double?
 )
 
-/** Mirrors the API's TeeTimeDto (api/TeeUp.Api/Dtos/TeeTimeDtos.cs). type: 0=Booking, 1=OpenRound. */
+/**
+ * Mirrors the API's TeeTimeDto (api/TeeUp.Api/Dtos/TeeTimeDtos.cs). type: 0=Booking, 1=OpenRound.
+ * status: 0=Open, 1=Full, 2=Cancelled (Models/Enums.cs TeeTimeStatus). holes/wanted* are null for
+ * legacy/solo rows created before EME-311's group fields existed. openSpots is guests wanted, not
+ * counting the host — see CreateGroupRequest's doc comment on the API side.
+ */
 data class TeeTime(
     val id: String,
     val hostUserId: String?,
@@ -20,7 +25,22 @@ data class TeeTime(
     val dateTime: String,
     val openSpots: Int,
     val price: Double,
-    val type: Int
+    val type: Int,
+    val holes: Int?,
+    val wantedHandicapMin: Double?,
+    val wantedHandicapMax: Double?,
+    val wantedPace: Int?,
+    val status: Int,
+    val members: List<GroupMember>
+)
+
+/** Mirrors the API's GroupMemberDto (api/TeeUp.Api/Dtos/TeeTimeDtos.cs). */
+data class GroupMember(
+    val userId: String,
+    val displayName: String,
+    val handicapIndex: Double?,
+    val paceOfPlay: Int,
+    val isHost: Boolean
 )
 
 /** Mirrors the API's JoinRequestDto (api/TeeUp.Api/Dtos/JoinRequestDtos.cs). status: 0=Pending, 1=Accepted, 2=Declined. */

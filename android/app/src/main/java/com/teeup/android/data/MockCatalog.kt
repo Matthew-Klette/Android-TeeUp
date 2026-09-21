@@ -30,7 +30,13 @@ object MockCatalog {
             dateTime = isoAt(daysFromToday = 0, hour = 7),
             openSpots = 3,
             price = 450.0,
-            type = 0
+            type = 0,
+            holes = null,
+            wantedHandicapMin = null,
+            wantedHandicapMax = null,
+            wantedPace = null,
+            status = 0,
+            members = emptyList()
         ),
         TeeTime(
             id = "mock-teetime-humewood-open",
@@ -39,7 +45,13 @@ object MockCatalog {
             dateTime = isoAt(daysFromToday = 0, hour = 13),
             openSpots = 2,
             price = 0.0,
-            type = 1
+            type = 1,
+            holes = null,
+            wantedHandicapMin = null,
+            wantedHandicapMax = null,
+            wantedPace = null,
+            status = 0,
+            members = emptyList()
         ),
         TeeTime(
             id = "mock-teetime-wanderers-am",
@@ -48,7 +60,13 @@ object MockCatalog {
             dateTime = isoAt(daysFromToday = 1, hour = 9),
             openSpots = 4,
             price = 380.0,
-            type = 0
+            type = 0,
+            holes = null,
+            wantedHandicapMin = null,
+            wantedHandicapMax = null,
+            wantedPace = null,
+            status = 0,
+            members = emptyList()
         ),
         TeeTime(
             id = "mock-teetime-pegc-am",
@@ -57,7 +75,13 @@ object MockCatalog {
             dateTime = isoAt(daysFromToday = 0, hour = 8),
             openSpots = 2,
             price = 320.0,
-            type = 0
+            type = 0,
+            holes = null,
+            wantedHandicapMin = null,
+            wantedHandicapMax = null,
+            wantedPace = null,
+            status = 0,
+            members = emptyList()
         ),
         TeeTime(
             id = "mock-teetime-little-walmer-open",
@@ -66,7 +90,13 @@ object MockCatalog {
             dateTime = isoAt(daysFromToday = 1, hour = 10),
             openSpots = 3,
             price = 0.0,
-            type = 1
+            type = 1,
+            holes = null,
+            wantedHandicapMin = null,
+            wantedHandicapMax = null,
+            wantedPace = null,
+            status = 0,
+            members = emptyList()
         ),
         TeeTime(
             id = "mock-teetime-wedgewood-am",
@@ -75,7 +105,13 @@ object MockCatalog {
             dateTime = isoAt(daysFromToday = 0, hour = 11),
             openSpots = 4,
             price = 410.0,
-            type = 0
+            type = 0,
+            holes = null,
+            wantedHandicapMin = null,
+            wantedHandicapMax = null,
+            wantedPace = null,
+            status = 0,
+            members = emptyList()
         )
     )
 

@@ -289,4 +289,33 @@
     <string name="privacy_body_controls">You can edit or clear your profile fields any time under Personal Details / Playing Details, and sign out below. In-app account deletion isn\'t available yet — request it directly from the team in the meantime.</string>
     <string name="privacy_sign_out">Sign Out</string>
     <string name="privacy_signing_out">Signing out…</string>
+
+    <!-- Create Group Screen (EME-311) -->
+    <string name="create_group_title">Create a Group</string>
+    <string name="create_group_loading_courses">Loading courses…</string>
+    <string name="create_group_when">Date &amp; time</string>
+    <string name="create_group_pick_date_time">Pick date &amp; time</string>
+    <string name="create_group_pick_time_title">Choose a time</string>
+    <string name="create_group_date_time_format">%1$s at %2$02d:%3$02d</string>
+    <string name="create_group_holes">Number of holes</string>
+    <string name="create_group_players_needed">How many more players do you need?</string>
+    <string name="create_group_minus">−</string>
+    <string name="create_group_plus">+</string>
+    <string name="create_group_wanted_handicap">Wanted handicap range (optional)</string>
+    <string name="create_group_handicap_min_hint">Min</string>
+    <string name="create_group_handicap_max_hint">Max</string>
+    <string name="create_group_create">Create Group</string>
+    <string name="create_group_creating">Creating…</string>
+    <string name="create_group_no_courses">No courses available yet — try again shortly.</string>
+    <string name="create_group_pick_date_time_error">Pick a date and time first.</string>
+    <string name="create_group_date_time_in_past">Choose a date and time in the future.</string>
+    <string name="create_group_handicap_range_invalid">The minimum handicap can\'t be above the maximum.</string>
+    <string name="create_group_created">Group created.</string>
+    <string name="create_group_failed_fallback">Couldn\'t create the group — try again.</string>
+    <string name="home_create_group">Create a Group</string>
+
+    <string-array name="create_group_holes_options">
+        <item>9 holes</item>
+        <item>18 holes</item>
+    </string-array>
 </resources>

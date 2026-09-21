@@ -19,4 +19,11 @@ public interface ITeeTimeService
     /// scores can be posted against it (see RoundService's "no posting before it starts" rule).
     /// </summary>
     Task<TeeTimeDto> CreateSoloAsync(Guid hostUserId, Guid courseId);
+
+    /// <summary>
+    /// Creates a real group looking for players (EME-311) — a scheduled tee time with a hole
+    /// count, a wanted handicap/pace range, and open spots for guests via the existing
+    /// join-request flow. The host is automatically the first member.
+    /// </summary>
+    Task<TeeTimeDto> CreateGroupAsync(Guid hostUserId, CreateGroupRequest request);
 }

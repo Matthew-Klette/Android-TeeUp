@@ -43,6 +43,32 @@ object TeeUpApiClient {
         return parseTeeTime(JSONObject(request("POST", "api/teetimes", body)))
     }
 
+    /**
+     * POST /api/teetimes/groups (EME-311) — a real group looking for players. [openSpots] is
+     * guests wanted, not counting the host. [dateTimeIso] must be a future UTC instant, e.g.
+     * "2026-12-01T10:00:00Z". [wantedPace] is the PaceOfPlay ordinal (0=Relaxed, 1=Standard,
+     * 2=Brisk); null on either handicap bound or on pace means "no preference".
+     */
+    fun createGroup(
+        courseId: String,
+        dateTimeIso: String,
+        holes: Int,
+        openSpots: Int,
+        wantedHandicapMin: Double?,
+        wantedHandicapMax: Double?,
+        wantedPace: Int?
+    ): TeeTime {
+        val body = JSONObject()
+            .put("courseId", courseId)
+            .put("dateTime", dateTimeIso)
+            .put("holes", holes)
+            .put("openSpots", openSpots)
+            .put("wantedHandicapMin", wantedHandicapMin)
+            .put("wantedHandicapMax", wantedHandicapMax)
+            .put("wantedPace", wantedPace)
+        return parseTeeTime(JSONObject(request("POST", "api/teetimes/groups", body)))
+    }
+
     fun fetchNotifications(): List<AppNotification> {
         val array = JSONArray(request("GET", "api/notifications"))
         return (0 until array.length()).map { i -> parseNotification(array.getJSONObject(i)) }
@@ -134,7 +160,23 @@ object TeeUpApiClient {
         dateTime = o.getString("dateTime"),
         openSpots = o.getInt("openSpots"),
         price = o.getDouble("price"),
-        type = o.getInt("type")
+        type = o.getInt("type"),
+        holes = if (o.isNull("holes")) null else o.getInt("holes"),
+        wantedHandicapMin = if (o.isNull("wantedHandicapMin")) null else o.getDouble("wantedHandicapMin"),
+        wantedHandicapMax = if (o.isNull("wantedHandicapMax")) null else o.getDouble("wantedHandicapMax"),
+        wantedPace = if (o.isNull("wantedPace")) null else o.getInt("wantedPace"),
+        status = o.getInt("status"),
+        members = o.optJSONArray("members")?.let { array ->
+            (0 until array.length()).map { i -> parseGroupMember(array.getJSONObject(i)) }
+        } ?: emptyList()
+    )
+
+    private fun parseGroupMember(o: JSONObject) = GroupMember(
+        userId = o.getString("userId"),
+        displayName = o.getString("displayName"),
+        handicapIndex = if (o.isNull("handicapIndex")) null else o.getDouble("handicapIndex"),
+        paceOfPlay = o.getInt("paceOfPlay"),
+        isHost = o.getBoolean("isHost")
     )
 
     private fun parseNotification(o: JSONObject) = AppNotification(

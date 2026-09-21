@@ -33,6 +33,15 @@ public class TeeTimesController(
     }
 
     [Authorize]
+    [HttpPost("groups")]
+    public async Task<ActionResult<TeeTimeDto>> CreateGroup(CreateGroupRequest request)
+    {
+        var hostUserId = await ResolveCurrentUserIdAsync();
+        var group = await teeTimeService.CreateGroupAsync(hostUserId, request);
+        return Ok(group);
+    }
+
+    [Authorize]
     [HttpPost("{id:guid}/joinrequests")]
     public async Task<ActionResult<JoinRequestDto>> CreateJoinRequest(Guid id)
     {

@@ -56,6 +56,7 @@ class HomeActivity : LocaleActivity() {
      *  host handicap/pace on it, so it re-queries the API instead (see loadNearbyTeeTimes). */
     private var filterMaxHandicap: Double? = null
     private var filterPace: Int? = null
+    private var hasLoadedOnce = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -104,7 +105,21 @@ class HomeActivity : LocaleActivity() {
 
         findViewById<Button>(R.id.button_filter_skill).setOnClickListener { showSkillFilterDialog() }
 
+        findViewById<Button>(R.id.button_create_group).setOnClickListener {
+            startActivity(Intent(this, CreateGroupActivity::class.java))
+            overridePendingTransition(R.anim.slide_in_right, R.anim.fade_out_slight)
+        }
+
         loadNearbyTeeTimes()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Picks up a group just created by CreateGroupActivity without a stale list —
+        // same pattern as RoundsActivity's onResume. Skip the very first call since
+        // onCreate's loadNearbyTeeTimes() already covers it.
+        if (hasLoadedOnce) loadNearbyTeeTimes()
+        hasLoadedOnce = true
     }
 
     private fun loadNearbyTeeTimes() {
