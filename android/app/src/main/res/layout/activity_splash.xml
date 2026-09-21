@@ -3,7 +3,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
-    android:background="@color/teeup_background">
+    android:background="@drawable/bg_screen_gradient">
 
     <TextView
         android:layout_width="wrap_content"

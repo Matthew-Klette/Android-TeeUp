@@ -23,10 +23,11 @@
         <item name="android:editTextStyle">@style/TeeUpInput</item>
         <item name="android:spinnerStyle">@style/TeeUpSpinner</item>
 
-        <!-- System bars -->
+        <!-- System bars: light background needs dark system icons, not light ones -->
         <item name="android:statusBarColor">@color/teeup_background</item>
         <item name="android:navigationBarColor">@color/teeup_background</item>
-        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
 
     </style>
 

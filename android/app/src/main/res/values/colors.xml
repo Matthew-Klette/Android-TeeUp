@@ -1,20 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Main screen backgrounds -->
-    <color name="teeup_background">#14150F</color>
-    <color name="teeup_surface">#1E2118</color>
-    <color name="teeup_surface_alt">#262B1E</color>
+    <!-- Light theme (design-integration redesign): resembles Wedge's much-whiter,
+         cleaner look rather than the old near-black theme. Same token names/roles
+         as before — every consumer below just picks up new values, nothing else
+         had to change. Surfaces: a soft off-white page background with crisp
+         white cards on top (separated by a hairline/shadow, not a tonal jump). -->
+    <color name="teeup_background">#F6F8F3</color>
+    <color name="teeup_background_top">#FFFFFF</color>
+    <color name="teeup_surface">#FFFFFF</color>
+    <color name="teeup_surface_alt">#ECF0E7</color>
+    <color name="teeup_surface_high">#DEE6D6</color>
 
-    <!-- Green accents from the written TeeUp brand direction -->
-    <color name="teeup_accent">#B7D77A</color>
-    <color name="teeup_accent_secondary">#AFC482</color>
+    <!-- Brand green: used sparingly now — the primary CTA fill, the selected nav
+         tab, a handful of borders/links. Body and button text is near-black/gray
+         by default (see color/button_text.xml, styles.xml TeeUpEyebrow); green is
+         a highlight, not the default text color. Deeper than the old dark-theme
+         accent so it still reads at proper contrast on a white surface. -->
+    <color name="teeup_accent">#1E7A44</color>
+    <color name="teeup_accent_secondary">#2F7A4A</color>
+    <color name="teeup_primary">#1E7A44</color>
+    <color name="teeup_primary_pressed">#175C34</color>
 
-    <!-- Text -->
-    <color name="teeup_text_primary">#F5F5F0</color>
-    <color name="teeup_text_secondary">#B4B8A9</color>
-    <color name="teeup_text_disabled">#777D70</color>
+    <!-- Text: near-black/gray is the default everywhere; green is reserved for the
+         handful of spots above. -->
+    <color name="teeup_text_primary">#14170F</color>
+    <color name="teeup_text_secondary">#5B6459</color>
+    <color name="teeup_text_disabled">#A8B0A2</color>
+    <color name="teeup_text_on_primary">#FFFFFF</color>
 
-    <!-- Borders and touch feedback -->
-    <color name="teeup_border">#555F48</color>
-    <color name="teeup_ripple">#33B7D77A</color>
+    <!-- Borders and touch feedback: subtle hairlines, not a second accent color. -->
+    <color name="teeup_border">#DCE3D6</color>
+    <color name="teeup_ripple">#331E7A44</color>
+
+    <!-- Status -->
+    <color name="teeup_danger">#C4362A</color>
+    <color name="teeup_danger_muted">#FBEAE8</color>
 </resources>

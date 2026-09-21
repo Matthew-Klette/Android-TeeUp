@@ -5,6 +5,9 @@
         android:state_enabled="false"
         android:color="@color/teeup_text_disabled" />
 
-    <item android:color="@color/teeup_accent" />
+    <!-- Secondary/outline buttons read as white text on a bordered surface —
+         brand green is reserved for the primary (filled) button and a few
+         highlights, not the default button label color. -->
+    <item android:color="@color/teeup_text_primary" />
 
 </selector>

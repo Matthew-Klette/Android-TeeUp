@@ -1,5 +1,5 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
     <solid android:color="@color/teeup_surface" />
     <stroke android:width="1dp" android:color="@color/teeup_accent" />
-    <corners android:radius="12dp" />
+    <corners android:radius="@dimen/card_radius" />
 </shape>

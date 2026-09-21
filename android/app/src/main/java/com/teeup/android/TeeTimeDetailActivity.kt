@@ -1,7 +1,7 @@
 package com.teeup.android
 
-import android.app.Activity
 import android.app.AlertDialog
+import android.content.Intent
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.View
@@ -10,17 +10,19 @@ import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
 import com.teeup.android.data.ApiException
 import com.teeup.android.data.Course
 import com.teeup.android.data.JoinRequest
 import com.teeup.android.data.JoinRequestStatus
 import com.teeup.android.data.LocalIdentity
+import com.teeup.android.data.SyncStatus
 import com.teeup.android.data.TeeTime
 import com.teeup.android.data.TeeUpApiClient
 import com.teeup.android.data.canRequestToJoin
 import com.teeup.android.data.formatPrice
 import com.teeup.android.data.formatTeeTime
+import com.teeup.android.ui.LocaleActivity
+import com.teeup.android.ui.TeeUpBanner
 
 /**
  * Screen 3 · Tee Time Detail / Join Request.
@@ -30,7 +32,7 @@ import com.teeup.android.data.formatTeeTime
  * TeeTimesController.GetJoinRequests). Group Chat has no backend/ticket
  * yet, so it's gated with an honest placeholder message, not a fake screen.
  */
-class TeeTimeDetailActivity : Activity() {
+class TeeTimeDetailActivity : LocaleActivity() {
     companion object {
         /** Set by HomeActivity (EME-297) when opening a specific tee time. */
         const val EXTRA_TEE_TIME_ID = "com.teeup.android.extra.TEE_TIME_ID"
@@ -48,7 +50,10 @@ class TeeTimeDetailActivity : Activity() {
         statusText = findViewById(R.id.text_status)
         contentGroup = findViewById(R.id.group_detail_content)
 
-        findViewById<View>(R.id.button_back).setOnClickListener { finish() }
+        findViewById<View>(R.id.button_back).setOnClickListener {
+            finish()
+            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
+        }
 
         val id = intent.getStringExtra(EXTRA_TEE_TIME_ID)
         if (id == null) {
@@ -70,6 +75,7 @@ class TeeTimeDetailActivity : Activity() {
                     ?: throw ApiException("Tee time not found")
                 val course = TeeUpApiClient.fetchCourses().firstOrNull { it.id == teeTime.courseId }
                 val requests = TeeUpApiClient.fetchJoinRequestsForTeeTime(teeTimeId)
+                SyncStatus.recordSuccess(this)
                 runOnUiThread { render(teeTime, course, requests) }
             } catch (e: Exception) {
                 runOnUiThread { showError(e.message ?: "Couldn't load this tee time") }
@@ -86,6 +92,10 @@ class TeeTimeDetailActivity : Activity() {
             "${course?.name ?: "Unknown course"} · ${formatTeeTime(teeTime.dateTime)}"
         findViewById<TextView>(R.id.text_teetime_subtitle).text =
             "${teeTime.openSpots} spot(s) open · ${formatPrice(teeTime.price)}"
+
+        findViewById<Button>(R.id.button_preview_course).setOnClickListener {
+            openCoursePreview(course)
+        }
 
         val acceptedCount = requests.count { it.status == JoinRequestStatus.ACCEPTED }
         val pendingCount = requests.count { it.status == JoinRequestStatus.PENDING }
@@ -117,9 +127,9 @@ class TeeTimeDetailActivity : Activity() {
             if (acceptedCount > 0) "Tap to open" else "Opens once a request is accepted"
         findViewById<View>(R.id.row_group_chat).setOnClickListener {
             if (acceptedCount > 0) {
-                Toast.makeText(this, "Group chat isn't built yet — no ticket/backend for it.", Toast.LENGTH_LONG).show()
+                TeeUpBanner.show(this, "Group chat isn't built yet — no ticket/backend for it.")
             } else {
-                Toast.makeText(this, "Opens once a join request is accepted", Toast.LENGTH_SHORT).show()
+                TeeUpBanner.show(this, "Opens once a join request is accepted")
             }
         }
     }
@@ -139,14 +149,14 @@ class TeeTimeDetailActivity : Activity() {
                     TeeUpApiClient.fetchCourses().firstOrNull { it.id == tt.courseId }
                 }
                 runOnUiThread {
-                    Toast.makeText(this, "Request sent", Toast.LENGTH_SHORT).show()
+                    TeeUpBanner.show(this, "Request sent")
                     if (refreshedTeeTime != null) {
                         render(refreshedTeeTime, refreshedCourse, refreshedRequests)
                     }
                 }
             } catch (e: Exception) {
                 runOnUiThread {
-                    Toast.makeText(this, e.message ?: "Couldn't send the request", Toast.LENGTH_LONG).show()
+                    TeeUpBanner.show(this, e.message ?: "Couldn't send the request", isError = true)
                     button.isEnabled = true
                     button.text = "Request to Join"
                 }
@@ -187,10 +197,17 @@ class TeeTimeDetailActivity : Activity() {
         if (request.status == JoinRequestStatus.PENDING) {
             row.addView(Button(this).apply {
                 text = "Accept"
+                setBackgroundResource(R.drawable.bg_button_primary)
+                setTextColor(colorOf(R.color.teeup_text_on_primary))
+                layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
+                    marginEnd = dp(8)
+                }
                 setOnClickListener { respondToJoinRequest(request.id, JoinRequestStatus.ACCEPTED) }
             })
             row.addView(Button(this).apply {
                 text = "Decline"
+                setBackgroundResource(R.drawable.bg_button_danger_outline)
+                setTextColor(colorOf(R.color.teeup_danger))
                 setOnClickListener { respondToJoinRequest(request.id, JoinRequestStatus.DECLINED) }
             })
         }
@@ -209,11 +226,11 @@ class TeeTimeDetailActivity : Activity() {
                     if (teeTime != null) {
                         render(teeTime, course, requests)
                     }
-                    Toast.makeText(this, "Updated", Toast.LENGTH_SHORT).show()
+                    TeeUpBanner.show(this, "Updated")
                 }
             } catch (e: Exception) {
                 runOnUiThread {
-                    Toast.makeText(this, e.message ?: "Couldn't update the request", Toast.LENGTH_LONG).show()
+                    TeeUpBanner.show(this, e.message ?: "Couldn't update the request", isError = true)
                 }
             }
         }.start()
@@ -225,7 +242,24 @@ class TeeTimeDetailActivity : Activity() {
         statusText.text = message
     }
 
+    private fun openCoursePreview(course: Course?) {
+        if (course == null) {
+            TeeUpBanner.show(this, "Course details aren't available yet")
+            return
+        }
+        val intent = Intent(this, CoursePreviewActivity::class.java).apply {
+            putExtra(CoursePreviewActivity.EXTRA_COURSE_NAME, course.name)
+            putExtra(CoursePreviewActivity.EXTRA_COURSE_LAT, course.latitude)
+            putExtra(CoursePreviewActivity.EXTRA_COURSE_LNG, course.longitude)
+            course.rating?.let { putExtra(CoursePreviewActivity.EXTRA_COURSE_RATING, it) }
+        }
+        startActivity(intent)
+        overridePendingTransition(R.anim.slide_in_right, R.anim.fade_out_slight)
+    }
+
     private fun dp(value: Int): Int = TypedValue.applyDimension(
         TypedValue.COMPLEX_UNIT_DIP, value.toFloat(), resources.displayMetrics
     ).toInt()
+
+    private fun colorOf(colorRes: Int): Int = resources.getColor(colorRes, theme)
 }

@@ -1,45 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
     android:color="@color/teeup_ripple">
-
-    <item>
-        <selector>
-
-            <!-- Current tab -->
-            <item android:state_selected="true">
-                <shape android:shape="rectangle">
-                    <solid android:color="@color/teeup_surface_alt" />
-
-                    <stroke
-                        android:width="1dp"
-                        android:color="@color/teeup_accent" />
-
-                    <corners android:radius="@dimen/card_radius" />
-                </shape>
-            </item>
-
-            <!-- Keyboard or directional-navigation focus -->
-            <item android:state_focused="true">
-                <shape android:shape="rectangle">
-                    <solid android:color="@color/teeup_surface_alt" />
-
-                    <stroke
-                        android:width="1dp"
-                        android:color="@color/teeup_border" />
-
-                    <corners android:radius="@dimen/card_radius" />
-                </shape>
-            </item>
-
-            <!-- Unselected tab -->
-            <item>
-                <shape android:shape="rectangle">
-                    <solid android:color="@color/teeup_surface" />
-                    <corners android:radius="@dimen/card_radius" />
-                </shape>
-            </item>
-
-        </selector>
-    </item>
-
+    <item android:drawable="@android:color/transparent" />
 </ripple>

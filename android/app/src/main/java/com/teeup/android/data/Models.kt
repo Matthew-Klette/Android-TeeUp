@@ -41,5 +41,18 @@ object JoinRequestStatus {
     }
 }
 
-/** Mirrors the API's UserDto (api/TeeUp.Api/Dtos/AuthDtos.cs) — only the fields this client needs. */
-data class RegisteredUser(val id: String, val displayName: String, val profileComplete: Boolean)
+/**
+ * Mirrors the API's UserDto (api/TeeUp.Api/Dtos/AuthDtos.cs). paceOfPlay: 0=Relaxed,
+ * 1=Standard, 2=Brisk (api/TeeUp.Api/Models/Enums.cs PaceOfPlay). POST /api/auth/register
+ * is idempotent and returns this full record for an already-registered user, which is
+ * how PersonalDetailsActivity/PlayingDetailsActivity read the current profile before
+ * editing it — there's no separate GET /api/profiles/me endpoint.
+ */
+data class RegisteredUser(
+    val id: String,
+    val displayName: String,
+    val handicapIndex: Double?,
+    val homeCourseId: String?,
+    val paceOfPlay: Int,
+    val profileComplete: Boolean
+)

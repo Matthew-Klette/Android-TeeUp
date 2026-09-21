@@ -4,7 +4,6 @@
     <string name="sign_in_tagline">FIND YOUR NEXT ROUND</string>
     <string name="sign_in_google">Continue with Google</string>
     <string name="sign_in_google_progress">Signing in…</string>
-    <string name="sign_in_apple">Continue with Apple</string>
     <string name="sign_in_email">Continue with Email</string>
     <string name="sign_in_biometric">Use Face / Fingerprint</string>
     <string name="sign_in_register">New here? Register</string>
@@ -24,6 +23,7 @@
     <string name="profile_playing_details">Playing Details</string>
     <string name="profile_notification_preferences">Notification Preferences</string>
     <string name="profile_language">Language</string>
+    <string name="profile_language_dialog_title">Choose language</string>
     <string name="profile_biometric_login">Biometric Login</string>
     <string name="profile_offline_sync">Offline Data &amp; Sync Status</string>
     <string name="profile_privacy">Privacy &amp; Data (POPIA)</string>
@@ -87,6 +87,14 @@
     <string name="detail_request_to_join">Request to Join</string>
     <string name="detail_pending_requests">Pending Requests</string>
     <string name="detail_group_chat">Group Chat</string>
+    <string name="detail_preview_course">Preview Course</string>
+
+    <!-- Course Preview Screen -->
+    <string name="course_preview_title">Course Preview</string>
+    <string name="course_preview_loading">Loading course…</string>
+    <string name="course_preview_error">Couldn\'t load the course map</string>
+    <string name="course_preview_rating_format">Rating %.1f</string>
+    <string name="course_preview_open_maps">Open in Maps</string>
 
     <!-- Rounds Screen -->
     <string name="rounds_title">My Rounds</string>
@@ -136,4 +144,95 @@
 
     <string name="notifications_weather_title">Weather Alert</string>
     <string name="notifications_weather_body">Rain expected at Humewood GC</string>
+
+    <!-- Shared across Personal/Playing Details -->
+    <string name="profile_load_signed_out">You need to be signed in to view this</string>
+    <string name="profile_load_error_fallback">Couldn\'t load your profile</string>
+    <string name="profile_save_error_fallback">Couldn\'t save — try again</string>
+
+    <!-- Personal Details Screen -->
+    <string name="personal_details_title">Personal Details</string>
+    <string name="personal_details_loading">Loading your profile…</string>
+    <string name="personal_details_display_name">Display name</string>
+    <string name="personal_details_email_label">EMAIL</string>
+    <string name="personal_details_email_none">No email on this account (signed in with Face/Fingerprint or Email stub)</string>
+    <string name="personal_details_save">Save</string>
+    <string name="personal_details_saving">Saving…</string>
+    <string name="personal_details_name_required">Enter a display name</string>
+
+    <!-- Playing Details Screen -->
+    <string name="playing_details_title">Playing Details</string>
+    <string name="playing_details_loading">Loading your profile…</string>
+    <string name="playing_details_save">Save</string>
+    <string name="playing_details_saving">Saving…</string>
+    <string name="playing_details_handicap_invalid">Enter a valid handicap between 0 and 54, or leave it blank</string>
+
+    <!-- Notification Preferences Screen -->
+    <string name="notification_prefs_title">Notification Preferences</string>
+    <string name="notification_prefs_subtitle">Choose what shows on your Notifications screen. Stored on this device only — there\'s no server-side preference sync yet.</string>
+    <string name="notification_category_join_request">New join requests</string>
+    <string name="notification_category_accepted">Accepted requests</string>
+    <string name="notification_category_declined">Declined requests</string>
+    <string name="notification_category_reminder">Tee time reminders</string>
+    <string name="notification_category_sync">Sync reminders</string>
+    <string name="notification_category_weather">Weather alerts</string>
+
+    <!-- Biometric Login Screen -->
+    <string name="biometric_title">Biometric Login</string>
+    <string name="biometric_toggle_label">Require Face / Fingerprint to open TeeUp</string>
+    <string name="biometric_checking">Checking your device…</string>
+    <string name="biometric_confirming">Confirm to turn this on…</string>
+    <string name="biometric_enforcement_notice">When on, the app will ask you to confirm Face/Fingerprint right after Sign In, before Home opens.</string>
+    <string name="biometric_available">Your device supports biometric login.</string>
+    <string name="biometric_unavailable_format">Biometric login isn\'t available: %1$s</string>
+    <string name="biometric_reason_no_hardware">no biometric hardware on this device</string>
+    <string name="biometric_reason_hw_unavailable">biometric hardware is currently unavailable</string>
+    <string name="biometric_reason_none_enrolled">no fingerprint or face is enrolled on this device yet</string>
+    <string name="biometric_reason_security_update">a security update is required</string>
+    <string name="biometric_reason_unsupported">unsupported on this device</string>
+    <string name="biometric_reason_unknown">unknown reason</string>
+    <string name="biometric_prompt_title">Confirm it\'s you</string>
+    <string name="biometric_prompt_subtitle">This turns on Biometric Login for TeeUp</string>
+    <string name="biometric_prompt_cancel">Cancel</string>
+    <string name="biometric_confirm_error_format">Couldn\'t confirm: %1$s</string>
+    <string name="biometric_turned_on">Biometric login turned on</string>
+    <string name="biometric_turned_off">Biometric login turned off</string>
+
+    <!-- Biometric Unlock Screen (enforcement gate before Home) -->
+    <string name="biometric_unlock_prompt_subtitle">Confirm it\'s you to continue</string>
+    <string name="biometric_unlock_prompt_title">Unlock TeeUp</string>
+    <string name="biometric_unlock_try_again">Try Again</string>
+    <string name="biometric_unlock_sign_out_instead">Sign out instead</string>
+
+    <!-- Offline Data &amp; Sync Status Screen -->
+    <string name="offline_sync_title">Offline Data &amp; Sync Status</string>
+    <string name="offline_sync_no_cache_notice">TeeUp doesn\'t cache data for offline use yet — every screen needs a live connection. This page shows what\'s real: your connection and the last successful sync, not a fake pending-rounds counter.</string>
+    <string name="offline_sync_last_synced_label">LAST SYNCED</string>
+    <string name="offline_sync_never">Never — nothing has loaded from the API yet</string>
+    <string name="offline_sync_connection_label">CONNECTION</string>
+    <string name="offline_sync_check_now">Check Now</string>
+    <string name="offline_sync_checking">Checking…</string>
+    <string name="offline_sync_no_connection">No connection</string>
+    <string name="offline_sync_connected_wifi">Connected — Wi-Fi</string>
+    <string name="offline_sync_connected_mobile">Connected — Mobile data</string>
+    <string name="offline_sync_connected_ethernet">Connected — Ethernet</string>
+    <string name="offline_sync_connected_generic">Connected</string>
+    <string name="offline_sync_reachable">API is reachable</string>
+    <string name="offline_sync_request_failed_fallback">API request failed</string>
+    <string name="offline_sync_unreachable">Couldn\'t reach the API</string>
+    <string name="sync_relative_just_now">Just now</string>
+    <string name="sync_relative_minutes_ago">%1$d minute(s) ago</string>
+    <string name="sync_relative_hours_ago">%1$d hour(s) ago</string>
+    <string name="sync_relative_days_ago">%1$d day(s) ago</string>
+
+    <!-- Privacy &amp; Data (POPIA) Screen -->
+    <string name="privacy_title">Privacy &amp; Data (POPIA)</string>
+    <string name="privacy_section_collect">WHAT WE COLLECT</string>
+    <string name="privacy_body_collect">Your display name, handicap index, home course, and pace-of-play preference — all editable under Personal Details and Playing Details — plus the identity Firebase issues when you sign in with Google. Your language preference (Profile → Language) is stored only on this device, not on the server.</string>
+    <string name="privacy_section_usage">HOW IT\'S USED</string>
+    <string name="privacy_body_usage">To show you nearby tee times, match you with rounds, and let hosts see who\'s requesting to join. It isn\'t sold or shared with third parties.</string>
+    <string name="privacy_section_controls">YOUR CONTROLS</string>
+    <string name="privacy_body_controls">You can edit or clear your profile fields any time under Personal Details / Playing Details, and sign out below. In-app account deletion isn\'t available yet — request it directly from the team in the meantime.</string>
+    <string name="privacy_sign_out">Sign Out</string>
+    <string name="privacy_signing_out">Signing out…</string>
 </resources>

@@ -65,5 +65,6 @@ object BottomNav {
         }
 
         activity.startActivity(intent)
+        activity.overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
     }
 }

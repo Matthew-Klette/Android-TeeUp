@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/teeup_background">
+    android:background="@drawable/bg_screen_gradient">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -59,6 +59,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/space_xl"
                 android:background="@drawable/bg_card"
+                android:elevation="@dimen/elevation_card"
                 android:baselineAligned="false"
                 android:orientation="horizontal"
                 android:padding="@dimen/space_lg">
@@ -92,13 +93,10 @@
             </LinearLayout>
 
             <TextView
+                style="@style/TeeUpEyebrow"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/space_md"
-                android:text="@string/profile_section_account"
-                android:textColor="@color/teeup_accent_secondary"
-                android:textSize="@dimen/text_caption"
-                android:textStyle="bold" />
+                android:text="@string/profile_section_account" />
 
             <TextView
                 android:id="@+id/row_personal_details"
