@@ -25,6 +25,8 @@ class ProfileActivity : LocaleActivity() {
     private lateinit var statusText: TextView
     private lateinit var progress: View
     private lateinit var retryButton: View
+    private lateinit var roundsStatText: TextView
+    private lateinit var handicapStatText: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,6 +38,8 @@ class ProfileActivity : LocaleActivity() {
         statusText = findViewById(R.id.text_profile_status)
         progress = findViewById(R.id.profile_progress)
         retryButton = findViewById(R.id.button_profile_retry)
+        roundsStatText = findViewById(R.id.text_stat_rounds)
+        handicapStatText = findViewById(R.id.text_stat_handicap)
         retryButton.setOnClickListener { loadProfile() }
 
         findViewById<android.view.View>(R.id.row_language).setOnClickListener { showLanguageDialog() }
@@ -92,7 +96,12 @@ class ProfileActivity : LocaleActivity() {
                 } catch (e: Exception) {
                     emptyList()
                 }
-                runOnUiThread { render(user, courses.firstOrNull { it.id == user.homeCourseId }?.name) }
+                val roundsPlayed = try {
+                    TeeUpApiClient.fetchSchedule().count { it.round != null }
+                } catch (e: Exception) {
+                    null
+                }
+                runOnUiThread { render(user, courses.firstOrNull { it.id == user.homeCourseId }?.name, roundsPlayed) }
             } catch (e: Exception) {
                 runOnUiThread {
                     showLoading(false)
@@ -102,7 +111,7 @@ class ProfileActivity : LocaleActivity() {
         }.start()
     }
 
-    private fun render(user: RegisteredUser, homeCourseName: String?) {
+    private fun render(user: RegisteredUser, homeCourseName: String?, roundsPlayed: Int?) {
         showLoading(false)
         showStatus(null, showRetry = false)
 
@@ -116,6 +125,9 @@ class ProfileActivity : LocaleActivity() {
             handicap ?: getString(R.string.profile_handicap_unset),
             homeCourseName ?: getString(R.string.register_home_course_none)
         )
+
+        roundsStatText.text = roundsPlayed?.toString() ?: getString(R.string.profile_stat_value_placeholder)
+        handicapStatText.text = handicap ?: getString(R.string.profile_stat_handicap_none)
     }
 
     private fun showLoading(loading: Boolean) {
