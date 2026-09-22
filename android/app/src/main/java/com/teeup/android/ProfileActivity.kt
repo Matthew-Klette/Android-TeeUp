@@ -19,6 +19,7 @@ import com.teeup.android.data.AuthSession
 import com.teeup.android.data.LocalProfilePhoto
 import com.teeup.android.data.RegisteredUser
 import com.teeup.android.data.TeeUpApiClient
+import com.teeup.android.data.formatHandicapValue
 import com.teeup.android.nav.BottomNav
 import com.teeup.android.nav.BottomNavTab
 import com.teeup.android.ui.LocaleComponentActivity
@@ -38,6 +39,8 @@ class ProfileActivity : LocaleComponentActivity() {
     private lateinit var statusText: TextView
     private lateinit var progress: View
     private lateinit var retryButton: View
+    private lateinit var roundsStatText: TextView
+    private lateinit var handicapStatText: TextView
 
     // Set right before the camera intent launches; onActivityResult has no way to
     // hand back the file it wrote to itself, so this is how launchCamera() and the
@@ -82,6 +85,8 @@ class ProfileActivity : LocaleComponentActivity() {
         statusText = findViewById(R.id.text_profile_status)
         progress = findViewById(R.id.profile_progress)
         retryButton = findViewById(R.id.button_profile_retry)
+        roundsStatText = findViewById(R.id.text_stat_rounds)
+        handicapStatText = findViewById(R.id.text_stat_handicap)
         retryButton.setOnClickListener { loadProfile() }
 
         findViewById<android.view.View>(R.id.row_language).setOnClickListener { showLanguageDialog() }
@@ -138,7 +143,12 @@ class ProfileActivity : LocaleComponentActivity() {
                 } catch (e: Exception) {
                     emptyList()
                 }
-                runOnUiThread { render(user, courses.firstOrNull { it.id == user.homeCourseId }?.name) }
+                val roundsPlayed = try {
+                    TeeUpApiClient.fetchSchedule().count { it.round != null }
+                } catch (e: Exception) {
+                    null
+                }
+                runOnUiThread { render(user, courses.firstOrNull { it.id == user.homeCourseId }?.name, roundsPlayed) }
             } catch (e: Exception) {
                 runOnUiThread {
                     showLoading(false)
@@ -148,20 +158,21 @@ class ProfileActivity : LocaleComponentActivity() {
         }.start()
     }
 
-    private fun render(user: RegisteredUser, homeCourseName: String?) {
+    private fun render(user: RegisteredUser, homeCourseName: String?, roundsPlayed: Int?) {
         showLoading(false)
         showStatus(null, showRetry = false)
 
         nameText.text = user.displayName
 
-        val handicap = user.handicapIndex?.let {
-            NumberFormat.getNumberInstance().apply { maximumFractionDigits = 1 }.format(it)
-        }
+        val handicap = user.handicapIndex?.let { formatHandicapValue(it) }
         detailsText.text = getString(
             R.string.profile_details_summary,
             handicap ?: getString(R.string.profile_handicap_unset),
             homeCourseName ?: getString(R.string.register_home_course_none)
         )
+
+        roundsStatText.text = roundsPlayed?.toString() ?: getString(R.string.profile_stat_value_placeholder)
+        handicapStatText.text = handicap ?: getString(R.string.profile_stat_handicap_none)
     }
 
     private fun showPhotoPickerDialog() {

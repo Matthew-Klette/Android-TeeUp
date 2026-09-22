@@ -11,6 +11,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.teeup.android.data.Course
 import com.teeup.android.data.RegisteredUser
 import com.teeup.android.data.TeeUpApiClient
+import com.teeup.android.data.formatHandicapOrEmpty
 import com.teeup.android.ui.LocaleActivity
 import com.teeup.android.ui.TeeUpBanner
 
@@ -81,7 +82,7 @@ class PlayingDetailsActivity : LocaleActivity() {
         statusText.visibility = View.GONE
         contentGroup.visibility = View.VISIBLE
 
-        handicapInput.setText(user.handicapIndex?.toString().orEmpty())
+        handicapInput.setText(formatHandicapOrEmpty(user.handicapIndex))
 
         val labels = listOf(getString(R.string.register_home_course_none)) + fetchedCourses.map { it.name }
         courseSpinner.adapter = ArrayAdapter(this, R.layout.spinner_item, labels).apply {
