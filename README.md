@@ -66,11 +66,6 @@ built by three students.
 - Real-time push notifications using Firebase Cloud Messaging.
 - Final production icons and images, and Google Play Store preparation.
 
-## Screenshots
-
-Screenshots of the app will be added here once the current round of features
-is finished.
-
 ## Architecture
 
 The app is split into two parts that live in this same repository: the
