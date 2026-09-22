@@ -12,14 +12,13 @@ import com.google.android.gms.common.api.ApiException as GoogleSignInException
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
-import com.teeup.android.data.LocalIdentity
 import com.teeup.android.ui.LocaleActivity
 import com.teeup.android.ui.TeeUpBanner
 
 /**
- * Screen 1: Sign In. "Continue with Google" is the real Firebase Google SSO flow.
- * Email and biometric buttons have no credential UI yet, so they route to the
- * same Google flow for now instead of a dead end.
+ * Screen 1: Sign In. "Continue with Google" is the real Firebase Google SSO flow;
+ * "Continue with Email" and "Register" open EmailSignInActivity's real email/password
+ * flow. Biometric has no credential UI of its own yet, so it still routes to Google.
  */
 class SignInActivity : LocaleActivity() {
     private val tag = "SignInActivity"
@@ -41,14 +40,17 @@ class SignInActivity : LocaleActivity() {
         googleButton = findViewById(R.id.button_continue_google)
         googleButton.setOnClickListener { onGoogleSignInClicked() }
 
-        // Neither has its own credential UI yet, so both route to Google
-        // SSO like the main button instead of a dead end.
-        findViewById<Button>(R.id.button_continue_email).setOnClickListener { onGoogleSignInClicked() }
+        findViewById<Button>(R.id.button_continue_email).setOnClickListener {
+            startActivity(EmailSignInActivity.intent(this, startInSignUpMode = false))
+        }
+
+        // Biometric has no credential UI of its own yet, so it still routes to
+        // Google rather than a dead end.
         findViewById<Button>(R.id.button_use_biometric).setOnClickListener { onGoogleSignInClicked() }
 
-        // No separate sign-up flow. Google SSO doubles as registration for a
-        // first-time user, so this link starts the same flow as the button.
-        findViewById<View>(R.id.text_register).setOnClickListener { onGoogleSignInClicked() }
+        findViewById<View>(R.id.text_register).setOnClickListener {
+            startActivity(EmailSignInActivity.intent(this, startInSignUpMode = true))
+        }
     }
 
     private fun onGoogleSignInClicked() {
@@ -92,17 +94,6 @@ class SignInActivity : LocaleActivity() {
                 }
             }
         }.start()
-    }
-
-    /** Runs off the main thread, right after a Firebase sign-in succeeds. */
-    private fun completeSignIn() {
-        val identity = LocalIdentity.registerFresh(this)
-        runOnUiThread {
-            val destination = if (identity.profileComplete) HomeActivity::class.java else RegisterActivity::class.java
-            startActivity(Intent(this, destination))
-            overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
-            finish()
-        }
     }
 
     private fun resetGoogleButton() {
