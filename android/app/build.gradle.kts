@@ -57,19 +57,20 @@ android {
 }
 
 // iCloud Drive's "Desktop & Documents Folders" sync (this repo lives under
-// ~/Documents) occasionally races with Gradle/git and duplicates a file as
-// "name N.ext", e.g. "fade_in 3.xml". A space is never valid in an Android
-// resource filename, so resource merging hard-fails the build when one of
-// these appears. Purge any such stray files from res/ before every resource
-// merge so a sync glitch can't break the build. Also covers
-// build/generated/res: the google-services plugin writes values.xml there
-// (see processDebugGoogleServices/processReleaseGoogleServices below), and
-// that generated output lives under the same iCloud-synced Documents tree,
-// so it's just as exposed to the same duplication race as src/**/res.
+// ~/Documents) continuously races with Gradle and duplicates files as
+// "name N.ext", e.g. "fade_in 3.xml" or "ic_logo 4.png" — a space is never
+// valid in an Android resource filename, so resource parsing/merging
+// hard-fails the build whenever one of these appears. This isn't confined to
+// src/**/res or any one generated/intermediate directory: it's been observed
+// across build/generated/res, build/intermediates/packaged_res, and even
+// Kotlin's compiler caches under build/kotlin — anywhere under this
+// iCloud-synced module tree. So instead of chasing individual AGP output
+// directories, sweep the whole module (src + build) for stray "N.ext" files
+// as the very first thing every build does (a preBuild dependency), before
+// any task can trip over one.
 val cleanDuplicateResFiles = tasks.register("cleanDuplicateResFiles") {
     doFirst {
-        (fileTree("src").matching { include("**/res/**") } +
-            fileTree(layout.buildDirectory.dir("generated/res")))
+        fileTree(".")
             .filter { it.name.matches(Regex(""".* \d+\..+""")) }
             .forEach {
                 logger.warn("Removing stray duplicate resource file (iCloud/Finder sync artifact): ${it.path}")
@@ -78,7 +79,14 @@ val cleanDuplicateResFiles = tasks.register("cleanDuplicateResFiles") {
     }
 }
 
-tasks.matching { it.name.matches(Regex("merge.*Resources")) }.configureEach {
+tasks.named("preBuild") {
+    dependsOn(cleanDuplicateResFiles)
+}
+
+// Belt-and-braces: a duplicate can also appear mid-build (iCloud sync is
+// continuous, not just before preBuild runs), so also sweep right before the
+// specific task classes most often affected.
+tasks.matching { it.name.matches(Regex("merge.*Resources|parse.*LocalResources|package.*Resources")) }.configureEach {
     dependsOn(cleanDuplicateResFiles)
 }
 
