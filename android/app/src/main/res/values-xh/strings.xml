@@ -23,7 +23,8 @@
 
     <string name="profile_stat_rounds">Imijikelo</string>
     <string name="profile_stat_handicap">I-Handicap</string>
-    <string name="profile_stat_friends">Abahlobo</string>
+    <string name="profile_stat_value_placeholder">…</string>
+    <string name="profile_stat_handicap_none">Ayifumaneki</string>
 
     <string name="profile_section_account">IAKHAWUNTI</string>
     <string name="profile_personal_details">Iinkcukacha Zomntu</string>

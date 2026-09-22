@@ -23,7 +23,8 @@
 
     <string name="profile_stat_rounds">Rondtes</string>
     <string name="profile_stat_handicap">Voorgee</string>
-    <string name="profile_stat_friends">Vriende</string>
+    <string name="profile_stat_value_placeholder">…</string>
+    <string name="profile_stat_handicap_none">Nie beskikbaar nie</string>
 
     <string name="profile_section_account">REKENING</string>
     <string name="profile_personal_details">Persoonlike Besonderhede</string>
