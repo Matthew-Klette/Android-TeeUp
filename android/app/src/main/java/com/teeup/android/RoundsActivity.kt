@@ -162,8 +162,13 @@ class RoundsActivity : LocaleActivity() {
 
         val (label, onClick) = when {
             notYetStartable -> getString(R.string.rounds_not_started_yet) to null
+            // A group's hole count (round.holes) is already fixed at creation — only prompt
+            // when it's genuinely unset (a legacy/solo row, see totalHoles' own comment above).
+            // Prompting always, regardless, let a 9-hole group's Start Round answer "18" and post
+            // holes the API's own holeLimit check (RoundService.PostScorecardAsync) then rejects.
             notStarted -> getString(R.string.rounds_start_round) to
-                { promptHoleCount { holes -> openScorecard(round.teeTimeId, holes) } }
+                (round.holes?.let { fixedHoles -> { openScorecard(round.teeTimeId, fixedHoles) } }
+                    ?: { promptHoleCount { holes -> openScorecard(round.teeTimeId, holes) } })
             holesScored < totalHoles -> getString(R.string.rounds_continue_round) to
                 { openScorecard(round.teeTimeId, holes = totalHoles) }
             else -> getString(R.string.rounds_view_summary) to { openSummary(round.teeTimeId) }
@@ -205,7 +210,7 @@ class RoundsActivity : LocaleActivity() {
             setPadding(dp(20), dp(8), dp(20), dp(0))
             addView(searchInput)
         }
-        dialog = AlertDialog.Builder(this)
+        dialog = AlertDialog.Builder(this, R.style.TeeUpDialogTheme)
             .setTitle(getString(R.string.rounds_pick_course))
             .setView(container)
             .setNegativeButton(getString(R.string.wireflow_back), null)
@@ -214,7 +219,7 @@ class RoundsActivity : LocaleActivity() {
 
     private fun promptHoleCount(onChosen: (Int) -> Unit) {
         val options = arrayOf(getString(R.string.rounds_nine_holes), getString(R.string.rounds_eighteen_holes))
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(this, R.style.TeeUpDialogTheme)
             .setTitle(getString(R.string.rounds_choose_holes))
             .setItems(options) { _, index -> onChosen(if (index == 0) 9 else 18) }
             .setNegativeButton(getString(R.string.wireflow_back), null)

@@ -248,7 +248,7 @@ class HomeActivity : LocaleActivity() {
         }
         container.addView(paceSpinner)
 
-        val dialog = AlertDialog.Builder(this)
+        val dialog = AlertDialog.Builder(this, R.style.TeeUpDialogTheme)
             .setTitle(R.string.filter_skill_title)
             .setView(container)
             .setPositiveButton(R.string.filter_apply, null)
@@ -320,7 +320,7 @@ class HomeActivity : LocaleActivity() {
             })
         }
 
-        dialog = AlertDialog.Builder(this)
+        dialog = AlertDialog.Builder(this, R.style.TeeUpDialogTheme)
             .setTitle(title)
             .setView(container)
             .setNegativeButton(R.string.dialog_cancel, null)

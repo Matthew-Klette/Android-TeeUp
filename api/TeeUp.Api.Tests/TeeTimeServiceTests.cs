@@ -445,6 +445,21 @@ public class TeeTimeServiceTests
             service.EditAsync(created.Id, host.Id, MakeEditRequest()));
     }
 
+    // Review fix: EditAsync only checked host/cancelled-status/in-progress-round, not that the
+    // tee time is actually a group — a solo booking's creator is also its own host, so nothing
+    // stopped this endpoint writing guest-capacity/handicap/pace fields onto one.
+    [Fact]
+    public async Task EditAsync_OnSoloBooking_ThrowsDomainValidation()
+    {
+        var (service, _, users, courses, _) = CreateService();
+        var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
+        var course = await AddCourse(courses);
+        var solo = await service.CreateSoloAsync(host.Id, course.Id);
+
+        await Assert.ThrowsAsync<DomainValidationException>(() =>
+            service.EditAsync(solo.Id, host.Id, MakeEditRequest()));
+    }
+
     [Fact]
     public async Task CancelAsync_ByHost_SetsCancelledAndNotifiesAffectedGuests()
     {

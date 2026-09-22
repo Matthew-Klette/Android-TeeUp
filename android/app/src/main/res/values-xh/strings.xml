@@ -344,7 +344,11 @@
     <string name="rounds_eighteen_holes">Izimbobo ezingu-18</string>
     <string name="rounds_no_courses">Amabala awakafumaneki okwangoku — jonga uxhulumano lwakho uze uzame kwakhona.</string>
     <string name="rounds_start_solo_failed">Ayikwazanga ukuqalisa umjikelo</string>
-    <string name="scorecard_landing">Khetha umjikelo ozayo kwiMijikelo Yam ukuze uqale ukufaka amanqaku imbobo ngemvobo.</string>
+    <string name="scorecard_landing">Imijikelo yakho eqalisiweyo ikulapha. Khetha umjikelo ozayo kwiMijikelo Yam ukuze uqale ukufaka amanqaku imbobo ngemvobo.</string>
+    <string name="scorecard_landing_heading">AMAKHADI AMANQAKU AKHO</string>
+    <string name="scorecard_landing_empty">Akukabikho makhadi amanqaku okwangoku. Qalisa umjikelo kwiMijikelo Yam ukuze uqale ukulandelela amanqaku akho.</string>
+    <string name="scorecard_landing_load_failed">Ayikwazanga ukulayisha amakhadi amanqaku akho. Jonga uxhulumano lwakho uze uzame kwakhona.</string>
+    <string name="teetime_mock_fallback_notice">Ibonisa idatha yomzekelo. Jonga uxhulumano lwakho uze uzame kwakhona.</string>
     <string name="summary_title">Isishwankathelo Somjikelo</string>
     <string name="summary_preview">Amanani okugqibela alo mjikelo.</string>
     <string name="summary_total_strokes">Iintshaya Zizonke</string>

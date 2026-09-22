@@ -201,6 +201,11 @@ class CreateGroupActivity : LocaleActivity() {
         val now = Calendar.getInstance()
         DatePickerDialog(
             this,
+            // Unlike showTimePicker below (a custom AlertDialog that already picked this up),
+            // DatePickerDialog's theme isn't inherited from Theme.TeeUp at all — it needs its
+            // own constructor argument, or it renders with the platform's default dark/blue
+            // chrome regardless of the app's theme.
+            R.style.TeeUpDialogTheme,
             { _, year, month, dayOfMonth ->
                 showTimePicker(now) { hourOfDay, minute ->
                     val local = Calendar.getInstance().apply {
@@ -268,7 +273,7 @@ class CreateGroupActivity : LocaleActivity() {
             addView(minutePicker)
         }
 
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(this, R.style.TeeUpDialogTheme)
             .setTitle(R.string.create_group_pick_time_title)
             .setView(container)
             .setPositiveButton(R.string.filter_apply) { _, _ -> onPicked(hourPicker.value, minutePicker.value) }

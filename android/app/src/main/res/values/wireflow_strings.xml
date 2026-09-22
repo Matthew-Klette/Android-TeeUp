@@ -20,7 +20,11 @@
     <string name="rounds_eighteen_holes">18 holes</string>
     <string name="rounds_no_courses">Courses aren\'t available yet — check your connection and try again.</string>
     <string name="rounds_start_solo_failed">Couldn\'t start a round</string>
-    <string name="scorecard_landing">Choose an upcoming round from My Rounds to start entering scores hole by hole.</string>
+    <string name="scorecard_landing">Your started rounds are here. Choose an upcoming round from My Rounds to start entering scores hole by hole.</string>
+    <string name="scorecard_landing_heading">YOUR SCORECARDS</string>
+    <string name="scorecard_landing_empty">No scorecards yet. Start a round from My Rounds to begin tracking your score.</string>
+    <string name="scorecard_landing_load_failed">Couldn\'t load your scorecards. Check your connection and try again.</string>
+    <string name="teetime_mock_fallback_notice">Showing sample data. Check your connection and try again.</string>
     <string name="summary_title">Round Summary</string>
     <string name="summary_preview">Final totals for this round.</string>
     <string name="summary_total_strokes">Total strokes</string>

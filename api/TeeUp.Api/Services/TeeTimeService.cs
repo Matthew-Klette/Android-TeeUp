@@ -185,6 +185,11 @@ public class TeeTimeService(
 
         if (teeTime.HostUserId != hostUserId)
             throw new ForbiddenException("Only the host can edit this group.");
+        // Not reachable from the app's current UI (only group listings expose Edit), but the
+        // endpoint itself must not silently write guest-capacity/handicap/pace fields onto a
+        // solo booking just because its creator is also its own host, same as any group's host.
+        if (teeTime.Type != TeeTimeType.OpenRound)
+            throw new DomainValidationException("Only a group looking for players can be edited this way.");
         if (teeTime.Status == TeeTimeStatus.Cancelled)
             throw new DomainValidationException("A cancelled group cannot be edited.");
         // A round tracks its hole count from this tee time's live Holes value (see RoundService.PostScorecardAsync), so changing holes or schedule after scoring started could invalidate posted scores. Cancel instead.

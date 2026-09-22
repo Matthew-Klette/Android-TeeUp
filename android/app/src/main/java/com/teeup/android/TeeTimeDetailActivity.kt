@@ -83,18 +83,24 @@ class TeeTimeDetailActivity : LocaleActivity() {
         Thread {
             try {
                 var reachedApi = false
+                // Only set inside a genuine exception's catch block below, not when a
+                // successful API call just doesn't happen to include this id — that's a
+                // real "not found" case, not a network failure being papered over. EME-319.
+                var usedMockFallback = false
 
                 val teeTime = try {
                     val result = TeeUpApiClient.fetchTeeTimes().firstOrNull { it.id == teeTimeId }
                     reachedApi = true
                     result
                 } catch (e: Exception) {
+                    usedMockFallback = true
                     null
                 } ?: MockCatalog.teeTimeById(teeTimeId) ?: throw ApiException(getString(R.string.teetime_not_found))
 
                 val course = try {
                     TeeUpApiClient.fetchCourses().firstOrNull { it.id == teeTime.courseId }
                 } catch (e: Exception) {
+                    usedMockFallback = true
                     null
                 } ?: MockCatalog.courseById(teeTime.courseId)
 
@@ -107,7 +113,12 @@ class TeeTimeDetailActivity : LocaleActivity() {
                 // Only a genuine API round trip counts as a sync.
                 // A tee time resolved purely from MockCatalog isn't one.
                 if (reachedApi) SyncStatus.recordSuccess(this)
-                runOnUiThread { render(teeTime, course, requests) }
+                runOnUiThread {
+                    render(teeTime, course, requests)
+                    if (usedMockFallback) {
+                        TeeUpBanner.show(this, getString(R.string.teetime_mock_fallback_notice), isError = true)
+                    }
+                }
             } catch (e: Exception) {
                 runOnUiThread { showError(e.message ?: getString(R.string.teetime_load_failed)) }
             }
@@ -264,7 +275,7 @@ class TeeTimeDetailActivity : LocaleActivity() {
             joinRequests.forEach { request -> container.addView(buildJoinRequestRow(request)) }
         }
 
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(this, R.style.TeeUpDialogTheme)
             .setTitle(R.string.teetime_join_requests_title)
             .setView(container)
             .setNegativeButton(R.string.teetime_close, null)
@@ -325,7 +336,7 @@ class TeeTimeDetailActivity : LocaleActivity() {
     }
 
     private fun confirmWithdrawRequest(joinRequestId: String) {
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(this, R.style.TeeUpDialogTheme)
             .setTitle(R.string.teetime_withdraw_confirm_title)
             .setMessage(R.string.teetime_withdraw_confirm_message)
             .setPositiveButton(R.string.dialog_yes) { _, _ -> withdrawRequest(joinRequestId) }
@@ -350,7 +361,7 @@ class TeeTimeDetailActivity : LocaleActivity() {
     }
 
     private fun confirmCancelGroup() {
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(this, R.style.TeeUpDialogTheme)
             .setTitle(R.string.teetime_cancel_confirm_title)
             .setMessage(R.string.teetime_cancel_confirm_message)
             .setPositiveButton(R.string.dialog_yes) { _, _ -> cancelGroup() }
@@ -375,7 +386,7 @@ class TeeTimeDetailActivity : LocaleActivity() {
     }
 
     private fun confirmDeleteGroup() {
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(this, R.style.TeeUpDialogTheme)
             .setTitle(R.string.teetime_delete_confirm_title)
             .setMessage(R.string.teetime_delete_confirm_message)
             .setPositiveButton(R.string.dialog_yes) { _, _ -> deleteGroup() }
