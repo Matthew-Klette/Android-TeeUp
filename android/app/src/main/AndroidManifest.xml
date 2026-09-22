@@ -5,6 +5,12 @@
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
     <uses-permission android:name="android.permission.CAMERA" />
 
+    <!-- The camera is one of two ways to set a profile photo (the other is the gallery
+         picker), so it's optional hardware, not a requirement to install the app. -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
     <application
         android:name=".TeeUpApplication"
         android:allowBackup="true"
