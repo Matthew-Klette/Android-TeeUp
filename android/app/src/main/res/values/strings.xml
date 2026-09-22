@@ -11,6 +11,27 @@
     <string name="sign_in_register">New here? Register</string>
     <string name="sign_in_terms">By continuing you agree to our Terms and POPIA-aligned Privacy Notice</string>
 
+    <!-- Email Sign In / Sign Up Screen -->
+    <string name="email_auth_title_signin">Sign In</string>
+    <string name="email_auth_title_signup">Create Account</string>
+    <string name="email_auth_email_label">Email</string>
+    <string name="email_auth_email_hint">you@example.com</string>
+    <string name="email_auth_password_label">Password</string>
+    <string name="email_auth_password_hint">At least 6 characters</string>
+    <string name="email_auth_confirm_password_label">Confirm password</string>
+    <string name="email_auth_submit_signin">Sign In</string>
+    <string name="email_auth_submit_signup">Create Account</string>
+    <string name="email_auth_progress_signin">Signing in…</string>
+    <string name="email_auth_progress_signup">Creating account…</string>
+    <string name="email_auth_toggle_to_signup">New here? Create an account</string>
+    <string name="email_auth_toggle_to_signin">Already have an account? Sign in</string>
+    <string name="email_auth_error_email_invalid">Enter a valid email address</string>
+    <string name="email_auth_error_password_too_short">Password must be at least 6 characters</string>
+    <string name="email_auth_error_confirm_mismatch">Passwords do not match</string>
+    <string name="email_auth_retry">Retry</string>
+    <string name="email_auth_progress_retry">Finishing setup…</string>
+    <string name="email_auth_registration_failed">Signed in, but could not finish setting up your account. Try again.</string>
+
     <!-- Profile Screen -->
     <string name="profile_title">Profile &amp; Settings</string>
     <string name="profile_name_placeholder">Display Name</string>

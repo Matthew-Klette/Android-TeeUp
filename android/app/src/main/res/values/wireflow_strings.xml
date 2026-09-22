@@ -112,6 +112,7 @@
     <string name="register_error_save_failed">Couldn\'t save your profile — try again</string>
     <string name="signin_google_failed">Google sign-in failed — please try again</string>
     <string name="signin_failed_generic">Sign-in failed — check your connection and try again</string>
+    <string name="email_auth_failed_generic">Couldn\'t sign in. Check your connection and try again</string>
 
     <!-- Rounds / Scorecard / Summary error fallbacks -->
     <string name="rounds_date_error_fallback">Couldn\'t read a round\'s date</string>
