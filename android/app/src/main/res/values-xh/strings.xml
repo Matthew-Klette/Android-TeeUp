@@ -350,6 +350,11 @@
     <string name="summary_total_strokes">Iintshaya Zizonke</string>
     <string name="summary_total_putts">Ii-Putt Zizonke</string>
     <string name="summary_holes_played">Izimbobo ezidlaliweyo</string>
+    <string name="summary_avg_putts">Umyinge we-putt / imbobo</string>
+    <string name="summary_net_score">Inqaku eliphelele (net)</string>
+    <string name="summary_stableford_score">Amanqaku e-Stableford</string>
+    <string name="summary_stat_unavailable">—</string>
+    <string name="summary_handicap_hint">Misela i-handicap yakho kwiPhrofayili ukuze ubone inqaku eliphelele namanqaku e-Stableford.</string>
     <string name="summary_hole_row_format">Imbobo %1$d — iintshaya ezi-%2$d, ii-putt ezi-%3$d</string>
     <string name="summary_no_holes">Akukabikho zimbobo zibaliweyo kulo mjikelo.</string>
     <string name="summary_done">Kugqityiwe</string>

@@ -10,11 +10,13 @@ import android.widget.TextView
 import com.teeup.android.data.Course
 import com.teeup.android.data.HoleScore
 import com.teeup.android.data.MockCatalog
+import com.teeup.android.data.PlayedRound
 import com.teeup.android.data.ScheduledRound
 import com.teeup.android.data.TeeUpApiClient
 import com.teeup.android.data.formatTeeTime
 import com.teeup.android.ui.LocaleActivity
 import com.teeup.android.ui.TeeUpBanner
+import java.util.Locale
 
 /** Screen shown after a round is finished (or reopened from My Rounds → History) with its final totals. */
 class RoundSummaryActivity : LocaleActivity() {
@@ -69,8 +71,7 @@ class RoundSummaryActivity : LocaleActivity() {
                     null
                 } ?: MockCatalog.courseById(match.courseId)
 
-                val holes = match.round?.scorecard?.sortedBy { it.holeNumber } ?: emptyList()
-                runOnUiThread { render(match, course, holes) }
+                runOnUiThread { render(match, course, match.round) }
             } catch (e: Exception) {
                 runOnUiThread {
                     findViewById<View>(R.id.summary_progress).visibility = View.GONE
@@ -80,7 +81,7 @@ class RoundSummaryActivity : LocaleActivity() {
         }.start()
     }
 
-    private fun render(round: ScheduledRound, course: Course?, holes: List<HoleScore>) {
+    private fun render(round: ScheduledRound, course: Course?, playedRound: PlayedRound?) {
         findViewById<View>(R.id.summary_progress).visibility = View.GONE
 
         findViewById<TextView>(R.id.round_reference).text = getString(
@@ -88,9 +89,22 @@ class RoundSummaryActivity : LocaleActivity() {
             "${course?.name ?: getString(R.string.rounds_unknown_course)} · ${formatTeeTime(round.dateTime)}"
         )
 
+        val holes = playedRound?.scorecard?.sortedBy { it.holeNumber } ?: emptyList()
+        val unavailable = getString(R.string.summary_stat_unavailable)
+
+        // Totals/averages/net/Stableford all come from the server (RoundDto, EME-304): SUM/AVG
+        // aggregated over the scorecard rows there, not recomputed on-device.
         findViewById<TextView>(R.id.text_holes_played).text = holes.size.toString()
-        findViewById<TextView>(R.id.text_total_strokes).text = holes.sumOf { it.strokes }.toString()
-        findViewById<TextView>(R.id.text_total_putts).text = holes.sumOf { it.putts }.toString()
+        findViewById<TextView>(R.id.text_total_strokes).text = (playedRound?.totalStrokes ?: 0).toString()
+        findViewById<TextView>(R.id.text_total_putts).text = (playedRound?.totalPutts ?: 0).toString()
+        findViewById<TextView>(R.id.text_avg_putts).text =
+            playedRound?.let { String.format(Locale.getDefault(), "%.1f", it.averagePutts) } ?: unavailable
+        findViewById<TextView>(R.id.text_net_score).text =
+            playedRound?.netScore?.let { String.format(Locale.getDefault(), "%.1f", it) } ?: unavailable
+        findViewById<TextView>(R.id.text_stableford_score).text =
+            playedRound?.stablefordScore?.toString() ?: unavailable
+        findViewById<View>(R.id.text_handicap_hint).visibility =
+            if (holes.isNotEmpty() && playedRound?.netScore == null) View.VISIBLE else View.GONE
 
         val container = findViewById<LinearLayout>(R.id.holes_container)
         container.removeAllViews()

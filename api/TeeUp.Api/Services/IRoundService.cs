@@ -5,7 +5,13 @@ namespace TeeUp.Api.Services;
 public interface IRoundService
 {
     Task<IReadOnlyList<ScheduledRoundDto>> GetScheduleForUserAsync(Guid userId);
-    Task<RoundDto> PostScorecardAsync(Guid teeTimeId, PostScorecardRequest request);
+    /// <summary>
+    /// <paramref name="callerId"/> is whoever posted this scorecard, used only to pick whose
+    /// handicap index scores <see cref="RoundDto.NetScore"/>/<see cref="RoundDto.StablefordScore"/>
+    /// in the response (EME-304); this endpoint has no host/accepted-guest authorization check
+    /// of its own, unlike <see cref="DeleteScorecardEntryAsync"/>.
+    /// </summary>
+    Task<RoundDto> PostScorecardAsync(Guid teeTimeId, PostScorecardRequest request, Guid callerId);
     Task<IReadOnlyList<RoundDto>> GetRoundsForUserAsync(Guid userId);
 
     /// <summary>

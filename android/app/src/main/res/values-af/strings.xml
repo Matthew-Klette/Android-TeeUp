@@ -350,6 +350,11 @@
     <string name="summary_total_strokes">Totale houe</string>
     <string name="summary_total_putts">Totale putte</string>
     <string name="summary_holes_played">Putjies gespeel</string>
+    <string name="summary_avg_putts">Gemiddelde putte / putjie</string>
+    <string name="summary_net_score">Netto telling</string>
+    <string name="summary_stableford_score">Stableford-punte</string>
+    <string name="summary_stat_unavailable">—</string>
+    <string name="summary_handicap_hint">Stel jou voorgee in Profiel om netto telling en Stableford-punte te sien.</string>
     <string name="summary_hole_row_format">Putjie %1$d — %2$d houe, %3$d putte</string>
     <string name="summary_no_holes">Nog geen putjies vir hierdie rondte aangeteken nie.</string>
     <string name="summary_done">Klaar</string>

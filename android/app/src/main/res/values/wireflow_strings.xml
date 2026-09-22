@@ -26,6 +26,11 @@
     <string name="summary_total_strokes">Total strokes</string>
     <string name="summary_total_putts">Total putts</string>
     <string name="summary_holes_played">Holes played</string>
+    <string name="summary_avg_putts">Average putts / hole</string>
+    <string name="summary_net_score">Net score</string>
+    <string name="summary_stableford_score">Stableford points</string>
+    <string name="summary_stat_unavailable">—</string>
+    <string name="summary_handicap_hint">Set your handicap in Profile to see net score and Stableford points.</string>
     <string name="summary_hole_row_format">Hole %1$d — %2$d strokes, %3$d putts</string>
     <string name="summary_no_holes">No holes scored yet for this round.</string>
     <string name="summary_done">Done</string>

@@ -13,10 +13,16 @@ public class RoundService(
     IRoundRepository roundRepository,
     IScorecardEntryRepository scorecardEntryRepository,
     ITeeTimeRepository teeTimeRepository,
-    IJoinRequestRepository joinRequestRepository) : IRoundService
+    IJoinRequestRepository joinRequestRepository,
+    ICourseRepository courseRepository,
+    IUserRepository userRepository) : IRoundService
 {
     public async Task<IReadOnlyList<ScheduledRoundDto>> GetScheduleForUserAsync(Guid userId)
     {
+        // Net score/Stableford (EME-304) are always relative to the viewer's own handicap,
+        // not whoever hosts/guests a given tee time: "my rounds" is a personal stats view.
+        var handicapIndex = (await userRepository.GetByIdAsync(userId))?.HandicapIndex;
+
         var accepted = (await joinRequestRepository.GetAllAsync())
             .Where(j => j.GuestUserId == userId && j.Status == JoinRequestStatus.Accepted)
             .Select(j => j.TeeTimeId).ToHashSet();
@@ -27,14 +33,18 @@ public class RoundService(
         foreach (var teeTime in mine)
         {
             var round = await roundRepository.GetByTeeTimeIdAsync(teeTime.Id);
-            var dto = round is null ? null : RoundDto.From(round,
-                await scorecardEntryRepository.GetByRoundIdAsync(round.Id));
+            RoundDto? dto = null;
+            if (round is not null)
+            {
+                var coursePar = (await courseRepository.GetByIdAsync(teeTime.CourseId))?.Par ?? 72;
+                dto = RoundDto.From(round, await scorecardEntryRepository.GetByRoundIdAsync(round.Id), coursePar, handicapIndex);
+            }
             result.Add(new ScheduledRoundDto(teeTime.Id, teeTime.CourseId, teeTime.DateTime, teeTime.Holes, dto));
         }
         return result;
     }
 
-    public async Task<RoundDto> PostScorecardAsync(Guid teeTimeId, PostScorecardRequest request)
+    public async Task<RoundDto> PostScorecardAsync(Guid teeTimeId, PostScorecardRequest request, Guid callerId)
     {
         // Validate the whole payload before creating a round or writing any holes.
         if (request.Entries is null || request.Entries.Count is < 1 or > 18 ||
@@ -100,7 +110,11 @@ public class RoundService(
         }
 
         var scorecard = await scorecardEntryRepository.GetByRoundIdAsync(round.Id);
-        return RoundDto.From(round, scorecard);
+        var coursePar = (await courseRepository.GetByIdAsync(teeTime.CourseId))?.Par ?? 72;
+        // Net score/Stableford in this immediate response are scored against whoever just
+        // posted, not the tee time host (see IRoundService's doc comment on this method).
+        var handicapIndex = (await userRepository.GetByIdAsync(callerId))?.HandicapIndex;
+        return RoundDto.From(round, scorecard, coursePar, handicapIndex);
     }
 
     public async Task DeleteScorecardEntryAsync(Guid roundId, int holeNumber, Guid callerId)
@@ -132,6 +146,8 @@ public class RoundService(
 
     public async Task<IReadOnlyList<RoundDto>> GetRoundsForUserAsync(Guid userId)
     {
+        var handicapIndex = (await userRepository.GetByIdAsync(userId))?.HandicapIndex;
+
         var teeTimes = await teeTimeRepository.GetAllAsync();
         var joinRequests = await joinRequestRepository.GetAllAsync();
 
@@ -140,22 +156,22 @@ public class RoundService(
             .Select(j => j.TeeTimeId)
             .ToHashSet();
 
-        var myTeeTimeIds = teeTimes
+        var myTeeTimes = teeTimes
             .Where(t => t.HostUserId == userId || acceptedTeeTimeIds.Contains(t.Id))
-            .Select(t => t.Id)
-            .ToHashSet();
+            .ToList();
 
         var results = new List<RoundDto>();
-        foreach (var teeTimeId in myTeeTimeIds)
+        foreach (var teeTime in myTeeTimes)
         {
-            var round = await roundRepository.GetByTeeTimeIdAsync(teeTimeId);
+            var round = await roundRepository.GetByTeeTimeIdAsync(teeTime.Id);
             if (round is null)
             {
                 continue;
             }
 
             var scorecard = await scorecardEntryRepository.GetByRoundIdAsync(round.Id);
-            results.Add(RoundDto.From(round, scorecard));
+            var coursePar = (await courseRepository.GetByIdAsync(teeTime.CourseId))?.Par ?? 72;
+            results.Add(RoundDto.From(round, scorecard, coursePar, handicapIndex));
         }
 
         return results;
