@@ -18,18 +18,14 @@ import com.teeup.android.ui.LocaleActivity
 import com.teeup.android.ui.TeeUpBanner
 
 /**
- * Screen 6 · Notifications. Reached from Home's bell icon. EME-318: now calls the real
- * GET /api/notifications (TeeUpApiClient.fetchNotifications — already built by an earlier
- * ticket, just never actually called from here) instead of showing four hardcoded sample
- * rows. A real RequestAccepted/RequestDeclined notification created server-side by
- * JoinRequestService.UpdateStatusAsync now shows up here for the requester.
+ * Screen 6: Notifications. Reached from Home's bell icon. Calls the real
+ * GET /api/notifications instead of showing hardcoded sample rows. A real
+ * RequestAccepted/RequestDeclined notification created server-side now shows
+ * up here for the requester.
  *
- * Deliberately not filtered by NotificationPreferences: those toggles are "notify me about
- * category X" settings for when a notification is *created* (Part 3/FCM will be what
- * actually reads them), not "hide category X from my history" — the backend doesn't gate
- * notification creation on them either, so re-hiding already-delivered notifications here
- * based on today's toggle state would just be confusing. The old sample screen filtered
- * rows locally because the "backend" was fake and had nothing else to gate on.
+ * Not filtered by NotificationPreferences on purpose. Those toggles control
+ * whether a notification is created, not whether it's hidden from history,
+ * so filtering already-delivered notifications here would just be confusing.
  */
 class NotificationsActivity : LocaleActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -157,10 +153,9 @@ class NotificationsActivity : LocaleActivity() {
     }
 
     /** RequestAccepted/RequestDeclined notifications carry the tee time's id as
-     *  relatedEntityId (see JoinRequestService.UpdateStatusAsync) — tapping one opens
-     *  that tee time, same as tapping into it from anywhere else in the app. Tee Time
-     *  Detail already handles a since-deleted/unavailable id with its own load-failed
-     *  state, so there's no need to pre-check existence here. */
+     *  relatedEntityId. Tapping one opens that tee time, same as anywhere else
+     *  in the app. Tee Time Detail already handles a deleted/unavailable id
+     *  with its own load-failed state, so no need to check first. */
     private fun onNotificationClicked(notification: AppNotification) {
         val teeTimeId = notification.relatedEntityId
         if (teeTimeId == null) {

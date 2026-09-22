@@ -27,10 +27,8 @@ import java.util.Locale
 import java.util.TimeZone
 
 /**
- * EME-311: create a real group looking for players — course, date/time, holes, guests wanted,
- * wanted handicap range, wanted pace. Posts to POST /api/teetimes/groups. Reachable from Home
- * (see HomeActivity's "Create a Group" button); the groups-list UI itself is EME-312's job, kept
- * deliberately separate from this screen.
+ * Create a real group looking for players: course, date/time, holes, guests
+ * wanted, handicap range, pace. Posts to POST /api/teetimes/groups.
  */
 class CreateGroupActivity : LocaleActivity() {
     private lateinit var statusText: TextView
@@ -114,13 +112,9 @@ class CreateGroupActivity : LocaleActivity() {
     }
 
     /**
-     * The date/month/hour/minute the picker widgets return are plain wall-clock numbers with no
-     * time zone attached — they mean "the device's local time", same as what the user sees on
-     * their phone's own clock. Build the picked instant in the device's default (local) time
-     * zone, then convert *that* to a genuine UTC instant for the API — previously this appended
-     * "Z" directly to the locally-picked digits, so e.g. picking 10:00 in SAST (UTC+2) silently
-     * booked the tee time for 08:00 UTC, i.e. an hour that isn't what was chosen once anyone
-     * (or the server) interprets "Z" as it's actually defined.
+     * Picker widgets return plain local wall-clock numbers, no time zone attached.
+     * Build the picked time in the device's local zone, then convert to real UTC
+     * for the API. Just appending "Z" would send the wrong hour.
      */
     private fun showDateTimePicker() {
         val now = Calendar.getInstance()
@@ -147,8 +141,8 @@ class CreateGroupActivity : LocaleActivity() {
             timeZone = TimeZone.getTimeZone("UTC")
         }.format(Date(local.timeInMillis))
 
-    /** Mirrors formatTeeTime's "21 Sep · 18:38" style, but from local wall-clock fields — the
-     *  picker button must echo back exactly what the user chose, not a UTC-shifted value. */
+    /** Same style as formatTeeTime, but from local wall-clock fields.
+     *  The button must show what the user picked, not a UTC-shifted value. */
     private fun formatLocalDateTime(local: Calendar): String {
         val day = local.get(Calendar.DAY_OF_MONTH)
         val month = local.get(Calendar.MONTH)
@@ -159,10 +153,9 @@ class CreateGroupActivity : LocaleActivity() {
     }
 
     /**
-     * A custom scrollable hour/minute picker rather than the platform TimePickerDialog: the
-     * "spinner" number-wheel mode (`android:timePickerMode`) that used to look like this was
-     * effectively deprecated by the OS around API 29+, and most devices silently ignore it and
-     * always render the analog clock-face dial regardless — this sidesteps that entirely.
+     * Custom scrollable hour/minute picker instead of the platform TimePickerDialog.
+     * The spinner style got deprecated around API 29, so most devices ignore it
+     * and just show the clock dial. This avoids that.
      */
     private fun showTimePicker(defaultTime: Calendar, onPicked: (hourOfDay: Int, minute: Int) -> Unit) {
         val hourPicker = NumberPicker(this).apply {

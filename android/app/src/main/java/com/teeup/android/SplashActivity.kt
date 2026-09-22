@@ -28,7 +28,7 @@ class SplashActivity : LocaleComponentActivity() {
                 Log.d(tag, "routing to $destination")
                 val target = when (destination) {
                     // Biometric Login (Profile) gates Home behind a real BiometricPrompt
-                    // when turned on — see BiometricUnlockActivity.
+                    // when turned on. See BiometricUnlockActivity.
                     SplashDestination.HOME ->
                         if (BiometricPreference.isEnabled(this@SplashActivity)) {
                             BiometricUnlockActivity::class.java

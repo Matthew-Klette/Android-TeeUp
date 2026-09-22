@@ -6,14 +6,12 @@ using TeeUp.Api.Repositories;
 namespace TeeUp.Api.Services;
 
 /// <summary>
-/// Enforces the join-request rules (EME-299/EME-313): a guest can't request to join their own
-/// tee time or double-request one they already have a pending/accepted request against; a
-/// request can only leave "Pending" once, only by the tee time's host, and only into a tee time
-/// that's still open, uncancelled and in the future; and a host cannot accept more guests than a
-/// tee time has open spots. All three mutations (create, accept, decline) for a given tee time
-/// are serialized through <see cref="TeeTimeJoinLock"/> and re-read their state with
-/// <see cref="IRepository{T}.GetByIdFreshAsync"/> once inside it, so a caller can't act on a
-/// stale pre-lock read of state a concurrent caller already changed.
+/// Enforces the join-request rules: a guest can't request to join their own tee time or
+/// double-request one they already have a request against. A request can only leave
+/// "Pending" once, only by the host, and only into a tee time that's still open. A host
+/// can't accept more guests than there are open spots. Create, accept and decline for a
+/// given tee time are all serialized through <see cref="TeeTimeJoinLock"/> and re-read
+/// their state with <see cref="IRepository{T}.GetByIdFreshAsync"/> once inside it.
 /// </summary>
 public class JoinRequestService(
     IJoinRequestRepository joinRequestRepository,
@@ -36,13 +34,13 @@ public class JoinRequestService(
         }
 
         // Held across the duplicate-check-then-insert below: two near-simultaneous requests
-        // from the same guest must not both see "no existing request" before either commits
-        // (EME-313 review). This also means a request can't be created while an accept/decline
-        // for the same tee time is mid-flight, since that shares the same per-tee-time lock.
+        // from the same guest must not both see "no existing request" before either commits.
+        // Also blocks a create from running while an accept/decline for the same tee time
+        // is mid-flight, since they share the same per-tee-time lock.
         using var _ = await TeeTimeJoinLock.AcquireAsync(teeTimeId);
 
         var existingRequests = await joinRequestRepository.GetByTeeTimeIdAsync(teeTimeId);
-        // A Declined request doesn't block re-requesting — matches Android's canRequestToJoin.
+        // A Declined request doesn't block re-requesting. Matches Android's canRequestToJoin.
         if (existingRequests.Any(j => j.GuestUserId == guestUserId && j.Status != JoinRequestStatus.Declined))
         {
             throw new ConflictException("You've already requested to join this tee time.");
@@ -62,18 +60,17 @@ public class JoinRequestService(
 
     public async Task<JoinRequestDto> UpdateStatusAsync(Guid joinRequestId, JoinRequestStatus status, Guid callerId)
     {
-        // Only needed to learn which tee time this request belongs to, so the right lock can
-        // be taken below — every decision is made from a fresh re-read once inside it, so a
-        // stale value here can't affect the outcome. Must stay untracked (GetByIdFreshAsync,
-        // not GetByIdAsync): EF would otherwise track this instance, and the later
-        // GetByIdFreshAsync + UpdateAsync on a second, detached instance with the same key
-        // fails ("another instance with the same key is already being tracked").
+        // Only needed to find which tee time this request belongs to, so the right lock
+        // can be taken below. Every decision is made from a fresh re-read once inside it,
+        // so a stale value here can't affect the outcome. Must use GetByIdFreshAsync here,
+        // not GetByIdAsync, or EF tracks this instance and the later GetByIdFreshAsync +
+        // UpdateAsync on a second instance with the same key fails.
         var lookup = await joinRequestRepository.GetByIdFreshAsync(joinRequestId)
             ?? throw new NotFoundException($"Join request {joinRequestId} not found.");
 
-        // Held for the whole read-check-write below: accept/decline calls racing on the same
-        // request, or two accepts racing for the last open spot, must not both pass their
-        // checks before either commits (EME-313 review) — see TeeTimeJoinLock's doc comment.
+        // Held for the whole read-check-write below. Accept/decline calls racing on the
+        // same request, or two accepts racing for the last open spot, must not both pass
+        // their checks before either commits. See TeeTimeJoinLock's doc comment.
         using var _ = await TeeTimeJoinLock.AcquireAsync(lookup.TeeTimeId);
 
         var joinRequest = await joinRequestRepository.GetByIdFreshAsync(joinRequestId)
@@ -94,10 +91,9 @@ public class JoinRequestService(
 
         if (status == JoinRequestStatus.Accepted)
         {
-            // Explicitly reject anything but Open, not just Cancelled — a tee time can be Full
-            // without every join request against it being Accepted yet (e.g. another request was
-            // withdrawn after it filled), and the accepted-count check below alone wouldn't catch
-            // that (EME-313 review).
+            // Explicitly reject anything but Open, not just Cancelled. A tee time can be
+            // Full without every join request against it being Accepted yet, and the
+            // accepted-count check below alone wouldn't catch that.
             if (teeTime.Status != TeeTimeStatus.Open || teeTime.DateTime <= DateTime.UtcNow)
             {
                 throw new DomainValidationException("This tee time can no longer accept new players.");
@@ -115,8 +111,8 @@ public class JoinRequestService(
             joinRequest.Status = status;
             await joinRequestRepository.UpdateAsync(joinRequest);
 
-            // This acceptance is the last open spot — flip Open -> Full so clients stop
-            // advertising/allowing further join requests against this tee time.
+            // This acceptance is the last open spot, so flip Open to Full so clients
+            // stop advertising or allowing further join requests here.
             if (acceptedCount + 1 >= teeTime.OpenSpots)
             {
                 teeTime.Status = TeeTimeStatus.Full;

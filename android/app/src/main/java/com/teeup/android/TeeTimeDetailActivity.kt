@@ -30,16 +30,14 @@ import com.teeup.android.ui.LocaleActivity
 import com.teeup.android.ui.TeeUpBanner
 
 /**
- * Screen 3 · Tee Time Detail / Join Request.
- * Loads the real tee time + course from the API, wires Request to Join
+ * Screen 3: Tee Time Detail / Join Request.
+ * Loads the real tee time and course from the API, wires Request to Join
  * (POST /api/teetimes/{id}/joinrequests) and a Pending Requests
- * approve/decline dialog (GET/PATCH added alongside this ticket — see
- * TeeTimesController.GetJoinRequests). Messaging (Group Chat) is Part 3
- * scope and out of this screen entirely for now (EME-317).
+ * approve/decline dialog. Group Chat is out of scope for this screen.
  */
 class TeeTimeDetailActivity : LocaleActivity() {
     companion object {
-        /** Set by HomeActivity (EME-297) when opening a specific tee time. */
+        /** Set by HomeActivity when opening a specific tee time. */
         const val EXTRA_TEE_TIME_ID = "com.teeup.android.extra.TEE_TIME_ID"
     }
 
@@ -98,8 +96,8 @@ class TeeTimeDetailActivity : LocaleActivity() {
                     emptyList()
                 }
 
-                // Only a genuine API round trip counts as a sync (see SyncStatus's doc
-                // comment) — a tee time resolved purely from MockCatalog isn't one.
+                // Only a genuine API round trip counts as a sync.
+                // A tee time resolved purely from MockCatalog isn't one.
                 if (reachedApi) SyncStatus.recordSuccess(this)
                 runOnUiThread { render(teeTime, course, requests) }
             } catch (e: Exception) {
@@ -156,8 +154,8 @@ class TeeTimeDetailActivity : LocaleActivity() {
         findViewById<View>(R.id.row_pending_requests).setOnClickListener { showPendingRequestsDialog() }
     }
 
-    /** EME-312: every current member (host + accepted guests) with their handicap/pace —
-     *  the accepted/pending counts above only say how many, not who. */
+    /** Every current member (host and accepted guests) with handicap and pace.
+     *  The accepted/pending counts above only say how many, not who. */
     private fun renderMembers(members: List<GroupMember>) {
         val container = findViewById<LinearLayout>(R.id.members_container)
         container.removeAllViews()
@@ -193,8 +191,8 @@ class TeeTimeDetailActivity : LocaleActivity() {
                     }
                 }
             } catch (e: IllegalStateException) {
-                // LocalIdentity.ensureRegistered() throws this when there's no signed-in
-                // Firebase user — surface a friendly prompt instead of the raw internal message.
+                // Thrown when there's no signed-in Firebase user.
+                // Show a friendly prompt instead of the raw internal message.
                 runOnUiThread {
                     TeeUpBanner.show(this, getString(R.string.teetime_signin_again), isError = true)
                     startActivity(Intent(this, SignInActivity::class.java))

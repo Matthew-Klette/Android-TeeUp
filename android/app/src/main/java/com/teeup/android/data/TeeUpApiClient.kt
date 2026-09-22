@@ -13,9 +13,7 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 /**
- * Plain `HttpURLConnection` + `org.json` client — no Retrofit/OkHttp yet
- * (that's EME-294's base networking scaffold; this ticket only needed the
- * calls below, so it doesn't wait on that landing first).
+ * Plain HttpURLConnection and org.json client, not Retrofit/OkHttp yet.
  * Every function here blocks and must be called off the main thread.
  */
 object TeeUpApiClient {
@@ -24,10 +22,9 @@ object TeeUpApiClient {
         return (0 until array.length()).map { i -> parseCourse(array.getJSONObject(i)) }
     }
 
-    /** `maxHandicap`/`pace` filter by the tee time's host (EME-299); null means "no filter".
-     *  `joinableOnly` (EME-312) narrows to groups a guest could actually join right now —
-     *  false (the default) keeps returning bookings/full/past/cancelled rows too, which
-     *  TeeTimeDetailActivity's by-id lookups still need. */
+    /** maxHandicap/pace filter by the host. null means no filter.
+     *  joinableOnly narrows to groups a guest can actually join right now.
+     *  Default false still returns full/past/cancelled rows for detail lookups. */
     fun fetchTeeTimes(maxHandicap: Double? = null, pace: Int? = null, joinableOnly: Boolean = false): List<TeeTime> {
         val query = buildList {
             maxHandicap?.let { add("maxHandicap=$it") }
@@ -40,18 +37,19 @@ object TeeUpApiClient {
         return (0 until array.length()).map { i -> parseTeeTime(array.getJSONObject(i)) }
     }
 
-    /** POST /api/teetimes — a tee time hosted by and reserved entirely for the caller,
-     *  dated right now, for the solo "Start a Round" flow (no join-request needed). */
+    /** POST /api/teetimes. Hosted by and reserved entirely for the caller,
+     *  dated now, for the solo Start a Round flow. No join request needed. */
     fun createSoloTeeTime(courseId: String): TeeTime {
         val body = JSONObject().put("courseId", courseId)
         return parseTeeTime(JSONObject(request("POST", "api/teetimes", body)))
     }
 
     /**
-     * POST /api/teetimes/groups (EME-311) — a real group looking for players. [openSpots] is
-     * guests wanted, not counting the host. [dateTimeIso] must be a future UTC instant, e.g.
-     * "2026-12-01T10:00:00Z". [wantedPace] is the PaceOfPlay ordinal (0=Relaxed, 1=Standard,
-     * 2=Brisk); null on either handicap bound or on pace means "no preference".
+     * POST /api/teetimes/groups. A real group looking for players.
+     * openSpots is guests wanted, not counting the host.
+     * dateTimeIso must be a future UTC instant, e.g. "2026-12-01T10:00:00Z".
+     * wantedPace is the PaceOfPlay ordinal (0=Relaxed, 1=Standard, 2=Brisk).
+     * null on a handicap bound or pace means no preference.
      */
     fun createGroup(
         courseId: String,
@@ -83,9 +81,8 @@ object TeeUpApiClient {
         return parseRegisteredUser(JSONObject(request("POST", "api/auth/register", body)))
     }
 
-    /** GET /api/profiles/me — the current profile with no register side effect, so a
-     *  screen that only needs to *read* (e.g. NotificationPreferencesActivity, EME-318)
-     *  doesn't have to piggyback on the register call the way Personal/Playing Details do. */
+    /** GET /api/profiles/me. Just reads the profile, no register side effect.
+     *  Used by screens that only need to read, not update. */
     fun fetchProfile(): RegisteredUser =
         parseRegisteredUser(JSONObject(request("GET", "api/profiles/me")))
 
@@ -109,10 +106,9 @@ object TeeUpApiClient {
         return parseRegisteredUser(JSONObject(request("PATCH", "api/profiles/me", body)))
     }
 
-    /** PATCH /api/profiles/me with only a notification-preference field set. Every parameter
-     *  defaults to null ("leave unset"), and the backend leaves a null/omitted field exactly
-     *  as it was (see UpdateProfileRequest's doc comment) — so unlike [updateProfile], this
-     *  never needs the caller to first fetch and resend fields it isn't changing. */
+    /** PATCH /api/profiles/me, only sets notification preference fields.
+     *  Every parameter defaults to null (leave unset), so unlike [updateProfile],
+     *  the caller doesn't need to fetch and resend fields it isn't changing. */
     fun updateNotificationPreference(
         joinRequestNotifications: Boolean? = null,
         teeTimeReminders: Boolean? = null,
@@ -145,9 +141,8 @@ object TeeUpApiClient {
         return (0 until array.length()).map { i -> parseScheduledRound(array.getJSONObject(i)) }
     }
 
-    /** POST /api/rounds/{teeTimeId}/scorecard. `entries` must be new holes only — posting an
-     *  already-submitted hole number creates a duplicate row (RoundService only de-dupes within
-     *  a single request, not against what's already stored). */
+    /** POST /api/rounds/{teeTimeId}/scorecard. entries must be new holes only.
+     *  Posting an already-submitted hole number creates a duplicate row. */
     fun postScorecard(teeTimeId: String, entries: List<HoleScoreInput>): PlayedRound {
         val entriesArray = JSONArray()
         entries.forEach { entry ->
@@ -259,9 +254,8 @@ object TeeUpApiClient {
         if (authHeader != null) {
             connection.setRequestProperty("Authorization", authHeader)
         } else if (BuildConfig.DEBUG) {
-            // No real Firebase session (see DevIdentity's doc comment) — fall back to the
-            // dev-only header a backend running with DevAuth:Enabled accepts. Debug-only,
-            // so this is never sent from a release build even by accident.
+            // No Firebase session, so fall back to the dev-only header the backend
+            // accepts when DevAuth is enabled. Debug builds only.
             connection.setRequestProperty("X-Dev-User-Id", DevIdentity.deviceId)
         }
         try {
@@ -272,10 +266,8 @@ object TeeUpApiClient {
             }
             val code = connection.responseCode
             if (code !in 200..299) {
-                // The API's ExceptionHandlingMiddleware writes a specific, human-readable
-                // {status, detail} body for every domain/auth error (EME-313: "Only the host
-                // can accept or decline...", "You've already requested to join...", etc.) —
-                // prefer that over the generic per-status-code fallback whenever it's present.
+                // The API sends a human-readable {status, detail} body for domain and
+                // auth errors. Prefer that message over the generic fallback below.
                 val serverDetail = try {
                     connection.errorStream?.bufferedReader()?.use { it.readText() }
                         ?.let { JSONObject(it).optString("detail").takeIf { detail -> detail.isNotBlank() } }
@@ -292,7 +284,9 @@ object TeeUpApiClient {
         }
     }
 
-    /** Null if no Firebase user is signed in, or the token fetch fails (request then goes out unauthenticated). */
+    // Gets the signed-in user's ID token to send as a Bearer header (Google, n.d.).
+    // Null if no one's signed in or the token fetch fails; the request then
+    // goes out unauthenticated.
     private fun authorizationHeaderOrNull(): String? {
         val user = FirebaseAuth.getInstance().currentUser ?: return null
         return try {
@@ -305,3 +299,9 @@ object TeeUpApiClient {
 }
 
 class ApiException(message: String) : Exception(message)
+
+/*
+References:
+
+Google. Firebase (n.d.). Verify ID Tokens. [online] Available at: <https://firebase.google.com/docs/auth/admin/verify-id-tokens#retrieve_id_tokens_on_clients> [Accessed 19 Sep. 2026].
+*/

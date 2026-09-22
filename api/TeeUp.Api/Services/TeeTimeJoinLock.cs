@@ -3,18 +3,12 @@ using System.Collections.Concurrent;
 namespace TeeUp.Api.Services;
 
 /// <summary>
-/// Per-tee-time in-process mutual exclusion for every join-request write against it — create,
-/// accept, and decline (EME-313). Serializing all three closes several races at once: two
-/// near-simultaneous accepts for the last open spot must not both pass the capacity check
-/// before either commits; an accept and a decline racing on the same request must not both
-/// pass the "still Pending" check; and two requests from the same guest must not both pass the
-/// "no existing request" check before either inserts. This API runs as a single instance (no
-/// horizontal scaling in this POE's deployment), so an in-process keyed lock is sufficient — a
-/// multi-instance deployment would need a database-level concurrency token or advisory lock
-/// instead, since this lock only coordinates callers within one process.
-/// Locks are never removed once created; at this app's scale (a handful of tee times per demo
-/// run) that's a negligible amount of memory to leave behind, not worth the extra complexity of
-/// reference-counted cleanup.
+/// One lock per tee time, so create/accept/decline on the same tee time can't race each other.
+/// Stops two accepts both grabbing the last open spot, or an accept and a decline both acting
+/// on the same request. Only works within a single API instance, which is fine since this app
+/// doesn't scale horizontally. Locks are never removed once created, but that's a small amount
+/// of memory for this app's scale.
+/// Per-key async lock pattern (MarkCiliaVincenti, 2024; Cleary, 2014).
 /// </summary>
 internal static class TeeTimeJoinLock
 {
@@ -32,3 +26,11 @@ internal static class TeeTimeJoinLock
         public void Dispose() => semaphore.Release();
     }
 }
+
+/* References:
+
+MarkCiliaVincenti (2024). AsyncKeyedLock wiki. [online] GitHub. Available at: <https://github.com/MarkCiliaVincenti/AsyncKeyedLock/wiki> [Accessed 21 Sep. 2026].
+
+Cleary, S. (2014). AsyncEx: AsyncLock. [online] GitHub. Available at: <https://github.com/StephenCleary/AsyncEx/wiki/AsyncLock> [Accessed 21 Sep. 2026].
+
+*/

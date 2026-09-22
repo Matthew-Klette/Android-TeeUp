@@ -15,8 +15,8 @@ import com.teeup.android.ui.TeeUpBanner
 
 /**
  * Register / profile setup, shown right after a new user's first Google
- * sign-in (EME-296). Captures the fields EME-291/295 didn't ask for yet —
- * handicap, home course, pace of play — then marks the profile complete.
+ * sign-in. Captures handicap, home course and pace of play, then marks
+ * the profile complete.
  */
 class RegisterActivity : LocaleActivity() {
     private val tag = "RegisterActivity"
@@ -63,8 +63,8 @@ class RegisterActivity : LocaleActivity() {
                     populateCourseSpinner(fetched)
                 }
             } catch (e: Exception) {
-                // Home course is optional — a failed fetch just leaves the "No home
-                // course yet" option, it shouldn't block registration.
+                // Home course is optional. A failed fetch just leaves the "No home
+                // course yet" option, so it shouldn't block registration.
                 Log.w(tag, "Couldn't load courses for home course picker", e)
             }
         }.start()
