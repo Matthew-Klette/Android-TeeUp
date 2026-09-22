@@ -190,6 +190,7 @@
     <string name="scorecard_putts_hint">e.g. 2</string>
 
     <string name="scorecard_next_hole">Save &amp; Next Hole</string>
+    <string name="scorecard_previous_hole">Previous Hole</string>
     <string name="scorecard_finish_round">Finish Round</string>
     <string name="scorecard_finish_early">Finish round now</string>
     <string name="scorecard_progress_format">%1$d of %2$d holes saved this round</string>

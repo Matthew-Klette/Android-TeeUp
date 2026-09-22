@@ -36,6 +36,9 @@ class ScorecardActivity : LocaleActivity() {
     private var teeTimeId: String? = null
     private var totalHoles = 18
     private var currentHole = 1
+    /** First hole this session can enter/revisit — anything before it is already permanently
+     *  saved on the server (a prior "Continue Round" session), so Previous Hole stops here. */
+    private var startHole = 1
     private var alreadySavedHoles = 0
     private val newEntries = mutableListOf<HoleScoreInput>()
 
@@ -112,12 +115,22 @@ class ScorecardActivity : LocaleActivity() {
             return
         }
 
+        this.startHole = startHole
         alreadySavedHoles = savedHoles
         currentHole = startHole
         updateHoleUi()
 
+        findViewById<Button>(R.id.button_previous_hole).setOnClickListener { onPreviousHoleClicked() }
         findViewById<Button>(R.id.button_next_hole).setOnClickListener { onNextHoleClicked() }
         findViewById<Button>(R.id.button_finish_early).setOnClickListener { onFinishEarlyClicked() }
+    }
+
+    private fun onPreviousHoleClicked() {
+        if (currentHole <= startHole) return
+        // Whatever's currently typed for the hole being left is discarded, not saved — Previous
+        // is for backing out of a hole to go fix an earlier mistake, not for confirming this one.
+        currentHole--
+        updateHoleUi()
     }
 
     private fun onNextHoleClicked() {
@@ -125,7 +138,7 @@ class ScorecardActivity : LocaleActivity() {
             TeeUpBanner.show(this, getString(R.string.scorecard_validation_error), isError = true)
             return
         }
-        newEntries.add(entry)
+        replaceEntry(entry)
 
         if (currentHole < totalHoles) {
             currentHole++
@@ -143,7 +156,7 @@ class ScorecardActivity : LocaleActivity() {
                 TeeUpBanner.show(this, getString(R.string.scorecard_validation_error), isError = true)
                 return
             }
-            newEntries.add(entry)
+            replaceEntry(entry)
         }
 
         if (newEntries.isEmpty()) {
@@ -151,6 +164,14 @@ class ScorecardActivity : LocaleActivity() {
             return
         }
         finishRound()
+    }
+
+    /** Replaces this session's existing entry for the hole, if any, instead of appending a
+     *  second one — needed once Previous Hole makes re-confirming an already-entered hole
+     *  possible (the API also rejects a duplicate hole number within one PostScorecard call). */
+    private fun replaceEntry(entry: HoleScoreInput) {
+        newEntries.removeAll { it.holeNumber == entry.holeNumber }
+        newEntries.add(entry)
     }
 
     private fun readValidatedEntry(): HoleScoreInput? {
@@ -162,11 +183,18 @@ class ScorecardActivity : LocaleActivity() {
 
     private fun updateHoleUi() {
         findViewById<TextView>(R.id.text_hole_heading).text = getString(R.string.scorecard_hole_heading, currentHole)
-        findViewById<EditText>(R.id.input_strokes).text.clear()
-        findViewById<EditText>(R.id.input_putts).text.clear()
+
+        // Revisiting a hole already entered this session (via Previous Hole) pre-fills what
+        // was there instead of showing blank fields — otherwise saving it again would erase it.
+        val existing = newEntries.firstOrNull { it.holeNumber == currentHole }
+        findViewById<EditText>(R.id.input_strokes).setText(existing?.strokes?.toString().orEmpty())
+        findViewById<EditText>(R.id.input_putts).setText(existing?.putts?.toString().orEmpty())
+
         findViewById<TextView>(R.id.text_progress).text = getString(
             R.string.scorecard_progress_format, alreadySavedHoles + newEntries.size, totalHoles
         )
+        findViewById<Button>(R.id.button_previous_hole).visibility =
+            if (currentHole > startHole) View.VISIBLE else View.GONE
         findViewById<Button>(R.id.button_next_hole).text =
             if (currentHole == totalHoles) getString(R.string.scorecard_finish_round) else getString(R.string.scorecard_next_hole)
         findViewById<Button>(R.id.button_finish_early).visibility =
