@@ -61,10 +61,15 @@ android {
 // "name N.ext", e.g. "fade_in 3.xml". A space is never valid in an Android
 // resource filename, so resource merging hard-fails the build when one of
 // these appears. Purge any such stray files from res/ before every resource
-// merge so a sync glitch can't break the build.
+// merge so a sync glitch can't break the build. Also covers
+// build/generated/res: the google-services plugin writes values.xml there
+// (see processDebugGoogleServices/processReleaseGoogleServices below), and
+// that generated output lives under the same iCloud-synced Documents tree,
+// so it's just as exposed to the same duplication race as src/**/res.
 val cleanDuplicateResFiles = tasks.register("cleanDuplicateResFiles") {
     doFirst {
-        fileTree("src").matching { include("**/res/**") }
+        (fileTree("src").matching { include("**/res/**") } +
+            fileTree(layout.buildDirectory.dir("generated/res")))
             .filter { it.name.matches(Regex(""".* \d+\..+""")) }
             .forEach {
                 logger.warn("Removing stray duplicate resource file (iCloud/Finder sync artifact): ${it.path}")
