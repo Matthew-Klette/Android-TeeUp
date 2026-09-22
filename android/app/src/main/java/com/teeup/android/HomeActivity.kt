@@ -192,7 +192,8 @@ class HomeActivity : LocaleActivity() {
             val matchesPlayers = teeTime.spotsRemaining >= minOpenSpots
             val matchesCourse = courseFilterId == null || teeTime.courseId == courseFilterId
             val matchesHoles = holesFilter == null || teeTime.holes == holesFilter
-            matchesSearch && matchesDate && matchesPlayers && matchesCourse && matchesHoles
+            val matchesSkill = matchesHostSkill(teeTime)
+            matchesSearch && matchesDate && matchesPlayers && matchesCourse && matchesHoles && matchesSkill
         }
 
         if (filtered.isEmpty()) {
@@ -200,6 +201,18 @@ class HomeActivity : LocaleActivity() {
         } else {
             renderTeeTimes(filtered)
         }
+    }
+
+    /** fetchMyTeeTimes (My Groups) doesn't filter by host skill/pace server-side like
+     *  fetchTeeTimes does, so this re-checks it client-side against the host already in
+     *  [teeTime]'s member list. No-op where the server already filtered. */
+    private fun matchesHostSkill(teeTime: TeeTime): Boolean {
+        if (filterMaxHandicap == null && filterPace == null) return true
+        val host = teeTime.members.firstOrNull { it.isHost } ?: return false
+        val matchesHandicap = filterMaxHandicap == null ||
+            (host.handicapIndex != null && host.handicapIndex <= filterMaxHandicap!!)
+        val matchesPace = filterPace == null || host.paceOfPlay == filterPace
+        return matchesHandicap && matchesPace
     }
 
     private fun isoDateOnly(isoDateTime: String): String = isoDateTime.substring(0, 10)

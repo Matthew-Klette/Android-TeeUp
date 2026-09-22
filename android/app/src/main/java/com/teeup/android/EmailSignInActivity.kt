@@ -197,7 +197,9 @@ class EmailSignInActivity : LocaleActivity() {
     /** Firebase's own exception message is a raw Java class name, not something to show a
      *  user. Map known error codes to a plain sentence, falling back to the generic message. */
     private fun friendlyAuthErrorMessage(e: Exception): String {
-        val errorCode = (e as? FirebaseAuthException)?.errorCode
+        // Tasks.await wraps a failed task's exception in ExecutionException, so the real
+        // FirebaseAuthException is the cause, not e itself.
+        val errorCode = ((e as? FirebaseAuthException) ?: (e.cause as? FirebaseAuthException))?.errorCode
         return when (errorCode) {
             "ERROR_EMAIL_ALREADY_IN_USE" -> getString(R.string.email_auth_error_email_in_use)
             "ERROR_INVALID_EMAIL" -> getString(R.string.email_auth_error_email_invalid)

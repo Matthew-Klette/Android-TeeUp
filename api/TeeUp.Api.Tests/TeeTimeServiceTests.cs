@@ -577,6 +577,42 @@ public class TeeTimeServiceTests
         Assert.Equal(acceptedGuestId, notification.UserId);
     }
 
+    /// <summary>Wraps a real repository so a test can force DeleteAsync to fail, proving no
+    /// notification goes out unless the delete itself actually went through.</summary>
+    private sealed class ThrowingOnDeleteTeeTimeRepository(ITeeTimeRepository inner) : ITeeTimeRepository
+    {
+        public Task<TeeTime?> GetByIdAsync(Guid id) => inner.GetByIdAsync(id);
+        public Task<TeeTime?> GetByIdFreshAsync(Guid id) => inner.GetByIdFreshAsync(id);
+        public Task<IReadOnlyList<TeeTime>> GetAllAsync() => inner.GetAllAsync();
+        public Task<TeeTime> AddAsync(TeeTime entity) => inner.AddAsync(entity);
+        public Task UpdateAsync(TeeTime entity) => inner.UpdateAsync(entity);
+        public Task DeleteAsync(Guid id) => throw new InvalidOperationException("Simulated delete failure.");
+    }
+
+    [Fact]
+    public async Task DeleteAsync_WhenDeleteFails_SendsNoNotifications()
+    {
+        var teeTimes = new InMemoryTeeTimeRepository();
+        var joinRequests = new InMemoryJoinRequestRepository();
+        var notifications = new InMemoryNotificationRepository();
+        var users = new InMemoryUserRepository();
+        var courses = new InMemoryCourseRepository();
+        var rounds = new InMemoryRoundRepository();
+        var service = new TeeTimeService(
+            new ThrowingOnDeleteTeeTimeRepository(teeTimes), users, courses, joinRequests, notifications, rounds);
+        var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
+        var course = await AddCourse(courses);
+        var created = await teeTimes.AddAsync(MakeTeeTime(host.Id));
+        await joinRequests.AddAsync(new JoinRequest
+        {
+            Id = Guid.NewGuid(), TeeTimeId = created.Id, GuestUserId = Guid.NewGuid(), Status = JoinRequestStatus.Accepted
+        });
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.DeleteAsync(created.Id, host.Id));
+
+        Assert.Empty(await notifications.GetAllAsync());
+    }
+
     [Fact]
     public async Task DeleteAsync_WithExistingRound_StillDeletes()
     {

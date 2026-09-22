@@ -271,22 +271,23 @@ public class TeeTimeService(
         // The host can delete their group unconditionally. Join requests, the round and its
         // scorecard entries all cascade-delete with the tee time itself (see TeeUpDbContext).
         var siblings = await joinRequestRepository.GetByTeeTimeIdAsync(teeTimeId);
+        var affected = siblings.Where(j => j.Status is JoinRequestStatus.Pending or JoinRequestStatus.Accepted).ToList();
 
-        // Whoever had a stake in this group deserves to know it's gone, since delete gives
-        // them no other signal.
-        foreach (var affected in siblings.Where(j => j.Status is JoinRequestStatus.Pending or JoinRequestStatus.Accepted))
+        await teeTimeRepository.DeleteAsync(teeTimeId);
+
+        // Notify only after the delete actually succeeds, so a failure here can't leave a
+        // guest believing the group is gone when it isn't.
+        foreach (var guest in affected)
         {
             await notificationRepository.AddAsync(new Notification
             {
                 Id = Guid.NewGuid(),
-                UserId = affected.GuestUserId,
+                UserId = guest.GuestUserId,
                 Type = NotificationType.TeeTimeCancelled,
                 Message = "A tee time group you were part of was deleted by the host.",
                 RelatedEntityId = teeTime.Id
             });
         }
-
-        await teeTimeRepository.DeleteAsync(teeTimeId);
     }
 
     public async Task<IReadOnlyList<TeeTimeDto>> GetMineAsync(Guid userId)
