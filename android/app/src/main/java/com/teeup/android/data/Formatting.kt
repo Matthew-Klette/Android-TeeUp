@@ -39,14 +39,25 @@ fun formatPrice(price: Double): String = when {
 fun canRequestToJoin(existing: List<JoinRequest>, userId: String): Boolean =
     existing.none { it.guestUserId == userId && it.status != JoinRequestStatus.DECLINED }
 
-/** "14.5" or "20" (no trailing .0), or a fallback string when null.
+// "14.5" or "20" (no trailing .0, no floating-point artifacts like 12.300000000000001).
+// The one place this formatting is done, so every screen that shows or edits a
+// handicap (Home/TeeTimeDetail cards, Profile header and stats, Playing Details'
+// edit field) stays in sync instead of drifting into its own implementation.
+fun formatHandicapValue(handicap: Double): String =
+    if (handicap == handicap.toInt().toDouble()) handicap.toInt().toString() else "%.1f".format(handicap)
+
+/** [formatHandicapValue], or a fallback string when null.
  *  Used for a member's own handicap and for wanted-range values. */
 fun formatHandicap(handicap: Double?): String {
     if (handicap == null) {
         return TeeUpApplication.appContextOrNull?.getString(R.string.group_no_handicap) ?: "No handicap"
     }
-    return if (handicap == handicap.toInt().toDouble()) handicap.toInt().toString() else "%.1f".format(handicap)
+    return formatHandicapValue(handicap)
 }
+
+/** [formatHandicapValue], or empty when null — for pre-filling an editable field,
+ *  where a fallback label like [formatHandicap]'s would just look like stray text. */
+fun formatHandicapOrEmpty(handicap: Double?): String = handicap?.let { formatHandicapValue(it) }.orEmpty()
 
 /** Labels a PaceOfPlay ordinal (0=Relaxed, 1=Standard, 2=Brisk).
  *  Falls back to the first label if the value is out of range. */
