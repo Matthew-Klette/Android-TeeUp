@@ -34,7 +34,15 @@ public interface ITeeTimeService
     Task<TeeTimeDto> CancelAsync(Guid teeTimeId, Guid hostUserId);
 
     /// <summary>
-    /// Hard-deletes a group (EME-321). Host-only, and only while it has zero join requests against it, so a group with history is never orphaned.
+    /// Hard-deletes a group (EME-321). Host-only, but otherwise unconditional: join requests
+    /// and any round/scores cascade-delete with it. Pending/accepted guests are notified.
     /// </summary>
     Task DeleteAsync(Guid teeTimeId, Guid hostUserId);
+
+    /// <summary>
+    /// Tee times the caller hosts or has an accepted join request against, the same "accepted
+    /// only counts as mine" rule RoundService.GetScheduleForUserAsync uses. No skill/joinable
+    /// filtering needed, and includes cancelled/full/past rows.
+    /// </summary>
+    Task<IReadOnlyList<TeeTimeDto>> GetMineAsync(Guid userId);
 }

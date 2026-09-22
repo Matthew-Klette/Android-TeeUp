@@ -159,6 +159,10 @@ class TeeTimeDetailActivity : LocaleActivity() {
 
         val requestButton = findViewById<Button>(R.id.button_request_to_join)
         val myUserIdIfKnown = LocalIdentity.cachedUserIdOrNull(this)
+        val isHost = myUserIdIfKnown != null && teeTime.hostUserId == myUserIdIfKnown
+        // The host can't request to join their own group (blocked server-side too), so this
+        // button has nothing to offer them; renderHostActions below covers their own actions.
+        requestButton.visibility = if (isHost) View.GONE else View.VISIBLE
         val alreadyRequested = myUserIdIfKnown != null && !canRequestToJoin(requests, myUserIdIfKnown)
         val isFull = teeTime.status == TeeTimeStatus.FULL || teeTime.spotsRemaining <= 0
         requestButton.isEnabled = !alreadyRequested && !isFull
@@ -289,7 +293,7 @@ class TeeTimeDetailActivity : LocaleActivity() {
         }
 
         row.addView(TextView(this).apply {
-            text = getString(R.string.teetime_guest_status_format, request.guestUserId.take(8), JoinRequestStatus.label(this@TeeTimeDetailActivity, request.status))
+            text = getString(R.string.teetime_guest_status_format, request.guestDisplayName, JoinRequestStatus.label(this@TeeTimeDetailActivity, request.status))
             layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)
         })
 

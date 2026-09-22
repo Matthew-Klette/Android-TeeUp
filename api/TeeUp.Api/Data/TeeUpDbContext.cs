@@ -31,7 +31,6 @@ public class TeeUpDbContext(DbContextOptions<TeeUpDbContext> options) : DbContex
             // Existing and new profiles start with notification preferences enabled.
             b.Property(u => u.JoinRequestNotifications).HasDefaultValue(true);
             b.Property(u => u.TeeTimeReminders).HasDefaultValue(true);
-            b.Property(u => u.WeatherAlerts).HasDefaultValue(true);
             b.HasOne<Course>()
                 .WithMany()
                 .HasForeignKey(u => u.HomeCourseId)

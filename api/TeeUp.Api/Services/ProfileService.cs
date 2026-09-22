@@ -101,9 +101,6 @@ public class ProfileService(
         if (request.TeeTimeReminders is { } teeTimeReminders)
             user.TeeTimeReminders = teeTimeReminders;
 
-        if (request.WeatherAlerts is { } weatherAlerts)
-            user.WeatherAlerts = weatherAlerts;
-
         await userRepository.UpdateAsync(user);
         return UserDto.From(user);
     }

@@ -48,6 +48,15 @@ public class RoundsController(
         return NoContent();
     }
 
+    [Authorize]
+    [HttpDelete("{roundId:guid}")]
+    public async Task<IActionResult> DeleteRound(Guid roundId)
+    {
+        var callerId = await ResolveCurrentUserIdAsync();
+        await roundService.DeleteRoundAsync(roundId, callerId);
+        return NoContent();
+    }
+
     private async Task<Guid> ResolveCurrentUserIdAsync()
     {
         if (currentUser.FirebaseUid is null)

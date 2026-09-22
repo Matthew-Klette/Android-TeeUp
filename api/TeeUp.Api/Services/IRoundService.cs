@@ -19,4 +19,10 @@ public interface IRoundService
     /// No separate edit endpoint exists for this POE; correcting a mis-entered hole is delete-then-repost.
     /// </summary>
     Task DeleteScorecardEntryAsync(Guid roundId, int holeNumber, Guid callerId);
+
+    /// <summary>
+    /// Deletes a whole round instead of one hole at a time. <paramref name="callerId"/> must be
+    /// the host or an accepted guest, otherwise <see cref="TeeUp.Api.Common.ForbiddenException"/>.
+    /// </summary>
+    Task DeleteRoundAsync(Guid roundId, Guid callerId);
 }

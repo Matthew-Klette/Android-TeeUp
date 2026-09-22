@@ -24,6 +24,14 @@ public class TeeTimesController(
     }
 
     [Authorize]
+    [HttpGet("me")]
+    public async Task<ActionResult<IReadOnlyList<TeeTimeDto>>> GetMine()
+    {
+        var userId = await ResolveCurrentUserIdAsync();
+        return Ok(await teeTimeService.GetMineAsync(userId));
+    }
+
+    [Authorize]
     [HttpPost]
     public async Task<ActionResult<TeeTimeDto>> CreateSolo(CreateTeeTimeRequest request)
     {

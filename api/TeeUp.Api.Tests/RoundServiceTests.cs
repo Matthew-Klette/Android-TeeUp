@@ -244,6 +244,59 @@ public class RoundServiceTests
     }
 
     [Fact]
+    public async Task DeleteRoundAsync_ByHost_RemovesTheWholeRound()
+    {
+        var (service, teeTimes, _) = CreateService();
+        var hostId = Guid.NewGuid();
+        var teeTime = MakeTeeTime(DateTime.UtcNow.AddHours(-1), hostId);
+        await teeTimes.AddAsync(teeTime);
+        var posted = await service.PostScorecardAsync(teeTime.Id, OneHole(), hostId);
+
+        await service.DeleteRoundAsync(posted.Id, hostId);
+
+        Assert.Empty(await service.GetRoundsForUserAsync(hostId));
+    }
+
+    [Fact]
+    public async Task DeleteRoundAsync_ByAcceptedGuest_RemovesTheWholeRound()
+    {
+        var (service, teeTimes, joinRequests) = CreateService();
+        var teeTime = MakeTeeTime(DateTime.UtcNow.AddHours(-1));
+        await teeTimes.AddAsync(teeTime);
+        var guestId = Guid.NewGuid();
+        await joinRequests.AddAsync(new JoinRequest
+        {
+            Id = Guid.NewGuid(), TeeTimeId = teeTime.Id, GuestUserId = guestId, Status = JoinRequestStatus.Accepted
+        });
+        var posted = await service.PostScorecardAsync(teeTime.Id, OneHole(), guestId);
+
+        await service.DeleteRoundAsync(posted.Id, guestId);
+
+        Assert.Empty(await service.GetRoundsForUserAsync(guestId));
+    }
+
+    [Fact]
+    public async Task DeleteRoundAsync_ByUnrelatedUser_ThrowsForbidden()
+    {
+        var (service, teeTimes, _) = CreateService();
+        var teeTime = MakeTeeTime(DateTime.UtcNow.AddHours(-1), Guid.NewGuid());
+        await teeTimes.AddAsync(teeTime);
+        var posted = await service.PostScorecardAsync(teeTime.Id, OneHole(), Guid.NewGuid());
+
+        await Assert.ThrowsAsync<ForbiddenException>(
+            () => service.DeleteRoundAsync(posted.Id, Guid.NewGuid()));
+    }
+
+    [Fact]
+    public async Task DeleteRoundAsync_ForUnknownRound_ThrowsNotFound()
+    {
+        var (service, _, _) = CreateService();
+
+        await Assert.ThrowsAsync<NotFoundException>(
+            () => service.DeleteRoundAsync(Guid.NewGuid(), Guid.NewGuid()));
+    }
+
+    [Fact]
     public async Task GetRoundsForUserAsync_IncludesHostedAndAcceptedRounds()
     {
         var (service, teeTimes, joinRequests) = CreateService();

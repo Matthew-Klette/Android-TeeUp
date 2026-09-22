@@ -15,7 +15,7 @@ import com.teeup.android.ui.LocaleActivity
 import com.teeup.android.ui.TeeUpBanner
 
 /**
- * Profile → Notification Preferences. Three of these four toggles now persist server-side
+ * Profile → Notification Preferences. Two of these three toggles now persist server-side
  * via PATCH /api/profiles/me (see NotificationPreferences for why Sync Reminders doesn't),
  * loading current values on open so a reinstall shows the real saved state.
  */
@@ -88,11 +88,6 @@ class NotificationPreferencesActivity : LocaleActivity() {
             labelRes = R.string.notification_category_reminder,
             initiallyChecked = user.teeTimeReminders
         ) { enabled -> TeeUpApiClient.updateNotificationPreference(teeTimeReminders = enabled) })
-
-        container.addView(buildServerToggleRow(
-            labelRes = R.string.notification_category_weather,
-            initiallyChecked = user.weatherAlerts
-        ) { enabled -> TeeUpApiClient.updateNotificationPreference(weatherAlerts = enabled) })
 
         container.addView(buildLocalToggleRow(
             labelRes = R.string.notification_category_sync,

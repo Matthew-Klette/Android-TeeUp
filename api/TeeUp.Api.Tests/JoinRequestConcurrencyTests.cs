@@ -51,7 +51,8 @@ public class JoinRequestConcurrencyTests
     private static JoinRequestService NewSteppingService(TeeUpDbContext context, out SteppingTeeTimeRepository teeTimes)
     {
         teeTimes = new SteppingTeeTimeRepository(new EfTeeTimeRepository(context));
-        return new JoinRequestService(new EfJoinRequestRepository(context), teeTimes, new EfNotificationRepository(context));
+        return new JoinRequestService(
+            new EfJoinRequestRepository(context), teeTimes, new EfNotificationRepository(context), new EfUserRepository(context));
     }
 
     private static TeeTimeService NewSteppingTeeTimeService(TeeUpDbContext context, out SteppingTeeTimeRepository teeTimes)
@@ -163,7 +164,8 @@ public class JoinRequestConcurrencyTests
             await setup.SaveChangesAsync();
 
             var setupService = new JoinRequestService(
-                new EfJoinRequestRepository(setup), new EfTeeTimeRepository(setup), new EfNotificationRepository(setup));
+                new EfJoinRequestRepository(setup), new EfTeeTimeRepository(setup), new EfNotificationRepository(setup),
+                new EfUserRepository(setup));
             firstRequestId = (await setupService.CreateAsync(teeTimeId, guestAId)).Id;
             secondRequestId = (await setupService.CreateAsync(teeTimeId, guestBId)).Id;
         }
@@ -224,7 +226,8 @@ public class JoinRequestConcurrencyTests
             await setup.SaveChangesAsync();
 
             var setupService = new JoinRequestService(
-                new EfJoinRequestRepository(setup), new EfTeeTimeRepository(setup), new EfNotificationRepository(setup));
+                new EfJoinRequestRepository(setup), new EfTeeTimeRepository(setup), new EfNotificationRepository(setup),
+                new EfUserRepository(setup));
             joinRequestId = (await setupService.CreateAsync(teeTimeId, guestId)).Id;
         }
 
@@ -290,7 +293,8 @@ public class JoinRequestConcurrencyTests
             await setup.SaveChangesAsync();
 
             var setupService = new JoinRequestService(
-                new EfJoinRequestRepository(setup), new EfTeeTimeRepository(setup), new EfNotificationRepository(setup));
+                new EfJoinRequestRepository(setup), new EfTeeTimeRepository(setup), new EfNotificationRepository(setup),
+                new EfUserRepository(setup));
             requestAtAId = (await setupService.CreateAsync(teeTimeAId, guestId)).Id;
             requestAtBId = (await setupService.CreateAsync(teeTimeBId, guestId)).Id;
         }

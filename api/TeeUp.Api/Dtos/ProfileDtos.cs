@@ -13,6 +13,5 @@ public record UpdateProfileRequest(
     bool? ProfileComplete,
     bool? JoinRequestNotifications = null,
     bool? TeeTimeReminders = null,
-    bool? WeatherAlerts = null,
     bool ClearHandicapIndex = false,
     bool ClearHomeCourse = false);

@@ -13,8 +13,7 @@ public record UserDto(
     Language Language,
     bool ProfileComplete,
     bool JoinRequestNotifications = true,
-    bool TeeTimeReminders = true,
-    bool WeatherAlerts = true)
+    bool TeeTimeReminders = true)
 {
     public static UserDto From(User user) => new(
         user.Id,
@@ -25,6 +24,5 @@ public record UserDto(
         user.Language,
         user.ProfileComplete,
         user.JoinRequestNotifications,
-        user.TeeTimeReminders,
-        user.WeatherAlerts);
+        user.TeeTimeReminders);
 }

@@ -57,6 +57,7 @@ data class JoinRequest(
     val id: String,
     val teeTimeId: String,
     val guestUserId: String,
+    val guestDisplayName: String,
     val status: Int
 )
 
@@ -86,8 +87,7 @@ data class RegisteredUser(
     val paceOfPlay: Int,
     val profileComplete: Boolean,
     val joinRequestNotifications: Boolean,
-    val teeTimeReminders: Boolean,
-    val weatherAlerts: Boolean
+    val teeTimeReminders: Boolean
 )
 
 /** Mirrors the API's NotificationDto (api/TeeUp.Api/Dtos/NotificationDtos.cs). */
@@ -107,6 +107,9 @@ object NotificationType {
     const val REQUEST_DECLINED = 2
     const val TEE_TIME_REMINDER = 3
     const val SYNC_PENDING = 4
+    /** Never actually sent (the weather-alerts preference was removed). Kept in place since the
+     *  API serializes this enum by ordinal, and removing it would shift TEE_TIME_CANCELLED's
+     *  wire value. */
     const val WEATHER_ALERT = 5
     /** A group's host cancelled it (EME-321) while this user had a pending/accepted join request against it. */
     const val TEE_TIME_CANCELLED = 6

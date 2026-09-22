@@ -144,6 +144,30 @@ public class RoundService(
         await scorecardEntryRepository.DeleteAsync(entry.Id);
     }
 
+    public async Task DeleteRoundAsync(Guid roundId, Guid callerId)
+    {
+        var round = await roundRepository.GetByIdAsync(roundId)
+            ?? throw new NotFoundException($"Round {roundId} not found.");
+
+        var teeTime = await teeTimeRepository.GetByIdAsync(round.TeeTimeId)
+            ?? throw new NotFoundException($"Tee time {round.TeeTimeId} not found.");
+
+        var isAcceptedGuest = (await joinRequestRepository.GetByTeeTimeIdAsync(teeTime.Id))
+            .Any(j => j.GuestUserId == callerId && j.Status == JoinRequestStatus.Accepted);
+
+        if (teeTime.HostUserId != callerId && !isAcceptedGuest)
+        {
+            throw new ForbiddenException("Only this round's host or an accepted guest can delete it.");
+        }
+
+        // Same lock PostScorecardAsync/DeleteScorecardEntryAsync take, so this can't race a
+        // concurrent post or hole delete for the same tee time.
+        using var _ = await RoundEntryLock.AcquireAsync(teeTime.Id);
+
+        // Scorecard entries cascade-delete with the round itself (see TeeUpDbContext).
+        await roundRepository.DeleteAsync(round.Id);
+    }
+
     public async Task<IReadOnlyList<RoundDto>> GetRoundsForUserAsync(Guid userId)
     {
         var handicapIndex = (await userRepository.GetByIdAsync(userId))?.HandicapIndex;

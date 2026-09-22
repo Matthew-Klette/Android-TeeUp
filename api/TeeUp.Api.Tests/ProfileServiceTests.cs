@@ -87,8 +87,7 @@ public class ProfileServiceTests
             new UpdateProfileRequest(
                 null, null, null, null, null, null,
                 JoinRequestNotifications: false,
-                TeeTimeReminders: false,
-                WeatherAlerts: false));
+                TeeTimeReminders: false));
 
         await service.UpdateProfileAsync(
             user.FirebaseUid,
@@ -100,7 +99,6 @@ public class ProfileServiceTests
         Assert.Equal("Updated Golfer", loaded.DisplayName);
         Assert.False(loaded.JoinRequestNotifications);
         Assert.False(loaded.TeeTimeReminders);
-        Assert.False(loaded.WeatherAlerts);
     }
 
     [Fact]
@@ -114,12 +112,12 @@ public class ProfileServiceTests
                 user.FirebaseUid,
                 new UpdateProfileRequest(
                     "Changed Name", 55m, null, null, null, null,
-                    WeatherAlerts: false)));
+                    TeeTimeReminders: false)));
 
         var loaded = await service.GetProfileAsync(user.FirebaseUid);
 
         Assert.Equal("New Golfer", loaded.DisplayName);
         Assert.Null(loaded.HandicapIndex);
-        Assert.True(loaded.WeatherAlerts);
+        Assert.True(loaded.TeeTimeReminders);
     }
 }

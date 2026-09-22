@@ -31,6 +31,14 @@
     <string name="email_auth_retry">Retry</string>
     <string name="email_auth_progress_retry">Finishing setup…</string>
     <string name="email_auth_registration_failed">Signed in, but could not finish setting up your account. Try again.</string>
+    <string name="email_auth_error_email_in_use">That email is already registered. Try signing in instead.</string>
+    <string name="email_auth_error_wrong_password">Incorrect password. Please try again.</string>
+    <string name="email_auth_error_user_not_found">We could not find an account with that email.</string>
+    <string name="email_auth_error_user_disabled">This account has been disabled.</string>
+    <string name="email_auth_error_weak_password">Please choose a stronger password.</string>
+    <string name="email_auth_error_too_many_requests">Too many attempts. Please wait a moment and try again.</string>
+    <string name="email_auth_error_network">Could not connect. Check your internet connection and try again.</string>
+    <string name="email_auth_error_invalid_credential">That email or password is not correct.</string>
 
     <!-- Profile Screen -->
     <string name="profile_title">Profile &amp; Settings</string>
@@ -152,6 +160,8 @@
     <string name="home_filter_datetime">Date / Time</string>
     <string name="home_filter_players">Players 1–4</string>
     <string name="home_filter_skill">Skill / Pace Filter</string>
+    <string name="home_filter_mine_off">All Groups</string>
+    <string name="home_filter_mine_on">My Groups</string>
     <string name="home_filter_active">Skill / Pace ✓</string>
     <string name="home_filter_course">Course</string>
     <string name="home_filter_course_any">Any course</string>

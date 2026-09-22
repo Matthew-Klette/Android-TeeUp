@@ -14,5 +14,4 @@ public class User
     // Persisted preferences for the Profile & Settings screen (EME-301).
     public bool JoinRequestNotifications { get; set; } = true;
     public bool TeeTimeReminders { get; set; } = true;
-    public bool WeatherAlerts { get; set; } = true;
 }

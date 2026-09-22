@@ -41,6 +41,13 @@ object TeeUpApiClient {
         return (0 until array.length()).map { i -> parseTeeTime(array.getJSONObject(i)) }
     }
 
+    /** GET /api/teetimes/me: groups the user hosts or has an accepted request against. No
+     *  filters needed, already scoped to the caller, and includes cancelled/full/past rows. */
+    fun fetchMyTeeTimes(): List<TeeTime> {
+        val array = JSONArray(request("GET", "api/teetimes/me"))
+        return (0 until array.length()).map { i -> parseTeeTime(array.getJSONObject(i)) }
+    }
+
     /** POST /api/teetimes — a tee time hosted by and reserved entirely for the caller,
      *  dated right now, for the solo "Start a Round" flow (no join-request needed).
      *  [holes] must be 9 or 18; null lets the server default to 18. */
@@ -102,8 +109,9 @@ object TeeUpApiClient {
     fun cancelGroup(teeTimeId: String): TeeTime =
         parseTeeTime(JSONObject(request("PATCH", "api/teetimes/$teeTimeId/cancel")))
 
-    /** DELETE /api/teetimes/{id} (EME-321) — host-only, and only while the group has zero join
-     *  requests against it; the server rejects otherwise and directs the caller to cancel instead. */
+    /** DELETE /api/teetimes/{id} (EME-321): host-only, but otherwise unconditional. Join
+     *  requests and any round/scorecard are removed with it. Pending/accepted guests are
+     *  notified server-side. */
     fun deleteGroup(teeTimeId: String) {
         request("DELETE", "api/teetimes/$teeTimeId")
     }
@@ -154,13 +162,11 @@ object TeeUpApiClient {
      *  the caller doesn't need to fetch and resend fields it isn't changing. */
     fun updateNotificationPreference(
         joinRequestNotifications: Boolean? = null,
-        teeTimeReminders: Boolean? = null,
-        weatherAlerts: Boolean? = null
+        teeTimeReminders: Boolean? = null
     ): RegisteredUser {
         val body = JSONObject()
         joinRequestNotifications?.let { body.put("joinRequestNotifications", it) }
         teeTimeReminders?.let { body.put("teeTimeReminders", it) }
-        weatherAlerts?.let { body.put("weatherAlerts", it) }
         return parseRegisteredUser(JSONObject(request("PATCH", "api/profiles/me", body)))
     }
 
@@ -207,6 +213,13 @@ object TeeUpApiClient {
         request("DELETE", "api/rounds/$roundId/scorecard/$holeNumber")
     }
 
+    /** DELETE /api/rounds/{roundId}: deletes a whole round instead of one hole at a time, so
+     *  the host or an accepted guest can abandon/restart it. Same authorization as
+     *  deleteScorecardEntry. */
+    fun deleteRound(roundId: String) {
+        request("DELETE", "api/rounds/$roundId")
+    }
+
     private fun parseRegisteredUser(o: JSONObject) = RegisteredUser(
         id = o.getString("id"),
         displayName = o.getString("displayName"),
@@ -215,8 +228,7 @@ object TeeUpApiClient {
         paceOfPlay = o.getInt("paceOfPlay"),
         profileComplete = o.getBoolean("profileComplete"),
         joinRequestNotifications = o.getBoolean("joinRequestNotifications"),
-        teeTimeReminders = o.getBoolean("teeTimeReminders"),
-        weatherAlerts = o.getBoolean("weatherAlerts")
+        teeTimeReminders = o.getBoolean("teeTimeReminders")
     )
 
     private fun parseCourse(o: JSONObject) = Course(
@@ -267,6 +279,7 @@ object TeeUpApiClient {
         id = o.getString("id"),
         teeTimeId = o.getString("teeTimeId"),
         guestUserId = o.getString("guestUserId"),
+        guestDisplayName = o.getString("guestDisplayName"),
         status = o.getInt("status")
     )
 

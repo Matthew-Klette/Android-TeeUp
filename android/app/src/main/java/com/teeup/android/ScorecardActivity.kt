@@ -1,5 +1,6 @@
 package com.teeup.android
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
 import android.util.TypedValue
@@ -40,6 +41,10 @@ class ScorecardActivity : LocaleActivity() {
     /** True only for the landing screen (no [EXTRA_TEE_TIME_ID]) — controls whether
      *  [onResume] reloads the scorecard list. */
     private var isLandingMode = false
+    /** onResume always fires right after onCreate too, so without this guard
+     *  loadScorecardsLanding() ran twice on every open, showing every round twice. Same guard
+     *  shape as HomeActivity's hasLoadedOnce. */
+    private var hasLoadedScorecardsOnce = false
     private var teeTimeId: String? = null
     private var totalHoles = 18
     private var currentHole = 1
@@ -53,6 +58,9 @@ class ScorecardActivity : LocaleActivity() {
      *  assume everything below the highest saved hole number is done. */
     private var persistedHoles: Set<Int> = emptySet()
     private val newEntries = mutableListOf<HoleScoreInput>()
+    /** Set once a Round row actually exists server-side (at least one hole already posted);
+     *  null means nothing's been saved yet, so there's nothing to delete. */
+    private var currentRoundId: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -85,8 +93,10 @@ class ScorecardActivity : LocaleActivity() {
     override fun onResume() {
         super.onResume()
         // Picks up a round just finished/continued elsewhere (RoundsActivity, RoundSummaryActivity)
-        // without a stale list, same pattern as RoundsActivity's own onResume.
-        if (isLandingMode) loadScorecardsLanding()
+        // without a stale list, same pattern as RoundsActivity's own onResume. Skips the first
+        // call since onCreate's own loadScorecardsLanding() already covers it.
+        if (isLandingMode && hasLoadedScorecardsOnce) loadScorecardsLanding()
+        hasLoadedScorecardsOnce = true
     }
 
     /** Landing screen (no tee time id): lists every round that already has scoring started —
@@ -243,11 +253,42 @@ class ScorecardActivity : LocaleActivity() {
         this.persistedHoles = existingHoles
         alreadySavedHoles = existingHoles.size
         currentHole = startHole
+        currentRoundId = round.round?.id
         updateHoleUi()
 
         findViewById<Button>(R.id.button_previous_hole).setOnClickListener { onPreviousHoleClicked() }
         findViewById<Button>(R.id.button_next_hole).setOnClickListener { onNextHoleClicked() }
         findViewById<Button>(R.id.button_finish_early).setOnClickListener { onFinishEarlyClicked() }
+        findViewById<Button>(R.id.button_delete_round).apply {
+            visibility = if (currentRoundId != null) View.VISIBLE else View.GONE
+            setOnClickListener { confirmDeleteRound() }
+        }
+    }
+
+    private fun confirmDeleteRound() {
+        val roundId = currentRoundId ?: return
+        AlertDialog.Builder(this, R.style.TeeUpDialogTheme)
+            .setTitle(R.string.summary_delete_round_confirm_title)
+            .setMessage(R.string.summary_delete_round_confirm_message)
+            .setPositiveButton(R.string.dialog_yes) { _, _ -> deleteRound(roundId) }
+            .setNegativeButton(R.string.dialog_cancel, null)
+            .show()
+    }
+
+    private fun deleteRound(roundId: String) {
+        Thread {
+            try {
+                TeeUpApiClient.deleteRound(roundId)
+                runOnUiThread {
+                    TeeUpBanner.show(this, getString(R.string.summary_round_deleted))
+                    finish()
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    TeeUpBanner.show(this, e.message ?: getString(R.string.summary_delete_round_failed_fallback), isError = true)
+                }
+            }
+        }.start()
     }
 
     private fun onPreviousHoleClicked() {

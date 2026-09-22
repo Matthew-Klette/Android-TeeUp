@@ -97,7 +97,17 @@
             style="@style/TeeUpButton.Primary"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_sm"
             android:text="@string/summary_done" />
+
+        <Button
+            android:id="@+id/button_delete_round"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_button_danger_outline"
+            android:textColor="@color/teeup_danger"
+            android:text="@string/summary_delete_round"
+            android:visibility="gone" />
 
     </LinearLayout>
 </ScrollView>

@@ -116,6 +116,12 @@ class RoundSummaryActivity : LocaleActivity() {
         } else {
             holes.forEach { hole -> container.addView(buildHoleRow(hole, round.round?.id)) }
         }
+
+        val roundId = playedRound?.id
+        findViewById<Button>(R.id.button_delete_round).apply {
+            visibility = if (roundId != null) View.VISIBLE else View.GONE
+            setOnClickListener { confirmDeleteRound(roundId ?: return@setOnClickListener) }
+        }
     }
 
     /** [roundId] is null right after a round is created with no scorecard yet posted — shouldn't
@@ -173,6 +179,36 @@ class RoundSummaryActivity : LocaleActivity() {
             } catch (e: Exception) {
                 runOnUiThread {
                     TeeUpBanner.show(this, e.message ?: getString(R.string.summary_delete_failed_fallback), isError = true)
+                }
+            }
+        }.start()
+    }
+
+    private fun confirmDeleteRound(roundId: String) {
+        AlertDialog.Builder(this, R.style.TeeUpDialogTheme)
+            .setTitle(R.string.summary_delete_round_confirm_title)
+            .setMessage(R.string.summary_delete_round_confirm_message)
+            .setPositiveButton(R.string.dialog_yes) { _, _ -> deleteRound(roundId) }
+            .setNegativeButton(R.string.dialog_cancel, null)
+            .show()
+    }
+
+    /** Round is gone once this succeeds, so there's nothing to reload (unlike deleteHole).
+     *  Goes back to Rounds, the same destination Done already uses. */
+    private fun deleteRound(roundId: String) {
+        Thread {
+            try {
+                TeeUpApiClient.deleteRound(roundId)
+                runOnUiThread {
+                    TeeUpBanner.show(this, getString(R.string.summary_round_deleted))
+                    startActivity(Intent(this, RoundsActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    })
+                    finish()
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    TeeUpBanner.show(this, e.message ?: getString(R.string.summary_delete_round_failed_fallback), isError = true)
                 }
             }
         }.start()
