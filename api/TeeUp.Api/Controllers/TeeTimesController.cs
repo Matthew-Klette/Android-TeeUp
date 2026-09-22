@@ -28,7 +28,7 @@ public class TeeTimesController(
     public async Task<ActionResult<TeeTimeDto>> CreateSolo(CreateTeeTimeRequest request)
     {
         var hostUserId = await ResolveCurrentUserIdAsync();
-        var teeTime = await teeTimeService.CreateSoloAsync(hostUserId, request.CourseId);
+        var teeTime = await teeTimeService.CreateSoloAsync(hostUserId, request.CourseId, request.Holes);
         return Ok(teeTime);
     }
 
@@ -54,6 +54,31 @@ public class TeeTimesController(
     public async Task<ActionResult<IReadOnlyList<JoinRequestDto>>> GetJoinRequests(Guid id)
     {
         return Ok(await joinRequestService.GetForTeeTimeAsync(id));
+    }
+
+    [Authorize]
+    [HttpPatch("{id:guid}")]
+    public async Task<ActionResult<TeeTimeDto>> EditGroup(Guid id, UpdateGroupRequest request)
+    {
+        var hostUserId = await ResolveCurrentUserIdAsync();
+        return Ok(await teeTimeService.EditAsync(id, hostUserId, request));
+    }
+
+    [Authorize]
+    [HttpPatch("{id:guid}/cancel")]
+    public async Task<ActionResult<TeeTimeDto>> CancelGroup(Guid id)
+    {
+        var hostUserId = await ResolveCurrentUserIdAsync();
+        return Ok(await teeTimeService.CancelAsync(id, hostUserId));
+    }
+
+    [Authorize]
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> DeleteGroup(Guid id)
+    {
+        var hostUserId = await ResolveCurrentUserIdAsync();
+        await teeTimeService.DeleteAsync(id, hostUserId);
+        return NoContent();
     }
 
     private async Task<Guid> ResolveCurrentUserIdAsync()

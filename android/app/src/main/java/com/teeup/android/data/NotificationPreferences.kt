@@ -14,7 +14,8 @@ enum class NotificationCategory(val labelRes: Int) {
     REQUEST_DECLINED(R.string.notification_category_declined),
     TEE_TIME_REMINDER(R.string.notification_category_reminder),
     SYNC_PENDING(R.string.notification_category_sync),
-    WEATHER_ALERT(R.string.notification_category_weather);
+    WEATHER_ALERT(R.string.notification_category_weather),
+    TEE_TIME_CANCELLED(R.string.notification_category_cancelled);
 
     companion object {
         fun fromType(type: Int): NotificationCategory? = entries.getOrNull(type)

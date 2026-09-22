@@ -45,12 +45,25 @@ public class JoinRequestConcurrencyTests
         public Task<IReadOnlyList<TeeTime>> GetAllAsync() => inner.GetAllAsync();
         public Task<TeeTime> AddAsync(TeeTime entity) => inner.AddAsync(entity);
         public Task UpdateAsync(TeeTime entity) => inner.UpdateAsync(entity);
+        public Task DeleteAsync(Guid id) => inner.DeleteAsync(id);
     }
 
     private static JoinRequestService NewSteppingService(TeeUpDbContext context, out SteppingTeeTimeRepository teeTimes)
     {
         teeTimes = new SteppingTeeTimeRepository(new EfTeeTimeRepository(context));
         return new JoinRequestService(new EfJoinRequestRepository(context), teeTimes, new EfNotificationRepository(context));
+    }
+
+    private static TeeTimeService NewSteppingTeeTimeService(TeeUpDbContext context, out SteppingTeeTimeRepository teeTimes)
+    {
+        teeTimes = new SteppingTeeTimeRepository(new EfTeeTimeRepository(context));
+        return new TeeTimeService(
+            teeTimes,
+            new EfUserRepository(context),
+            new EfCourseRepository(context),
+            new EfJoinRequestRepository(context),
+            new EfNotificationRepository(context),
+            new EfRoundRepository(context));
     }
 
     private static async Task<bool> TryUpdateStatus(
@@ -235,6 +248,119 @@ public class JoinRequestConcurrencyTests
         finally
         {
             await CleanUp(connectionString, teeTimeId, courseId, [hostId, guestId]);
+        }
+    }
+
+    [PostgreSqlFact]
+    public async Task CancelAsync_RacingAnAcceptsAutoDeclineOnTheSameTeeTime_WaitsForItToFinish()
+    {
+        // EME-323's auto-decline writes to another tee time's JoinRequest rows while an accept
+        // holds AutoDeclineLock for it, not that other tee time's own TeeTimeJoinLock —
+        // CancelAsync/EditAsync only ever take TeeTimeJoinLock and know nothing about
+        // AutoDeclineLock. This proves the two still serialize against each other: a Cancel on
+        // tee time A can't run while an accept elsewhere is mid-way through auto-declining the
+        // same guest's pending request at A, so Cancel never reads a stale Pending status and
+        // sends a cancellation notification for a request that's actually already Declined.
+        var connectionString = Environment.GetEnvironmentVariable("TEEUP_TEST_DATABASE")!;
+        var hostAId = Guid.NewGuid();
+        var hostBId = Guid.NewGuid();
+        var guestId = Guid.NewGuid();
+        var courseId = Guid.NewGuid();
+        var teeTimeAId = Guid.NewGuid();
+        var teeTimeBId = Guid.NewGuid();
+        Guid requestAtAId;
+        Guid requestAtBId;
+
+        await using (var setup = NewContext(connectionString))
+        {
+            setup.Users.Add(new User { Id = hostAId, FirebaseUid = $"race-host-a-{Guid.NewGuid()}", DisplayName = "Race Host A" });
+            setup.Users.Add(new User { Id = hostBId, FirebaseUid = $"race-host-b-{Guid.NewGuid()}", DisplayName = "Race Host B" });
+            setup.Users.Add(new User { Id = guestId, FirebaseUid = $"race-guest-{Guid.NewGuid()}", DisplayName = "Race Guest" });
+            setup.Courses.Add(new Course { Id = courseId, Name = "Race Course" });
+            setup.TeeTimes.Add(new TeeTime
+            {
+                Id = teeTimeAId, HostUserId = hostAId, CourseId = courseId,
+                DateTime = DateTime.UtcNow.AddDays(1), OpenSpots = 1, Price = 0, Type = TeeTimeType.OpenRound
+            });
+            setup.TeeTimes.Add(new TeeTime
+            {
+                Id = teeTimeBId, HostUserId = hostBId, CourseId = courseId,
+                DateTime = DateTime.UtcNow.AddDays(1), OpenSpots = 1, Price = 0, Type = TeeTimeType.OpenRound
+            });
+            await setup.SaveChangesAsync();
+
+            var setupService = new JoinRequestService(
+                new EfJoinRequestRepository(setup), new EfTeeTimeRepository(setup), new EfNotificationRepository(setup));
+            requestAtAId = (await setupService.CreateAsync(teeTimeAId, guestId)).Id;
+            requestAtBId = (await setupService.CreateAsync(teeTimeBId, guestId)).Id;
+        }
+
+        try
+        {
+            await using var joinContext = NewContext(connectionString);
+            await using var teeTimeContext = NewContext(connectionString);
+
+            var joinService = NewSteppingService(joinContext, out var joinTeeTimes);
+            var teeTimeService = NewSteppingTeeTimeService(teeTimeContext, out var teeTimeTeeTimes);
+
+            var acceptEnteredLock = new TaskCompletionSource();
+            var releaseAccept = new TaskCompletionSource();
+            joinTeeTimes.BeforeGetByIdFreshAsync = async () =>
+            {
+                acceptEnteredLock.TrySetResult();
+                await releaseAccept.Task;
+            };
+
+            var cancelEnteredLock = new TaskCompletionSource();
+            teeTimeTeeTimes.BeforeGetByIdFreshAsync = () =>
+            {
+                cancelEnteredLock.TrySetResult();
+                return Task.CompletedTask;
+            };
+
+            // Accept the guest's request at B — this should also lock A via AutoDeclineLock, to
+            // auto-decline their pending request there.
+            var acceptTask = Task.Run(() => joinService.UpdateStatusAsync(requestAtBId, JoinRequestStatus.Accepted, hostBId));
+            await acceptEnteredLock.Task;
+
+            // Cancel runs on A while the accept above still holds A's TeeTimeJoinLock.
+            var cancelTask = Task.Run(() => teeTimeService.CancelAsync(teeTimeAId, hostAId));
+            await Task.WhenAny(cancelEnteredLock.Task, Task.Delay(TimeSpan.FromMilliseconds(300)));
+            Assert.False(cancelEnteredLock.Task.IsCompleted,
+                "CancelAsync reached its post-lock repository call for tee time A while the " +
+                "accept's auto-decline still held TeeTimeJoinLock for A — they aren't serialized.");
+
+            releaseAccept.SetResult();
+            await acceptTask;
+
+            await cancelEnteredLock.Task;
+            await cancelTask;
+
+            await using var verify = NewContext(connectionString);
+            var requestAtAAfter = await verify.JoinRequests.AsNoTracking().FirstAsync(j => j.Id == requestAtAId);
+            Assert.Equal(JoinRequestStatus.Declined, requestAtAAfter.Status);
+
+            // Cancel must not have sent a "tee time cancelled" notification for a request that
+            // was already auto-declined by the time it actually ran.
+            var notificationsForA = await verify.Notifications.CountAsync(n => n.RelatedEntityId == teeTimeAId);
+            Assert.Equal(0, notificationsForA);
+        }
+        finally
+        {
+            // Both tee times share courseId, and TeeTime -> Course is Restrict, not Cascade, so
+            // both tee times (and everything referencing them) must go before the course does —
+            // the shared CleanUp helper only handles one tee time (and its own course) at a time.
+            await using var cleanup = NewContext(connectionString);
+            cleanup.RemoveRange(await cleanup.Notifications
+                .Where(n => n.RelatedEntityId == teeTimeAId || n.RelatedEntityId == teeTimeBId).ToListAsync());
+            cleanup.RemoveRange(await cleanup.JoinRequests
+                .Where(j => j.TeeTimeId == teeTimeAId || j.TeeTimeId == teeTimeBId).ToListAsync());
+            cleanup.RemoveRange(await cleanup.TeeTimes
+                .Where(t => t.Id == teeTimeAId || t.Id == teeTimeBId).ToListAsync());
+            cleanup.RemoveRange(await cleanup.Courses.Where(c => c.Id == courseId).ToListAsync());
+            cleanup.RemoveRange(await cleanup.Users
+                .Where(u => u.Id == hostAId || u.Id == hostBId || u.Id == guestId).ToListAsync());
+            await cleanup.SaveChangesAsync();
         }
     }
 

@@ -64,6 +64,20 @@ public class RoundServiceTests
         new([new ScorecardEntryRequest(1, strokes, putts)]);
 
     [Fact]
+    public async Task GetScheduleForUserAsync_IncludesTheTeeTimesHoleCount()
+    {
+        var (service, teeTimes, _) = CreateService();
+        var hostId = Guid.NewGuid();
+        var teeTime = MakeTeeTime(DateTime.UtcNow.AddDays(1), hostId);
+        teeTime.Holes = 9;
+        await teeTimes.AddAsync(teeTime);
+
+        var schedule = await service.GetScheduleForUserAsync(hostId);
+
+        Assert.Equal(9, Assert.Single(schedule).Holes);
+    }
+
+    [Fact]
     public async Task PostScorecardAsync_ForStartedTeeTime_Succeeds()
     {
         var (service, teeTimes, _) = CreateService();
@@ -74,6 +88,30 @@ public class RoundServiceTests
 
         Assert.Single(result.Scorecard);
         Assert.Equal(4, result.Scorecard[0].Strokes);
+    }
+
+    [Fact]
+    public async Task PostScorecardAsync_BeyondTheTeeTimesHoleCount_ThrowsDomainValidation()
+    {
+        var (service, teeTimes, _) = CreateService();
+        var teeTime = MakeTeeTime(DateTime.UtcNow.AddHours(-1));
+        teeTime.Holes = 9;
+        await teeTimes.AddAsync(teeTime);
+
+        await Assert.ThrowsAsync<DomainValidationException>(
+            () => service.PostScorecardAsync(teeTime.Id, new PostScorecardRequest([new ScorecardEntryRequest(10, 4, 2)])));
+    }
+
+    [Fact]
+    public async Task PostScorecardAsync_WithNoHoleCountSet_AllowsUpToEighteen()
+    {
+        var (service, teeTimes, _) = CreateService();
+        var teeTime = MakeTeeTime(DateTime.UtcNow.AddHours(-1));
+        await teeTimes.AddAsync(teeTime);
+
+        var result = await service.PostScorecardAsync(teeTime.Id, new PostScorecardRequest([new ScorecardEntryRequest(18, 4, 2)]));
+
+        Assert.Single(result.Scorecard);
     }
 
     [Fact]
@@ -108,6 +146,100 @@ public class RoundServiceTests
 
         Assert.Equal(first.Id, second.Id);
         Assert.Equal(2, second.Scorecard.Count);
+    }
+
+    [Fact]
+    public async Task PostScorecardAsync_ResubmittingAHoleAlreadySaved_ReplacesItInPlace()
+    {
+        var (service, teeTimes, _) = CreateService();
+        var teeTime = MakeTeeTime(DateTime.UtcNow.AddHours(-1));
+        await teeTimes.AddAsync(teeTime);
+        var first = await service.PostScorecardAsync(teeTime.Id, OneHole(strokes: 4, putts: 2));
+
+        // Two overlapping requests for the same hole (two devices, a retry) must not create a
+        // second row that double-counts strokes/putts — the later one replaces the earlier.
+        var second = await service.PostScorecardAsync(teeTime.Id, OneHole(strokes: 5, putts: 3));
+
+        Assert.Equal(first.Id, second.Id);
+        var onlyEntry = Assert.Single(second.Scorecard);
+        Assert.Equal(5, onlyEntry.Strokes);
+        Assert.Equal(3, onlyEntry.Putts);
+    }
+
+    [Fact]
+    public async Task PostScorecardAsync_AfterDeletingAHole_RepostsItCleanly()
+    {
+        var (service, teeTimes, _) = CreateService();
+        var hostId = Guid.NewGuid();
+        var teeTime = MakeTeeTime(DateTime.UtcNow.AddHours(-1), hostId);
+        await teeTimes.AddAsync(teeTime);
+        var posted = await service.PostScorecardAsync(teeTime.Id, OneHole(strokes: 4, putts: 2));
+        await service.DeleteScorecardEntryAsync(posted.Id, 1, hostId);
+
+        var reposted = await service.PostScorecardAsync(teeTime.Id, OneHole(strokes: 6, putts: 3));
+
+        var onlyEntry = Assert.Single(reposted.Scorecard);
+        Assert.Equal(6, onlyEntry.Strokes);
+        Assert.Equal(3, onlyEntry.Putts);
+    }
+
+    [Fact]
+    public async Task DeleteScorecardEntryAsync_ByHost_RemovesTheEntry()
+    {
+        var (service, teeTimes, _) = CreateService();
+        var hostId = Guid.NewGuid();
+        var teeTime = MakeTeeTime(DateTime.UtcNow.AddHours(-1), hostId);
+        await teeTimes.AddAsync(teeTime);
+        var posted = await service.PostScorecardAsync(teeTime.Id, OneHole());
+
+        await service.DeleteScorecardEntryAsync(posted.Id, 1, hostId);
+
+        var refreshed = await service.GetRoundsForUserAsync(hostId);
+        Assert.Empty(Assert.Single(refreshed).Scorecard);
+    }
+
+    [Fact]
+    public async Task DeleteScorecardEntryAsync_ByAcceptedGuest_RemovesTheEntry()
+    {
+        var (service, teeTimes, joinRequests) = CreateService();
+        var teeTime = MakeTeeTime(DateTime.UtcNow.AddHours(-1));
+        await teeTimes.AddAsync(teeTime);
+        var guestId = Guid.NewGuid();
+        await joinRequests.AddAsync(new JoinRequest
+        {
+            Id = Guid.NewGuid(), TeeTimeId = teeTime.Id, GuestUserId = guestId, Status = JoinRequestStatus.Accepted
+        });
+        var posted = await service.PostScorecardAsync(teeTime.Id, OneHole());
+
+        await service.DeleteScorecardEntryAsync(posted.Id, 1, guestId);
+
+        var refreshed = await service.GetRoundsForUserAsync(guestId);
+        Assert.Empty(Assert.Single(refreshed).Scorecard);
+    }
+
+    [Fact]
+    public async Task DeleteScorecardEntryAsync_ByUnrelatedUser_ThrowsForbidden()
+    {
+        var (service, teeTimes, _) = CreateService();
+        var teeTime = MakeTeeTime(DateTime.UtcNow.AddHours(-1), Guid.NewGuid());
+        await teeTimes.AddAsync(teeTime);
+        var posted = await service.PostScorecardAsync(teeTime.Id, OneHole());
+
+        await Assert.ThrowsAsync<ForbiddenException>(
+            () => service.DeleteScorecardEntryAsync(posted.Id, 1, Guid.NewGuid()));
+    }
+
+    [Fact]
+    public async Task DeleteScorecardEntryAsync_ForUnknownHole_ThrowsNotFound()
+    {
+        var (service, teeTimes, _) = CreateService();
+        var hostId = Guid.NewGuid();
+        var teeTime = MakeTeeTime(DateTime.UtcNow.AddHours(-1), hostId);
+        await teeTimes.AddAsync(teeTime);
+        var posted = await service.PostScorecardAsync(teeTime.Id, OneHole());
+
+        await Assert.ThrowsAsync<NotFoundException>(
+            () => service.DeleteScorecardEntryAsync(posted.Id, 5, hostId));
     }
 
     [Fact]

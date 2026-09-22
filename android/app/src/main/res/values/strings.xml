@@ -58,6 +58,7 @@
 
     <string name="register_home_course">Home course</string>
     <string name="register_home_course_none">No home course yet</string>
+    <string name="course_search_hint">Search for a course</string>
 
     <string name="register_pace">Pace of play</string>
 
@@ -197,6 +198,7 @@
     <string name="scorecard_putts_hint">e.g. 2</string>
 
     <string name="scorecard_next_hole">Save &amp; Next Hole</string>
+    <string name="scorecard_previous_hole">Previous Hole</string>
     <string name="scorecard_finish_round">Finish Round</string>
     <string name="scorecard_finish_early">Finish round now</string>
     <string name="scorecard_progress_format">%1$d of %2$d holes saved this round</string>
@@ -242,6 +244,7 @@
     <string name="notification_category_reminder">Tee time reminders</string>
     <string name="notification_category_sync">Sync reminders</string>
     <string name="notification_category_weather">Weather alerts</string>
+    <string name="notification_category_cancelled">Group cancelled</string>
 
     <!-- Biometric Login Screen -->
     <string name="biometric_title">Biometric Login</string>
@@ -324,7 +327,15 @@
     <string name="create_group_handicap_range_invalid">The minimum handicap can\'t be above the maximum.</string>
     <string name="create_group_created">Group created.</string>
     <string name="create_group_failed_fallback">Couldn\'t create the group — try again.</string>
+    <string name="create_group_course_required">Search for and select a course first.</string>
     <string name="home_create_group">Create a Group</string>
+
+    <!-- Edit Group (EME-321) — CreateGroupActivity's edit mode -->
+    <string name="edit_group_title">Edit Group</string>
+    <string name="edit_group_save">Save Changes</string>
+    <string name="edit_group_saving">Saving…</string>
+    <string name="edit_group_saved">Group updated.</string>
+    <string name="edit_group_failed_fallback">Couldn\'t update the group — try again.</string>
 
     <string-array name="create_group_holes_options">
         <item>9 holes</item>

@@ -1,5 +1,6 @@
 package com.teeup.android
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
@@ -21,6 +22,8 @@ class RoundSummaryActivity : LocaleActivity() {
         const val EXTRA_TEE_TIME_ID = "com.teeup.android.extra.TEE_TIME_ID"
     }
 
+    private var teeTimeId: String? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_round_summary)
@@ -36,13 +39,14 @@ class RoundSummaryActivity : LocaleActivity() {
             finish()
         }
 
-        val teeTimeId = intent.getStringExtra(EXTRA_TEE_TIME_ID)
-        if (teeTimeId == null) {
+        val id = intent.getStringExtra(EXTRA_TEE_TIME_ID)
+        if (id == null) {
             TeeUpBanner.show(this, getString(R.string.round_missing), isError = true)
             finish()
             return
         }
-        loadRound(teeTimeId)
+        teeTimeId = id
+        loadRound(id)
     }
 
     private fun loadRound(teeTimeId: String) {
@@ -96,20 +100,67 @@ class RoundSummaryActivity : LocaleActivity() {
                 setTextColor(resources.getColor(R.color.teeup_text_secondary, theme))
             })
         } else {
-            holes.forEach { hole -> container.addView(buildHoleRow(hole)) }
+            holes.forEach { hole -> container.addView(buildHoleRow(hole, round.round?.id)) }
         }
     }
 
-    private fun buildHoleRow(hole: HoleScore): View = TextView(this).apply {
-        text = getString(R.string.summary_hole_row_format, hole.holeNumber, hole.strokes, hole.putts)
-        setTextColor(resources.getColor(R.color.teeup_text_primary, theme))
-        setBackgroundResource(R.drawable.bg_card)
-        elevation = resources.getDimension(R.dimen.elevation_card)
-        val padding = resources.getDimension(R.dimen.space_lg).toInt()
-        setPadding(padding, padding, padding, padding)
-        val marginBottom = resources.getDimension(R.dimen.space_sm).toInt()
-        layoutParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
-        ).apply { bottomMargin = marginBottom }
+    /** [roundId] is null right after a round is created with no scorecard yet posted — shouldn't
+     *  happen alongside a non-empty [holes] list, but the delete action is simply omitted then. */
+    private fun buildHoleRow(hole: HoleScore, roundId: String?): View {
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER_VERTICAL
+            setBackgroundResource(R.drawable.bg_card)
+            elevation = resources.getDimension(R.dimen.elevation_card)
+            val padding = resources.getDimension(R.dimen.space_lg).toInt()
+            setPadding(padding, padding, padding, padding)
+            val marginBottom = resources.getDimension(R.dimen.space_sm).toInt()
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { bottomMargin = marginBottom }
+        }
+
+        row.addView(TextView(this).apply {
+            text = getString(R.string.summary_hole_row_format, hole.holeNumber, hole.strokes, hole.putts)
+            setTextColor(resources.getColor(R.color.teeup_text_primary, theme))
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        })
+
+        if (roundId != null) {
+            row.addView(Button(this).apply {
+                text = getString(R.string.summary_delete_hole)
+                setBackgroundResource(R.drawable.bg_button_danger_outline)
+                setTextColor(resources.getColor(R.color.teeup_danger, theme))
+                setOnClickListener { confirmDeleteHole(roundId, hole.holeNumber) }
+            })
+        }
+
+        return row
+    }
+
+    private fun confirmDeleteHole(roundId: String, holeNumber: Int) {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.summary_delete_confirm_title)
+            .setMessage(R.string.summary_delete_confirm_message)
+            .setPositiveButton(R.string.dialog_yes) { _, _ -> deleteHole(roundId, holeNumber) }
+            .setNegativeButton(R.string.dialog_cancel, null)
+            .show()
+    }
+
+    private fun deleteHole(roundId: String, holeNumber: Int) {
+        val id = teeTimeId ?: return
+        Thread {
+            try {
+                TeeUpApiClient.deleteScorecardEntry(roundId, holeNumber)
+                runOnUiThread {
+                    TeeUpBanner.show(this, getString(R.string.summary_hole_deleted))
+                    loadRound(id)
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    TeeUpBanner.show(this, e.message ?: getString(R.string.summary_delete_failed_fallback), isError = true)
+                }
+            }
+        }.start()
     }
 }

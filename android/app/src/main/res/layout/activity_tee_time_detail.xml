@@ -176,8 +176,54 @@
                 style="@style/TeeUpButton.Primary"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/space_lg"
+                android:layout_marginBottom="@dimen/space_sm"
                 android:text="@string/detail_request_to_join" />
+
+            <!-- EME-323: shown to a guest with a still-pending join request of their own -->
+            <Button
+                android:id="@+id/button_withdraw_request"
+                style="@style/TeeUpButton.Compact"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_lg"
+                android:text="@string/teetime_withdraw_request"
+                android:visibility="gone" />
+
+            <!-- EME-321: host-only edit/cancel/delete actions for their own group -->
+            <LinearLayout
+                android:id="@+id/host_actions_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_lg"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <Button
+                    android:id="@+id/button_edit_group"
+                    style="@style/TeeUpButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/space_sm"
+                    android:text="@string/teetime_edit_group" />
+
+                <Button
+                    android:id="@+id/button_cancel_group"
+                    style="@style/TeeUpButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/space_sm"
+                    android:text="@string/teetime_cancel_group" />
+
+                <Button
+                    android:id="@+id/button_delete_group"
+                    style="@style/TeeUpButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_button_danger_outline"
+                    android:textColor="@color/teeup_danger"
+                    android:text="@string/teetime_delete_group" />
+
+            </LinearLayout>
 
             <!-- Pending requests -->
             <LinearLayout

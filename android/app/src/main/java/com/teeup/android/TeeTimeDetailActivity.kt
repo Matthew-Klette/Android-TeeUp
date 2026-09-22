@@ -45,6 +45,7 @@ class TeeTimeDetailActivity : LocaleActivity() {
     private lateinit var contentGroup: View
     private lateinit var teeTimeId: String
     private var joinRequests: List<JoinRequest> = emptyList()
+    private var currentTeeTime: TeeTime? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,7 +65,14 @@ class TeeTimeDetailActivity : LocaleActivity() {
             return
         }
         teeTimeId = id
-        loadDetail()
+    }
+
+    /** Reloads on every return to this screen (not just the first open) so an edit made via
+     *  CreateGroupActivity's edit mode, or a cancel/delete/withdraw here, is reflected without
+     *  a manual refresh. */
+    override fun onResume() {
+        super.onResume()
+        if (::teeTimeId.isInitialized) loadDetail()
     }
 
     private fun loadDetail() {
@@ -108,6 +116,7 @@ class TeeTimeDetailActivity : LocaleActivity() {
 
     private fun render(teeTime: TeeTime, course: Course?, requests: List<JoinRequest>) {
         joinRequests = requests
+        currentTeeTime = teeTime
         statusText.visibility = View.GONE
         contentGroup.visibility = View.VISIBLE
 
@@ -152,6 +161,42 @@ class TeeTimeDetailActivity : LocaleActivity() {
         findViewById<TextView>(R.id.text_pending_requests_subtitle).text =
             if (pendingCount > 0) getString(R.string.teetime_pending_waiting_format, pendingCount) else getString(R.string.teetime_pending_none)
         findViewById<View>(R.id.row_pending_requests).setOnClickListener { showPendingRequestsDialog() }
+
+        renderWithdrawAction(requests, myUserIdIfKnown)
+        renderHostActions(teeTime, myUserIdIfKnown)
+    }
+
+    /** EME-323: a guest's own still-pending request gets a Withdraw action alongside the
+     *  disabled "Request sent" button. */
+    private fun renderWithdrawAction(requests: List<JoinRequest>, myUserIdIfKnown: String?) {
+        val withdrawButton = findViewById<Button>(R.id.button_withdraw_request)
+        val myRequest = myUserIdIfKnown?.let { uid -> requests.firstOrNull { it.guestUserId == uid } }
+        if (myRequest != null && myRequest.status == JoinRequestStatus.PENDING) {
+            withdrawButton.visibility = View.VISIBLE
+            withdrawButton.setOnClickListener { confirmWithdrawRequest(myRequest.id) }
+        } else {
+            withdrawButton.visibility = View.GONE
+        }
+    }
+
+    /** EME-321: edit/cancel/delete are host-only, and edit/cancel don't apply to an
+     *  already-cancelled group (delete still does, so a mistaken group can be cleared out). */
+    private fun renderHostActions(teeTime: TeeTime, myUserIdIfKnown: String?) {
+        val container = findViewById<View>(R.id.host_actions_container)
+        val isHost = myUserIdIfKnown != null && teeTime.hostUserId == myUserIdIfKnown
+        container.visibility = if (isHost) View.VISIBLE else View.GONE
+        if (!isHost) return
+
+        val isCancelled = teeTime.status == TeeTimeStatus.CANCELLED
+        findViewById<Button>(R.id.button_edit_group).apply {
+            visibility = if (isCancelled) View.GONE else View.VISIBLE
+            setOnClickListener { openEditGroup(teeTime) }
+        }
+        findViewById<Button>(R.id.button_cancel_group).apply {
+            visibility = if (isCancelled) View.GONE else View.VISIBLE
+            setOnClickListener { confirmCancelGroup() }
+        }
+        findViewById<Button>(R.id.button_delete_group).setOnClickListener { confirmDeleteGroup() }
     }
 
     /** Every current member (host and accepted guests) with handicap and pace.
@@ -277,6 +322,96 @@ class TeeTimeDetailActivity : LocaleActivity() {
                 }
             }
         }.start()
+    }
+
+    private fun confirmWithdrawRequest(joinRequestId: String) {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.teetime_withdraw_confirm_title)
+            .setMessage(R.string.teetime_withdraw_confirm_message)
+            .setPositiveButton(R.string.dialog_yes) { _, _ -> withdrawRequest(joinRequestId) }
+            .setNegativeButton(R.string.dialog_cancel, null)
+            .show()
+    }
+
+    private fun withdrawRequest(joinRequestId: String) {
+        Thread {
+            try {
+                TeeUpApiClient.withdrawJoinRequest(joinRequestId)
+                runOnUiThread {
+                    TeeUpBanner.show(this, getString(R.string.teetime_request_withdrawn))
+                    loadDetail()
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    TeeUpBanner.show(this, e.message ?: getString(R.string.teetime_withdraw_failed_fallback), isError = true)
+                }
+            }
+        }.start()
+    }
+
+    private fun confirmCancelGroup() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.teetime_cancel_confirm_title)
+            .setMessage(R.string.teetime_cancel_confirm_message)
+            .setPositiveButton(R.string.dialog_yes) { _, _ -> cancelGroup() }
+            .setNegativeButton(R.string.dialog_cancel, null)
+            .show()
+    }
+
+    private fun cancelGroup() {
+        Thread {
+            try {
+                TeeUpApiClient.cancelGroup(teeTimeId)
+                runOnUiThread {
+                    TeeUpBanner.show(this, getString(R.string.teetime_group_cancelled))
+                    loadDetail()
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    TeeUpBanner.show(this, e.message ?: getString(R.string.teetime_cancel_failed_fallback), isError = true)
+                }
+            }
+        }.start()
+    }
+
+    private fun confirmDeleteGroup() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.teetime_delete_confirm_title)
+            .setMessage(R.string.teetime_delete_confirm_message)
+            .setPositiveButton(R.string.dialog_yes) { _, _ -> deleteGroup() }
+            .setNegativeButton(R.string.dialog_cancel, null)
+            .show()
+    }
+
+    private fun deleteGroup() {
+        Thread {
+            try {
+                TeeUpApiClient.deleteGroup(teeTimeId)
+                runOnUiThread {
+                    TeeUpBanner.show(this, getString(R.string.teetime_group_deleted))
+                    finish()
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    TeeUpBanner.show(this, e.message ?: getString(R.string.teetime_delete_failed_fallback), isError = true)
+                }
+            }
+        }.start()
+    }
+
+    private fun openEditGroup(teeTime: TeeTime) {
+        val intent = Intent(this, CreateGroupActivity::class.java).apply {
+            putExtra(CreateGroupActivity.EXTRA_EDIT_TEE_TIME_ID, teeTime.id)
+            putExtra(CreateGroupActivity.EXTRA_EDIT_COURSE_ID, teeTime.courseId)
+            putExtra(CreateGroupActivity.EXTRA_EDIT_DATE_TIME_ISO, teeTime.dateTime)
+            putExtra(CreateGroupActivity.EXTRA_EDIT_HOLES, teeTime.holes ?: 18)
+            putExtra(CreateGroupActivity.EXTRA_EDIT_OPEN_SPOTS, teeTime.openSpots)
+            teeTime.wantedHandicapMin?.let { putExtra(CreateGroupActivity.EXTRA_EDIT_HANDICAP_MIN, it) }
+            teeTime.wantedHandicapMax?.let { putExtra(CreateGroupActivity.EXTRA_EDIT_HANDICAP_MAX, it) }
+            teeTime.wantedPace?.let { putExtra(CreateGroupActivity.EXTRA_EDIT_PACE, it) }
+        }
+        startActivity(intent)
+        overridePendingTransition(R.anim.slide_in_right, R.anim.fade_out_slight)
     }
 
     private fun showError(message: String) {

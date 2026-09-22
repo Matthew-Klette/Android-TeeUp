@@ -68,4 +68,39 @@ public class AuthorizationTests : IClassFixture<WebApplicationFactory<Program>>
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
+
+    [Fact]
+    public async Task EditGroup_WithoutToken_Returns401()
+    {
+        var response = await _client.PatchAsJsonAsync($"/api/teetimes/{Guid.NewGuid()}", new { });
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CancelGroup_WithoutToken_Returns401()
+    {
+        var response = await _client.PatchAsJsonAsync($"/api/teetimes/{Guid.NewGuid()}/cancel", new { });
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task DeleteGroup_WithoutToken_Returns401()
+    {
+        var response = await _client.DeleteAsync($"/api/teetimes/{Guid.NewGuid()}");
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task WithdrawJoinRequest_WithoutToken_Returns401()
+    {
+        var response = await _client.DeleteAsync($"/api/join-requests/{Guid.NewGuid()}");
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task DeleteScorecardEntry_WithoutToken_Returns401()
+    {
+        var response = await _client.DeleteAsync($"/api/rounds/{Guid.NewGuid()}/scorecard/1");
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
 }

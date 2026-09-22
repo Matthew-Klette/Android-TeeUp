@@ -1,8 +1,11 @@
 package com.teeup.android
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.View
 import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Spinner
@@ -11,6 +14,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.teeup.android.data.Course
 import com.teeup.android.data.RegisteredUser
 import com.teeup.android.data.TeeUpApiClient
+import com.teeup.android.ui.CourseSearchAdapter
 import com.teeup.android.data.formatHandicapOrEmpty
 import com.teeup.android.ui.LocaleActivity
 import com.teeup.android.ui.TeeUpBanner
@@ -18,18 +22,22 @@ import com.teeup.android.ui.TeeUpBanner
 /**
  * Profile → Playing Details. Same PATCH /api/profiles/me as PersonalDetailsActivity,
  * editing handicap/home course/pace of play this time; displayName carries through
- * unchanged. Course spinner mirrors RegisterActivity's exact pattern.
+ * unchanged. Course field mirrors RegisterActivity's exact search-as-you-type pattern
+ * (CourseSearchAdapter, GET /api/courses?search=).
  */
 class PlayingDetailsActivity : LocaleActivity() {
     private lateinit var statusText: TextView
     private lateinit var contentGroup: View
     private lateinit var handicapInput: EditText
-    private lateinit var courseSpinner: Spinner
+    private lateinit var courseInput: AutoCompleteTextView
     private lateinit var paceSpinner: Spinner
     private lateinit var saveButton: Button
 
     private var current: RegisteredUser? = null
-    private var courses: List<Course> = emptyList()
+
+    /** Set when a suggestion is tapped, or pre-filled from the profile's existing home course
+     *  on load; cleared as soon as the typed text no longer matches it. */
+    private var selectedCourse: Course? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,7 +46,7 @@ class PlayingDetailsActivity : LocaleActivity() {
         statusText = findViewById(R.id.text_status)
         contentGroup = findViewById(R.id.group_content)
         handicapInput = findViewById(R.id.input_handicap)
-        courseSpinner = findViewById(R.id.input_home_course)
+        courseInput = findViewById(R.id.input_home_course)
         paceSpinner = findViewById(R.id.input_pace)
         saveButton = findViewById(R.id.button_save)
 
@@ -53,9 +61,26 @@ class PlayingDetailsActivity : LocaleActivity() {
             resources.getStringArray(R.array.pace_of_play_options)
         ).apply { setDropDownViewResource(R.layout.spinner_dropdown_item) }
 
+        wireCourseSearch()
+
         saveButton.setOnClickListener { onSaveClicked() }
 
         loadProfile()
+    }
+
+    private fun wireCourseSearch() {
+        val adapter = CourseSearchAdapter(this)
+        courseInput.setAdapter(adapter)
+        courseInput.setOnItemClickListener { _, _, position, _ ->
+            selectedCourse = adapter.getItem(position)
+        }
+        courseInput.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                if (s?.toString() != selectedCourse?.name) selectedCourse = null
+            }
+        })
     }
 
     private fun loadProfile() {
@@ -78,18 +103,14 @@ class PlayingDetailsActivity : LocaleActivity() {
 
     private fun render(user: RegisteredUser, fetchedCourses: List<Course>) {
         current = user
-        courses = fetchedCourses
         statusText.visibility = View.GONE
         contentGroup.visibility = View.VISIBLE
 
         handicapInput.setText(formatHandicapOrEmpty(user.handicapIndex))
 
-        val labels = listOf(getString(R.string.register_home_course_none)) + fetchedCourses.map { it.name }
-        courseSpinner.adapter = ArrayAdapter(this, R.layout.spinner_item, labels).apply {
-            setDropDownViewResource(R.layout.spinner_dropdown_item)
-        }
-        val selectedCourseIndex = fetchedCourses.indexOfFirst { it.id == user.homeCourseId }
-        courseSpinner.setSelection(if (selectedCourseIndex >= 0) selectedCourseIndex + 1 else 0)
+        // `false` skips triggering the search dropdown for this programmatic prefill.
+        selectedCourse = fetchedCourses.firstOrNull { it.id == user.homeCourseId }
+        courseInput.setText(selectedCourse?.name.orEmpty(), false)
 
         paceSpinner.setSelection(user.paceOfPlay.coerceIn(0, 2))
     }
@@ -107,10 +128,7 @@ class PlayingDetailsActivity : LocaleActivity() {
                 }
         }
 
-        // Index 0 is "No home course yet" (courseSpinner.selectedItemPosition - 1 into courses).
-        val homeCourseId = (courseSpinner.selectedItemPosition - 1)
-            .takeIf { it in courses.indices }
-            ?.let { courses[it].id }
+        val homeCourseId = selectedCourse?.id
 
         saveButton.isEnabled = false
         saveButton.setText(R.string.playing_details_saving)

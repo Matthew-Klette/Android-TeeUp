@@ -9,7 +9,9 @@ public class TeeTimeService(
     ITeeTimeRepository teeTimeRepository,
     IUserRepository userRepository,
     ICourseRepository courseRepository,
-    IJoinRequestRepository joinRequestRepository) : ITeeTimeService
+    IJoinRequestRepository joinRequestRepository,
+    INotificationRepository notificationRepository,
+    IRoundRepository roundRepository) : ITeeTimeService
 {
     public async Task<IReadOnlyList<TeeTimeDto>> GetAllAsync(decimal? maxHandicap = null, PaceOfPlay? pace = null, bool joinableOnly = false)
     {
@@ -80,8 +82,11 @@ public class TeeTimeService(
         return members;
     }
 
-    public async Task<TeeTimeDto> CreateSoloAsync(Guid hostUserId, Guid courseId)
+    public async Task<TeeTimeDto> CreateSoloAsync(Guid hostUserId, Guid courseId, int? holes = null)
     {
+        if (holes is not null && holes != 9 && holes != 18)
+            throw new DomainValidationException("Holes must be 9 or 18.");
+
         _ = await courseRepository.GetByIdAsync(courseId)
             ?? throw new NotFoundException($"Course {courseId} not found.");
 
@@ -93,7 +98,8 @@ public class TeeTimeService(
             DateTime = DateTime.UtcNow,
             OpenSpots = 0,
             Price = 0,
-            Type = TeeTimeType.Booking
+            Type = TeeTimeType.Booking,
+            Holes = holes ?? 18
         };
 
         await teeTimeRepository.AddAsync(teeTime);
@@ -135,7 +141,25 @@ public class TeeTimeService(
             Status = TeeTimeStatus.Open
         };
 
+        // Held across the auto-decline loop below so it can't race a concurrent JoinRequestService
+        // call touching one of these same requests elsewhere (see AutoDeclineLock). The "primary"
+        // tee time here is this brand-new one, which nothing else can reference yet.
+        using var __ = await AutoDeclineLock.AcquireAsync(joinRequestRepository, teeTime.Id, hostUserId);
+
         await teeTimeRepository.AddAsync(teeTime);
+
+        // EME-323: hosting your own group makes any pending request you're holding as a guest
+        // elsewhere no longer relevant — auto-decline them (status only, preserving history,
+        // same as a host's own decline) rather than leaving them pending indefinitely. No
+        // separate notification: this is a side effect of the host's own action, not something
+        // another party did to them.
+        var ownPendingAsGuest = (await joinRequestRepository.GetAllAsync())
+            .Where(j => j.GuestUserId == hostUserId && j.Status == JoinRequestStatus.Pending);
+        foreach (var pending in ownPendingAsGuest)
+        {
+            pending.Status = JoinRequestStatus.Declined;
+            await joinRequestRepository.UpdateAsync(pending);
+        }
 
         var members = new List<GroupMemberDto>
         {
@@ -143,5 +167,132 @@ public class TeeTimeService(
         };
 
         return TeeTimeDto.From(teeTime, members);
+    }
+
+    public async Task<TeeTimeDto> EditAsync(Guid teeTimeId, Guid hostUserId, UpdateGroupRequest request)
+    {
+        if (request.DateTime <= DateTime.UtcNow)
+            throw new DomainValidationException("The tee time must be in the future.");
+        if (request.Holes != 9 && request.Holes != 18)
+            throw new DomainValidationException("Holes must be 9 or 18.");
+        if (request.OpenSpots < 1)
+            throw new DomainValidationException("A group needs at least one open spot for a guest.");
+        if (request.WantedHandicapMin is decimal min && request.WantedHandicapMax is decimal max && min > max)
+            throw new DomainValidationException("The minimum wanted handicap cannot be above the maximum.");
+        if (request.WantedPace is { } wantedPace && !Enum.IsDefined(wantedPace))
+            throw new DomainValidationException("Select a valid pace of play.");
+
+        // Serialized against a concurrent accept/decline/withdraw on the same tee time (EME-321,
+        // reusing EME-313's per-tee-time lock) so an edit can't act on a stale open-spots count.
+        // This also covers a race against an accept elsewhere that's auto-declining one of this
+        // tee time's own Pending requests (EME-323): AutoDeclineLock takes this same
+        // TeeTimeJoinLock as part of its set, so the two properly serialize against each other
+        // even though this method knows nothing about AutoDeclineLock itself.
+        using var _ = await TeeTimeJoinLock.AcquireAsync(teeTimeId);
+
+        var teeTime = await teeTimeRepository.GetByIdFreshAsync(teeTimeId)
+            ?? throw new NotFoundException($"Tee time {teeTimeId} not found.");
+
+        if (teeTime.HostUserId != hostUserId)
+            throw new ForbiddenException("Only the host can edit this group.");
+        if (teeTime.Status == TeeTimeStatus.Cancelled)
+            throw new DomainValidationException("A cancelled group cannot be edited.");
+        // A round tracks its hole count from this tee time's live Holes value (see
+        // RoundService.PostScorecardAsync), so changing it, or the schedule, once scoring has
+        // started would invalidate scores already posted or reject further ones. Cancel instead.
+        if (await roundRepository.GetByTeeTimeIdAsync(teeTimeId) is not null)
+            throw new DomainValidationException(
+                "This group already has a round in progress and cannot be edited; cancel it instead.");
+
+        var siblings = await joinRequestRepository.GetByTeeTimeIdAsync(teeTimeId);
+        var accepted = siblings.Where(j => j.Status == JoinRequestStatus.Accepted).ToList();
+        if (request.OpenSpots < accepted.Count)
+        {
+            throw new DomainValidationException(
+                $"This group already has {accepted.Count} accepted guest(s); open spots cannot be reduced below that.");
+        }
+
+        teeTime.DateTime = request.DateTime;
+        teeTime.Holes = request.Holes;
+        teeTime.OpenSpots = request.OpenSpots;
+        teeTime.WantedHandicapMin = request.WantedHandicapMin;
+        teeTime.WantedHandicapMax = request.WantedHandicapMax;
+        teeTime.WantedPace = request.WantedPace;
+        // A prior accept may have flipped this to Full; if the edit reopened capacity, reflect it.
+        if (teeTime.Status == TeeTimeStatus.Full && accepted.Count < request.OpenSpots)
+            teeTime.Status = TeeTimeStatus.Open;
+
+        await teeTimeRepository.UpdateAsync(teeTime);
+
+        var usersById = (await userRepository.GetAllAsync()).ToDictionary(u => u.Id);
+        var members = BuildMemberList(teeTime, usersById, accepted);
+        return TeeTimeDto.From(teeTime, members);
+    }
+
+    public async Task<TeeTimeDto> CancelAsync(Guid teeTimeId, Guid hostUserId)
+    {
+        // Same TeeTimeJoinLock EditAsync takes — see its comment on why that's also enough to
+        // serialize against a same-tee-time auto-decline (EME-323), not just against another
+        // accept/decline/withdraw.
+        using var _ = await TeeTimeJoinLock.AcquireAsync(teeTimeId);
+
+        var teeTime = await teeTimeRepository.GetByIdFreshAsync(teeTimeId)
+            ?? throw new NotFoundException($"Tee time {teeTimeId} not found.");
+
+        if (teeTime.HostUserId != hostUserId)
+            throw new ForbiddenException("Only the host can cancel this group.");
+        if (teeTime.Status == TeeTimeStatus.Cancelled)
+            throw new DomainValidationException($"Tee time {teeTimeId} is already cancelled.");
+
+        teeTime.Status = TeeTimeStatus.Cancelled;
+        await teeTimeRepository.UpdateAsync(teeTime);
+
+        var siblings = await joinRequestRepository.GetByTeeTimeIdAsync(teeTimeId);
+        var affected = siblings.Where(j => j.Status is JoinRequestStatus.Pending or JoinRequestStatus.Accepted).ToList();
+        foreach (var request in affected)
+        {
+            await notificationRepository.AddAsync(new Notification
+            {
+                Id = Guid.NewGuid(),
+                UserId = request.GuestUserId,
+                Type = NotificationType.TeeTimeCancelled,
+                Message = "A tee time group you were part of was cancelled by the host.",
+                RelatedEntityId = teeTime.Id
+            });
+        }
+
+        var usersById = (await userRepository.GetAllAsync()).ToDictionary(u => u.Id);
+        var acceptedMembers = siblings.Where(j => j.Status == JoinRequestStatus.Accepted).ToList();
+        var members = BuildMemberList(teeTime, usersById, acceptedMembers);
+        return TeeTimeDto.From(teeTime, members);
+    }
+
+    public async Task DeleteAsync(Guid teeTimeId, Guid hostUserId)
+    {
+        using var _ = await TeeTimeJoinLock.AcquireAsync(teeTimeId);
+
+        var teeTime = await teeTimeRepository.GetByIdFreshAsync(teeTimeId)
+            ?? throw new NotFoundException($"Tee time {teeTimeId} not found.");
+
+        if (teeTime.HostUserId != hostUserId)
+            throw new ForbiddenException("Only the host can delete this group.");
+
+        var siblings = await joinRequestRepository.GetByTeeTimeIdAsync(teeTimeId);
+        if (siblings.Count > 0)
+        {
+            throw new DomainValidationException(
+                "This group has join requests against it and cannot be deleted; cancel it instead.");
+        }
+
+        // A round (and any scorecard entries against it) would otherwise be silently lost —
+        // cascade-deleted with the tee time in the EF/Postgres-backed store, or left orphaned
+        // in the in-memory one. Either way a host who's posted scores must cancel, not delete.
+        if (await roundRepository.GetByTeeTimeIdAsync(teeTimeId) is not null)
+        {
+            throw new DomainValidationException(
+                "This group already has a round with scores and cannot be deleted; cancel it instead.");
+        }
+
+        await teeTimeRepository.DeleteAsync(teeTimeId);
     }
 }

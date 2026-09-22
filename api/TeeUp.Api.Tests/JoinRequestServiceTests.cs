@@ -335,6 +335,74 @@ public class JoinRequestServiceTests
     }
 
     [Fact]
+    public async Task UpdateStatusAsync_AcceptingAGuest_AutoDeclinesTheirOtherPendingRequests()
+    {
+        var (service, teeTimes, _, _) = CreateService();
+        var hostA = Guid.NewGuid();
+        var teeTimeA = MakeTeeTime(openSpots: 1, hostUserId: hostA);
+        await teeTimes.AddAsync(teeTimeA);
+        var hostB = Guid.NewGuid();
+        var teeTimeB = MakeTeeTime(openSpots: 1, hostUserId: hostB);
+        await teeTimes.AddAsync(teeTimeB);
+        var guestId = Guid.NewGuid();
+        var requestA = await service.CreateAsync(teeTimeA.Id, guestId);
+        var requestB = await service.CreateAsync(teeTimeB.Id, guestId);
+
+        await service.UpdateStatusAsync(requestA.Id, JoinRequestStatus.Accepted, hostA);
+
+        var refreshedB = Assert.Single(await service.GetForTeeTimeAsync(teeTimeB.Id));
+        Assert.Equal(JoinRequestStatus.Declined, refreshedB.Status);
+        Assert.Equal(requestB.Id, refreshedB.Id);
+    }
+
+    [Fact]
+    public async Task WithdrawAsync_ByRequestingGuest_RemovesThePendingRequest()
+    {
+        var (service, teeTimes, _, _) = CreateService();
+        var teeTime = MakeTeeTime(openSpots: 1);
+        await teeTimes.AddAsync(teeTime);
+        var guestId = Guid.NewGuid();
+        var request = await service.CreateAsync(teeTime.Id, guestId);
+
+        await service.WithdrawAsync(request.Id, guestId);
+
+        Assert.Empty(await service.GetForTeeTimeAsync(teeTime.Id));
+    }
+
+    [Fact]
+    public async Task WithdrawAsync_ByAnotherUser_ThrowsForbidden()
+    {
+        var (service, teeTimes, _, _) = CreateService();
+        var teeTime = MakeTeeTime(openSpots: 1);
+        await teeTimes.AddAsync(teeTime);
+        var request = await service.CreateAsync(teeTime.Id, Guid.NewGuid());
+
+        await Assert.ThrowsAsync<ForbiddenException>(() => service.WithdrawAsync(request.Id, Guid.NewGuid()));
+    }
+
+    [Fact]
+    public async Task WithdrawAsync_OnAlreadyDecidedRequest_ThrowsDomainValidation()
+    {
+        var (service, teeTimes, _, _) = CreateService();
+        var hostId = Guid.NewGuid();
+        var teeTime = MakeTeeTime(openSpots: 1, hostUserId: hostId);
+        await teeTimes.AddAsync(teeTime);
+        var guestId = Guid.NewGuid();
+        var request = await service.CreateAsync(teeTime.Id, guestId);
+        await service.UpdateStatusAsync(request.Id, JoinRequestStatus.Accepted, hostId);
+
+        await Assert.ThrowsAsync<DomainValidationException>(() => service.WithdrawAsync(request.Id, guestId));
+    }
+
+    [Fact]
+    public async Task WithdrawAsync_ForUnknownRequest_ThrowsNotFound()
+    {
+        var (service, _, _, _) = CreateService();
+
+        await Assert.ThrowsAsync<NotFoundException>(() => service.WithdrawAsync(Guid.NewGuid(), Guid.NewGuid()));
+    }
+
+    [Fact]
     public async Task GetForTeeTimeAsync_ReturnsOnlyRequestsForThatTeeTime()
     {
         var (service, teeTimes, _, _) = CreateService();

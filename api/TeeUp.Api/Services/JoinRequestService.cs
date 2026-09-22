@@ -11,7 +11,9 @@ namespace TeeUp.Api.Services;
 /// "Pending" once, only by the host, and only into a tee time that's still open. A host
 /// can't accept more guests than there are open spots. Create, accept and decline for a
 /// given tee time are all serialized through <see cref="TeeTimeJoinLock"/> and re-read
-/// their state with <see cref="IRepository{T}.GetByIdFreshAsync"/> once inside it.
+/// their state with <see cref="IRepository{T}.GetByIdFreshAsync"/> once inside it. An accept
+/// also auto-declines that guest's other pending requests elsewhere (EME-323), so it locks
+/// every tee time that touches via <see cref="AutoDeclineLock"/> instead of just its own.
 /// </summary>
 public class JoinRequestService(
     IJoinRequestRepository joinRequestRepository,
@@ -70,8 +72,13 @@ public class JoinRequestService(
 
         // Held for the whole read-check-write below. Accept/decline calls racing on the
         // same request, or two accepts racing for the last open spot, must not both pass
-        // their checks before either commits. See TeeTimeJoinLock's doc comment.
-        using var _ = await TeeTimeJoinLock.AcquireAsync(lookup.TeeTimeId);
+        // their checks before either commits. See TeeTimeJoinLock's doc comment. An accept
+        // may also auto-decline this guest's pending requests at other tee times (EME-323),
+        // so it locks all of those too, via AutoDeclineLock — a decline only ever touches
+        // this one tee time, so it just takes this tee time's own TeeTimeJoinLock.
+        using var _ = status == JoinRequestStatus.Accepted
+            ? await AutoDeclineLock.AcquireAsync(joinRequestRepository, lookup.TeeTimeId, lookup.GuestUserId)
+            : await TeeTimeJoinLock.AcquireAsync(lookup.TeeTimeId);
 
         var joinRequest = await joinRequestRepository.GetByIdFreshAsync(joinRequestId)
             ?? throw new NotFoundException($"Join request {joinRequestId} not found.");
@@ -118,6 +125,22 @@ public class JoinRequestService(
                 teeTime.Status = TeeTimeStatus.Full;
                 await teeTimeRepository.UpdateAsync(teeTime);
             }
+
+            // EME-323: once this guest is placed in a group, any other pending requests they're
+            // holding elsewhere no longer make sense — auto-decline them (status only, preserving
+            // history, matching how a host's own decline already works) rather than leaving them
+            // pending indefinitely. No separate notification: this is a side effect of the
+            // acceptance above, not a decision the other hosts made. AutoDeclineLock above already
+            // holds each of these other tee times' TeeTimeJoinLock too, so this is safe.
+            var guestOtherPending = (await joinRequestRepository.GetAllAsync())
+                .Where(j => j.GuestUserId == joinRequest.GuestUserId
+                    && j.Status == JoinRequestStatus.Pending
+                    && j.TeeTimeId != teeTime.Id);
+            foreach (var other in guestOtherPending)
+            {
+                other.Status = JoinRequestStatus.Declined;
+                await joinRequestRepository.UpdateAsync(other);
+            }
         }
         else
         {
@@ -145,5 +168,34 @@ public class JoinRequestService(
     {
         var joinRequests = await joinRequestRepository.GetByTeeTimeIdAsync(teeTimeId);
         return joinRequests.Select(JoinRequestDto.From).ToList();
+    }
+
+    public async Task WithdrawAsync(Guid joinRequestId, Guid guestUserId)
+    {
+        var lookup = await joinRequestRepository.GetByIdFreshAsync(joinRequestId)
+            ?? throw new NotFoundException($"Join request {joinRequestId} not found.");
+
+        // Held for the whole read-check-delete below, same rationale as UpdateStatusAsync: a
+        // withdraw racing a host's concurrent accept/decline on the same request must not act on
+        // a stale "still Pending" read. Also covers a race against an accept elsewhere that's
+        // mid-way through auto-declining this same request, since AutoDeclineLock takes this
+        // same tee time's TeeTimeJoinLock as part of its set.
+        using var _ = await TeeTimeJoinLock.AcquireAsync(lookup.TeeTimeId);
+
+        var joinRequest = await joinRequestRepository.GetByIdFreshAsync(joinRequestId)
+            ?? throw new NotFoundException($"Join request {joinRequestId} not found.");
+
+        if (joinRequest.GuestUserId != guestUserId)
+        {
+            throw new ForbiddenException("Only the requesting guest can withdraw this join request.");
+        }
+
+        if (joinRequest.Status != JoinRequestStatus.Pending)
+        {
+            throw new DomainValidationException(
+                $"Join request {joinRequestId} is already {joinRequest.Status} and cannot be withdrawn.");
+        }
+
+        await joinRequestRepository.DeleteAsync(joinRequestId);
     }
 }

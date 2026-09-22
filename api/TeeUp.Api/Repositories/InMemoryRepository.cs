@@ -43,4 +43,10 @@ public class InMemoryRepository<T> : IRepository<T> where T : class
         _store[_idSelector(entity)] = entity;
         return Task.CompletedTask;
     }
+
+    public Task DeleteAsync(Guid id)
+    {
+        _store.TryRemove(id, out _);
+        return Task.CompletedTask;
+    }
 }

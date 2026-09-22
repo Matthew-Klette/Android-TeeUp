@@ -108,4 +108,6 @@ object NotificationType {
     const val TEE_TIME_REMINDER = 3
     const val SYNC_PENDING = 4
     const val WEATHER_ALERT = 5
+    /** A group's host cancelled it (EME-321) while this user had a pending/accepted join request against it. */
+    const val TEE_TIME_CANCELLED = 6
 }

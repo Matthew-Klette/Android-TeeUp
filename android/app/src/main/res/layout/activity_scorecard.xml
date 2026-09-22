@@ -114,6 +114,17 @@
                     android:textColor="@color/teeup_text_secondary"
                     android:textSize="@dimen/text_caption" />
 
+                <!-- Only shown once at least one hole this session can be revisited; hidden on
+                     the first enterable hole since anything earlier is already permanently saved. -->
+                <Button
+                    android:id="@+id/button_previous_hole"
+                    style="@style/TeeUpButton.Compact"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/space_sm"
+                    android:text="@string/scorecard_previous_hole"
+                    android:visibility="gone" />
+
                 <Button
                     android:id="@+id/button_next_hole"
                     style="@style/TeeUpButton.Primary"

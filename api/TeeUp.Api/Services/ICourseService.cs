@@ -4,5 +4,9 @@ namespace TeeUp.Api.Services;
 
 public interface ICourseService
 {
-    Task<IReadOnlyList<CourseDto>> GetAllAsync();
+    /// <summary>
+    /// <paramref name="search"/> filters by course name (case-insensitive substring match);
+    /// null or blank returns every course.
+    /// </summary>
+    Task<IReadOnlyList<CourseDto>> GetAllAsync(string? search = null);
 }

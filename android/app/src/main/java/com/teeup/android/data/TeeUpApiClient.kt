@@ -17,8 +17,12 @@ import java.util.concurrent.TimeUnit
  * Every function here blocks and must be called off the main thread.
  */
 object TeeUpApiClient {
-    fun fetchCourses(): List<Course> {
-        val array = JSONArray(request("GET", "api/courses"))
+    /** [search] filters by course name (case-insensitive substring match) server-side;
+     *  null/blank returns every course, same as calling this with no argument. */
+    fun fetchCourses(search: String? = null): List<Course> {
+        val path = if (search.isNullOrBlank()) "api/courses"
+            else "api/courses?search=${java.net.URLEncoder.encode(search, "UTF-8")}"
+        val array = JSONArray(request("GET", path))
         return (0 until array.length()).map { i -> parseCourse(array.getJSONObject(i)) }
     }
 
@@ -37,10 +41,11 @@ object TeeUpApiClient {
         return (0 until array.length()).map { i -> parseTeeTime(array.getJSONObject(i)) }
     }
 
-    /** POST /api/teetimes. Hosted by and reserved entirely for the caller,
-     *  dated now, for the solo Start a Round flow. No join request needed. */
-    fun createSoloTeeTime(courseId: String): TeeTime {
-        val body = JSONObject().put("courseId", courseId)
+    /** POST /api/teetimes — a tee time hosted by and reserved entirely for the caller,
+     *  dated right now, for the solo "Start a Round" flow (no join-request needed).
+     *  [holes] must be 9 or 18; null lets the server default to 18. */
+    fun createSoloTeeTime(courseId: String, holes: Int? = null): TeeTime {
+        val body = JSONObject().put("courseId", courseId).put("holes", holes)
         return parseTeeTime(JSONObject(request("POST", "api/teetimes", body)))
     }
 
@@ -69,6 +74,44 @@ object TeeUpApiClient {
             .put("wantedHandicapMax", wantedHandicapMax)
             .put("wantedPace", wantedPace)
         return parseTeeTime(JSONObject(request("POST", "api/teetimes/groups", body)))
+    }
+
+    /** PATCH /api/teetimes/{id} (EME-321) — edits an existing group's date/time, holes, open
+     *  spots and wanted handicap/pace range. Host-only; the course isn't editable. */
+    fun editGroup(
+        teeTimeId: String,
+        dateTimeIso: String,
+        holes: Int,
+        openSpots: Int,
+        wantedHandicapMin: Double?,
+        wantedHandicapMax: Double?,
+        wantedPace: Int?
+    ): TeeTime {
+        val body = JSONObject()
+            .put("dateTime", dateTimeIso)
+            .put("holes", holes)
+            .put("openSpots", openSpots)
+            .put("wantedHandicapMin", wantedHandicapMin)
+            .put("wantedHandicapMax", wantedHandicapMax)
+            .put("wantedPace", wantedPace)
+        return parseTeeTime(JSONObject(request("PATCH", "api/teetimes/$teeTimeId", body)))
+    }
+
+    /** PATCH /api/teetimes/{id}/cancel (EME-321) — host-only; notifies guests with a
+     *  pending/accepted join request against the group. */
+    fun cancelGroup(teeTimeId: String): TeeTime =
+        parseTeeTime(JSONObject(request("PATCH", "api/teetimes/$teeTimeId/cancel")))
+
+    /** DELETE /api/teetimes/{id} (EME-321) — host-only, and only while the group has zero join
+     *  requests against it; the server rejects otherwise and directs the caller to cancel instead. */
+    fun deleteGroup(teeTimeId: String) {
+        request("DELETE", "api/teetimes/$teeTimeId")
+    }
+
+    /** DELETE /api/join-requests/{id} (EME-323) — withdraws the caller's own still-pending
+     *  join request. */
+    fun withdrawJoinRequest(joinRequestId: String) {
+        request("DELETE", "api/join-requests/$joinRequestId")
     }
 
     fun fetchNotifications(): List<AppNotification> {
@@ -157,6 +200,13 @@ object TeeUpApiClient {
         return parsePlayedRound(JSONObject(request("POST", "api/rounds/$teeTimeId/scorecard", body)))
     }
 
+    /** DELETE /api/rounds/{roundId}/scorecard/{holeNumber} (EME-322) — deletes one hole's entry
+     *  so it can be corrected by re-entering it. Only the round's host or an accepted guest may
+     *  call this. */
+    fun deleteScorecardEntry(roundId: String, holeNumber: Int) {
+        request("DELETE", "api/rounds/$roundId/scorecard/$holeNumber")
+    }
+
     private fun parseRegisteredUser(o: JSONObject) = RegisteredUser(
         id = o.getString("id"),
         displayName = o.getString("displayName"),
@@ -224,6 +274,7 @@ object TeeUpApiClient {
         teeTimeId = o.getString("teeTimeId"),
         courseId = o.getString("courseId"),
         dateTime = o.getString("dateTime"),
+        holes = if (o.isNull("holes")) null else o.getInt("holes"),
         round = if (o.isNull("round")) null else parsePlayedRound(o.getJSONObject("round"))
     )
 
