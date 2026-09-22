@@ -21,8 +21,10 @@ public class TeeTimeServiceTests
         var users = new InMemoryUserRepository();
         var courses = new InMemoryCourseRepository();
         var rounds = new InMemoryRoundRepository();
+        var resolvedNotifications = notifications ?? new InMemoryNotificationRepository();
+        var unitOfWork = new InMemoryUnitOfWork(teeTimes, joinRequests, resolvedNotifications);
         return (
-            new TeeTimeService(teeTimes, users, courses, joinRequests, notifications ?? new InMemoryNotificationRepository(), rounds),
+            new TeeTimeService(teeTimes, users, courses, joinRequests, resolvedNotifications, rounds, unitOfWork),
             teeTimes, users, courses, rounds);
     }
 
@@ -598,8 +600,9 @@ public class TeeTimeServiceTests
         var users = new InMemoryUserRepository();
         var courses = new InMemoryCourseRepository();
         var rounds = new InMemoryRoundRepository();
+        var unitOfWork = new InMemoryUnitOfWork(teeTimes, joinRequests, notifications);
         var service = new TeeTimeService(
-            new ThrowingOnDeleteTeeTimeRepository(teeTimes), users, courses, joinRequests, notifications, rounds);
+            new ThrowingOnDeleteTeeTimeRepository(teeTimes), users, courses, joinRequests, notifications, rounds, unitOfWork);
         var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
         var course = await AddCourse(courses);
         var created = await teeTimes.AddAsync(MakeTeeTime(host.Id));
@@ -610,6 +613,47 @@ public class TeeTimeServiceTests
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => service.DeleteAsync(created.Id, host.Id));
 
+        Assert.Empty(await notifications.GetAllAsync());
+    }
+
+    /// <summary>Wraps a real repository so a test can force the notification insert inside
+    /// DeleteAsync's transaction to fail after the delete has already run.</summary>
+    private sealed class ThrowingOnAddNotificationRepository(INotificationRepository inner) : INotificationRepository
+    {
+        public Task<Notification?> GetByIdAsync(Guid id) => inner.GetByIdAsync(id);
+        public Task<Notification?> GetByIdFreshAsync(Guid id) => inner.GetByIdFreshAsync(id);
+        public Task<IReadOnlyList<Notification>> GetAllAsync() => inner.GetAllAsync();
+        public Task<Notification> AddAsync(Notification entity) => throw new InvalidOperationException("Simulated notification failure.");
+        public Task UpdateAsync(Notification entity) => inner.UpdateAsync(entity);
+        public Task DeleteAsync(Guid id) => inner.DeleteAsync(id);
+        public Task<IReadOnlyList<Notification>> GetByUserIdAsync(Guid userId) => inner.GetByUserIdAsync(userId);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_WhenNotificationInsertFails_RollsBackTheDelete()
+    {
+        var teeTimes = new InMemoryTeeTimeRepository();
+        var joinRequests = new InMemoryJoinRequestRepository();
+        var notifications = new InMemoryNotificationRepository();
+        var users = new InMemoryUserRepository();
+        var courses = new InMemoryCourseRepository();
+        var rounds = new InMemoryRoundRepository();
+        var unitOfWork = new InMemoryUnitOfWork(teeTimes, joinRequests, notifications);
+        var service = new TeeTimeService(
+            teeTimes, users, courses, joinRequests, new ThrowingOnAddNotificationRepository(notifications), rounds, unitOfWork);
+        var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
+        var course = await AddCourse(courses);
+        var created = await teeTimes.AddAsync(MakeTeeTime(host.Id));
+        await joinRequests.AddAsync(new JoinRequest
+        {
+            Id = Guid.NewGuid(), TeeTimeId = created.Id, GuestUserId = Guid.NewGuid(), Status = JoinRequestStatus.Accepted
+        });
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.DeleteAsync(created.Id, host.Id));
+
+        // The delete already ran before the notification insert failed; the transaction
+        // must undo it too, or the group would be gone with no guest ever notified.
+        Assert.NotNull(await teeTimes.GetByIdAsync(created.Id));
         Assert.Empty(await notifications.GetAllAsync());
     }
 

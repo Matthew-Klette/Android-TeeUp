@@ -64,7 +64,8 @@ public class JoinRequestConcurrencyTests
             new EfCourseRepository(context),
             new EfJoinRequestRepository(context),
             new EfNotificationRepository(context),
-            new EfRoundRepository(context));
+            new EfRoundRepository(context),
+            new EfUnitOfWork(context));
     }
 
     private static async Task<bool> TryUpdateStatus(

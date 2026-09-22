@@ -11,7 +11,8 @@ public class TeeTimeService(
     ICourseRepository courseRepository,
     IJoinRequestRepository joinRequestRepository,
     INotificationRepository notificationRepository,
-    IRoundRepository roundRepository) : ITeeTimeService
+    IRoundRepository roundRepository,
+    IUnitOfWork unitOfWork) : ITeeTimeService
 {
     public async Task<IReadOnlyList<TeeTimeDto>> GetAllAsync(decimal? maxHandicap = null, PaceOfPlay? pace = null, bool joinableOnly = false)
     {
@@ -273,21 +274,25 @@ public class TeeTimeService(
         var siblings = await joinRequestRepository.GetByTeeTimeIdAsync(teeTimeId);
         var affected = siblings.Where(j => j.Status is JoinRequestStatus.Pending or JoinRequestStatus.Accepted).ToList();
 
-        await teeTimeRepository.DeleteAsync(teeTimeId);
-
-        // Notify only after the delete actually succeeds, so a failure here can't leave a
-        // guest believing the group is gone when it isn't.
-        foreach (var guest in affected)
+        // Delete and its notifications run as one transaction: if either step fails, both
+        // roll back, so a guest can never be told the group is gone when it isn't, and the
+        // group can never actually vanish without its guests being notified.
+        await unitOfWork.RunInTransactionAsync(async () =>
         {
-            await notificationRepository.AddAsync(new Notification
+            await teeTimeRepository.DeleteAsync(teeTimeId);
+
+            foreach (var guest in affected)
             {
-                Id = Guid.NewGuid(),
-                UserId = guest.GuestUserId,
-                Type = NotificationType.TeeTimeCancelled,
-                Message = "A tee time group you were part of was deleted by the host.",
-                RelatedEntityId = teeTime.Id
-            });
-        }
+                await notificationRepository.AddAsync(new Notification
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = guest.GuestUserId,
+                    Type = NotificationType.TeeTimeCancelled,
+                    Message = "A tee time group you were part of was deleted by the host.",
+                    RelatedEntityId = teeTime.Id
+                });
+            }
+        });
     }
 
     public async Task<IReadOnlyList<TeeTimeDto>> GetMineAsync(Guid userId)

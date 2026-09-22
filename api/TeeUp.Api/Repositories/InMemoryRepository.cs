@@ -8,7 +8,7 @@ namespace TeeUp.Api.Repositories;
 /// services depend only on the abstraction and swapping the backing store
 /// later needs no service-layer changes.
 /// </summary>
-public class InMemoryRepository<T> : IRepository<T> where T : class
+public class InMemoryRepository<T> : IRepository<T>, ITransactionParticipant where T : class
 {
     private readonly ConcurrentDictionary<Guid, T> _store = new();
     private readonly Func<T, Guid> _idSelector;
@@ -48,5 +48,17 @@ public class InMemoryRepository<T> : IRepository<T> where T : class
     {
         _store.TryRemove(id, out _);
         return Task.CompletedTask;
+    }
+
+    object ITransactionParticipant.CreateSnapshot() => new Dictionary<Guid, T>(_store);
+
+    void ITransactionParticipant.RestoreSnapshot(object snapshot)
+    {
+        var previous = (Dictionary<Guid, T>)snapshot;
+        _store.Clear();
+        foreach (var (id, entity) in previous)
+        {
+            _store[id] = entity;
+        }
     }
 }
