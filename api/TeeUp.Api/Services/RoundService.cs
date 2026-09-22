@@ -65,6 +65,10 @@ public class RoundService(
                 $"Tee time {teeTimeId} is a {holeLimit}-hole round; hole numbers cannot exceed {holeLimit}.");
         }
 
+        // Serializes the round find-or-create and the per-hole upsert below against any other
+        // post/delete for this tee time — see RoundEntryLock.
+        using var _ = await RoundEntryLock.AcquireAsync(teeTimeId);
+
         var round = await roundRepository.GetByTeeTimeIdAsync(teeTimeId);
         if (round is null)
         {
@@ -72,17 +76,37 @@ public class RoundService(
             await roundRepository.AddAsync(round);
         }
 
+        // Upsert per hole rather than always inserting: a hole that already has an entry (from
+        // an earlier post, or an overlapping/retried request for the same hole) gets its score
+        // replaced in place. Deleting a hole first (RoundSummaryActivity's per-hole delete) and
+        // then reposting it is the normal path and still works, since that removes the row this
+        // lookup would otherwise find. Without this, a genuine double-submit would either collide
+        // with the DB's unique (RoundId, HoleNumber) index or, in a store that doesn't enforce
+        // that, create a second row that silently double-counts strokes/putts.
+        var existingByHole = (await scorecardEntryRepository.GetByRoundIdAsync(round.Id))
+            .ToDictionary(e => e.HoleNumber);
+
         foreach (var entry in request.Entries)
         {
-            await scorecardEntryRepository.AddAsync(new ScorecardEntry
+            if (existingByHole.TryGetValue(entry.HoleNumber, out var existing))
             {
-                Id = Guid.NewGuid(),
-                RoundId = round.Id,
-                HoleNumber = entry.HoleNumber,
-                Strokes = entry.Strokes,
-                Putts = entry.Putts,
-                Synced = true
-            });
+                existing.Strokes = entry.Strokes;
+                existing.Putts = entry.Putts;
+                existing.Synced = true;
+                await scorecardEntryRepository.UpdateAsync(existing);
+            }
+            else
+            {
+                await scorecardEntryRepository.AddAsync(new ScorecardEntry
+                {
+                    Id = Guid.NewGuid(),
+                    RoundId = round.Id,
+                    HoleNumber = entry.HoleNumber,
+                    Strokes = entry.Strokes,
+                    Putts = entry.Putts,
+                    Synced = true
+                });
+            }
         }
 
         var scorecard = await scorecardEntryRepository.GetByRoundIdAsync(round.Id);
@@ -104,6 +128,10 @@ public class RoundService(
         {
             throw new ForbiddenException("Only this round's host or an accepted guest can delete a scorecard entry.");
         }
+
+        // Same lock PostScorecardAsync takes, so a delete can't race a concurrent post's read of
+        // which holes already exist for this round.
+        using var _ = await RoundEntryLock.AcquireAsync(teeTime.Id);
 
         var entry = (await scorecardEntryRepository.GetByRoundIdAsync(roundId))
             .FirstOrDefault(e => e.HoleNumber == holeNumber)

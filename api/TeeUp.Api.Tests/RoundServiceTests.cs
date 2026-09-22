@@ -149,6 +149,41 @@ public class RoundServiceTests
     }
 
     [Fact]
+    public async Task PostScorecardAsync_ResubmittingAHoleAlreadySaved_ReplacesItInPlace()
+    {
+        var (service, teeTimes, _) = CreateService();
+        var teeTime = MakeTeeTime(DateTime.UtcNow.AddHours(-1));
+        await teeTimes.AddAsync(teeTime);
+        var first = await service.PostScorecardAsync(teeTime.Id, OneHole(strokes: 4, putts: 2));
+
+        // Two overlapping requests for the same hole (two devices, a retry) must not create a
+        // second row that double-counts strokes/putts — the later one replaces the earlier.
+        var second = await service.PostScorecardAsync(teeTime.Id, OneHole(strokes: 5, putts: 3));
+
+        Assert.Equal(first.Id, second.Id);
+        var onlyEntry = Assert.Single(second.Scorecard);
+        Assert.Equal(5, onlyEntry.Strokes);
+        Assert.Equal(3, onlyEntry.Putts);
+    }
+
+    [Fact]
+    public async Task PostScorecardAsync_AfterDeletingAHole_RepostsItCleanly()
+    {
+        var (service, teeTimes, _) = CreateService();
+        var hostId = Guid.NewGuid();
+        var teeTime = MakeTeeTime(DateTime.UtcNow.AddHours(-1), hostId);
+        await teeTimes.AddAsync(teeTime);
+        var posted = await service.PostScorecardAsync(teeTime.Id, OneHole(strokes: 4, putts: 2));
+        await service.DeleteScorecardEntryAsync(posted.Id, 1, hostId);
+
+        var reposted = await service.PostScorecardAsync(teeTime.Id, OneHole(strokes: 6, putts: 3));
+
+        var onlyEntry = Assert.Single(reposted.Scorecard);
+        Assert.Equal(6, onlyEntry.Strokes);
+        Assert.Equal(3, onlyEntry.Putts);
+    }
+
+    [Fact]
     public async Task DeleteScorecardEntryAsync_ByHost_RemovesTheEntry()
     {
         var (service, teeTimes, _) = CreateService();

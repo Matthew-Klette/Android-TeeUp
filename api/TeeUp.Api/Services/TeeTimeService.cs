@@ -141,11 +141,10 @@ public class TeeTimeService(
             Status = TeeTimeStatus.Open
         };
 
-        // Guest lock on the host's own user id, held across the auto-decline loop below, so it
-        // can't race a concurrent JoinRequestService call touching one of these same requests
-        // (see GuestJoinRequestLock's doc comment — must be acquired before any TeeTimeJoinLock,
-        // though nothing here takes one since this is a brand-new tee time no one else knows of yet).
-        using var __ = await GuestJoinRequestLock.AcquireAsync(hostUserId);
+        // Held across the auto-decline loop below so it can't race a concurrent JoinRequestService
+        // call touching one of these same requests elsewhere (see AutoDeclineLock). The "primary"
+        // tee time here is this brand-new one, which nothing else can reference yet.
+        using var __ = await AutoDeclineLock.AcquireAsync(joinRequestRepository, teeTime.Id, hostUserId);
 
         await teeTimeRepository.AddAsync(teeTime);
 
@@ -185,6 +184,10 @@ public class TeeTimeService(
 
         // Serialized against a concurrent accept/decline/withdraw on the same tee time (EME-321,
         // reusing EME-313's per-tee-time lock) so an edit can't act on a stale open-spots count.
+        // This also covers a race against an accept elsewhere that's auto-declining one of this
+        // tee time's own Pending requests (EME-323): AutoDeclineLock takes this same
+        // TeeTimeJoinLock as part of its set, so the two properly serialize against each other
+        // even though this method knows nothing about AutoDeclineLock itself.
         using var _ = await TeeTimeJoinLock.AcquireAsync(teeTimeId);
 
         var teeTime = await teeTimeRepository.GetByIdFreshAsync(teeTimeId)
@@ -228,6 +231,9 @@ public class TeeTimeService(
 
     public async Task<TeeTimeDto> CancelAsync(Guid teeTimeId, Guid hostUserId)
     {
+        // Same TeeTimeJoinLock EditAsync takes — see its comment on why that's also enough to
+        // serialize against a same-tee-time auto-decline (EME-323), not just against another
+        // accept/decline/withdraw.
         using var _ = await TeeTimeJoinLock.AcquireAsync(teeTimeId);
 
         var teeTime = await teeTimeRepository.GetByIdFreshAsync(teeTimeId)
