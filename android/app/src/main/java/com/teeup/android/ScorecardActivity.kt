@@ -40,6 +40,11 @@ class ScorecardActivity : LocaleActivity() {
      *  saved on the server (a prior "Continue Round" session), so Previous Hole stops here. */
     private var startHole = 1
     private var alreadySavedHoles = 0
+    /** Hole numbers already scored and saved on the server for this round. Holes aren't always
+     *  a contiguous 1..N prefix — a middle hole can be deleted from RoundSummaryActivity and
+     *  reopened — so resuming and Next/Previous navigation must skip over these rather than
+     *  assume everything below the highest saved hole number is done. */
+    private var persistedHoles: Set<Int> = emptySet()
     private val newEntries = mutableListOf<HoleScoreInput>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -88,10 +93,10 @@ class ScorecardActivity : LocaleActivity() {
                     null
                 } ?: MockCatalog.courseById(match.courseId)
 
-                val existingHoles = match.round?.scorecard?.map { it.holeNumber } ?: emptyList()
-                val startHole = (existingHoles.maxOrNull() ?: 0) + 1
+                val existingHoles = match.round?.scorecard?.map { it.holeNumber }?.toSet() ?: emptySet()
+                val startHole = (1..totalHoles).firstOrNull { it !in existingHoles } ?: (totalHoles + 1)
 
-                runOnUiThread { onRoundLoaded(match, course, startHole, existingHoles.size) }
+                runOnUiThread { onRoundLoaded(match, course, startHole, existingHoles) }
             } catch (e: Exception) {
                 runOnUiThread {
                     TeeUpBanner.show(this, e.message ?: getString(R.string.scorecard_load_failed), isError = true)
@@ -101,7 +106,7 @@ class ScorecardActivity : LocaleActivity() {
         }.start()
     }
 
-    private fun onRoundLoaded(round: ScheduledRound, course: Course?, startHole: Int, savedHoles: Int) {
+    private fun onRoundLoaded(round: ScheduledRound, course: Course?, startHole: Int, existingHoles: Set<Int>) {
         setLoading(false)
 
         findViewById<TextView>(R.id.round_reference).text = getString(
@@ -116,7 +121,8 @@ class ScorecardActivity : LocaleActivity() {
         }
 
         this.startHole = startHole
-        alreadySavedHoles = savedHoles
+        this.persistedHoles = existingHoles
+        alreadySavedHoles = existingHoles.size
         currentHole = startHole
         updateHoleUi()
 
@@ -129,7 +135,7 @@ class ScorecardActivity : LocaleActivity() {
         if (currentHole <= startHole) return
         // Whatever's currently typed for the hole being left is discarded, not saved — Previous
         // is for backing out of a hole to go fix an earlier mistake, not for confirming this one.
-        currentHole--
+        currentHole = previousEntryHole(currentHole)
         updateHoleUi()
     }
 
@@ -140,12 +146,30 @@ class ScorecardActivity : LocaleActivity() {
         }
         replaceEntry(entry)
 
-        if (currentHole < totalHoles) {
-            currentHole++
-            updateHoleUi()
-        } else {
+        val next = nextEntryHole(currentHole)
+        if (next > totalHoles) {
             finishRound()
+        } else {
+            currentHole = next
+            updateHoleUi()
         }
+    }
+
+    /** Nearest higher hole number, up to [totalHoles], that still needs an entry — skips holes
+     *  already persisted on the server so Next never re-submits one and hits the API's
+     *  duplicate-hole rejection. Returns totalHoles + 1 once nothing is left to enter. */
+    private fun nextEntryHole(from: Int): Int {
+        var hole = from + 1
+        while (hole <= totalHoles && hole in persistedHoles) hole++
+        return hole
+    }
+
+    /** Nearest lower hole number, no lower than [startHole], that still needs an entry — mirrors
+     *  [nextEntryHole] so Previous never lands back on an already-persisted hole either. */
+    private fun previousEntryHole(from: Int): Int {
+        var hole = from - 1
+        while (hole > startHole && hole in persistedHoles) hole--
+        return hole
     }
 
     private fun onFinishEarlyClicked() {
@@ -195,10 +219,13 @@ class ScorecardActivity : LocaleActivity() {
         )
         findViewById<Button>(R.id.button_previous_hole).visibility =
             if (currentHole > startHole) View.VISIBLE else View.GONE
+        // The last hole still needing an entry, not just hole number == totalHoles — a gap left
+        // by deleting a middle hole can put the final entry before the numeric last hole.
+        val isLastEntryHole = nextEntryHole(currentHole) > totalHoles
         findViewById<Button>(R.id.button_next_hole).text =
-            if (currentHole == totalHoles) getString(R.string.scorecard_finish_round) else getString(R.string.scorecard_next_hole)
+            if (isLastEntryHole) getString(R.string.scorecard_finish_round) else getString(R.string.scorecard_next_hole)
         findViewById<Button>(R.id.button_finish_early).visibility =
-            if (currentHole == totalHoles) View.GONE else View.VISIBLE
+            if (isLastEntryHole) View.GONE else View.VISIBLE
     }
 
     private fun finishRound() {

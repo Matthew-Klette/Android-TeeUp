@@ -8,21 +8,22 @@ namespace TeeUp.Api.Tests;
 
 public class TeeTimeServiceTests
 {
-    private static (TeeTimeService Service, InMemoryTeeTimeRepository TeeTimes, InMemoryUserRepository Users, InMemoryCourseRepository Courses)
+    private static (TeeTimeService Service, InMemoryTeeTimeRepository TeeTimes, InMemoryUserRepository Users, InMemoryCourseRepository Courses, InMemoryRoundRepository Rounds)
         CreateService(InMemoryJoinRequestRepository? joinRequests = null)
     {
         return CreateServiceWithJoinRequests(joinRequests ?? new InMemoryJoinRequestRepository());
     }
 
-    private static (TeeTimeService Service, InMemoryTeeTimeRepository TeeTimes, InMemoryUserRepository Users, InMemoryCourseRepository Courses)
+    private static (TeeTimeService Service, InMemoryTeeTimeRepository TeeTimes, InMemoryUserRepository Users, InMemoryCourseRepository Courses, InMemoryRoundRepository Rounds)
         CreateServiceWithJoinRequests(InMemoryJoinRequestRepository joinRequests, InMemoryNotificationRepository? notifications = null)
     {
         var teeTimes = new InMemoryTeeTimeRepository();
         var users = new InMemoryUserRepository();
         var courses = new InMemoryCourseRepository();
+        var rounds = new InMemoryRoundRepository();
         return (
-            new TeeTimeService(teeTimes, users, courses, joinRequests, notifications ?? new InMemoryNotificationRepository()),
-            teeTimes, users, courses);
+            new TeeTimeService(teeTimes, users, courses, joinRequests, notifications ?? new InMemoryNotificationRepository(), rounds),
+            teeTimes, users, courses, rounds);
     }
 
     private static async Task<User> AddHost(InMemoryUserRepository users, decimal? handicap, PaceOfPlay pace)
@@ -56,7 +57,7 @@ public class TeeTimeServiceTests
     [Fact]
     public async Task GetAllAsync_WithNoFilters_ReturnsEverything()
     {
-        var (service, teeTimes, users, _) = CreateService();
+        var (service, teeTimes, users, _, _) = CreateService();
         var host = await AddHost(users, handicap: 20m, PaceOfPlay.Relaxed);
         await teeTimes.AddAsync(MakeTeeTime(host.Id));
         await teeTimes.AddAsync(MakeTeeTime(hostUserId: null));
@@ -69,7 +70,7 @@ public class TeeTimeServiceTests
     [Fact]
     public async Task GetAllAsync_WithMaxHandicap_ExcludesHostsAboveThreshold()
     {
-        var (service, teeTimes, users, _) = CreateService();
+        var (service, teeTimes, users, _, _) = CreateService();
         var lowHandicapHost = await AddHost(users, handicap: 10m, PaceOfPlay.Standard);
         var highHandicapHost = await AddHost(users, handicap: 30m, PaceOfPlay.Standard);
         var lowTeeTime = MakeTeeTime(lowHandicapHost.Id);
@@ -85,7 +86,7 @@ public class TeeTimeServiceTests
     [Fact]
     public async Task GetAllAsync_WithPaceFilter_OnlyMatchesExactPace()
     {
-        var (service, teeTimes, users, _) = CreateService();
+        var (service, teeTimes, users, _, _) = CreateService();
         var briskHost = await AddHost(users, handicap: null, PaceOfPlay.Brisk);
         var relaxedHost = await AddHost(users, handicap: null, PaceOfPlay.Relaxed);
         var briskTeeTime = MakeTeeTime(briskHost.Id);
@@ -101,7 +102,7 @@ public class TeeTimeServiceTests
     [Fact]
     public async Task GetAllAsync_WithFilterActive_ExcludesTeeTimesWithNoHost()
     {
-        var (service, teeTimes, _, _) = CreateService();
+        var (service, teeTimes, _, _, _) = CreateService();
         await teeTimes.AddAsync(MakeTeeTime(hostUserId: null));
 
         var result = await service.GetAllAsync(maxHandicap: 54m);
@@ -112,7 +113,7 @@ public class TeeTimeServiceTests
     [Fact]
     public async Task GetAllAsync_WithMaxHandicap_ExcludesHostWithNoHandicapSet()
     {
-        var (service, teeTimes, users, _) = CreateService();
+        var (service, teeTimes, users, _, _) = CreateService();
         var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
         await teeTimes.AddAsync(MakeTeeTime(host.Id));
 
@@ -124,7 +125,7 @@ public class TeeTimeServiceTests
     [Fact]
     public async Task GetAllAsync_IncludesHostAndAcceptedGuestsAsMembers()
     {
-        var (service, teeTimes, users, _) = CreateService();
+        var (service, teeTimes, users, _, _) = CreateService();
         var host = await AddHost(users, handicap: 12m, PaceOfPlay.Standard);
         var teeTime = MakeTeeTime(host.Id);
         await teeTimes.AddAsync(teeTime);
@@ -140,7 +141,7 @@ public class TeeTimeServiceTests
     [Fact]
     public async Task GetAllAsync_JoinableOnly_ExcludesBookingsFullCancelledAndPastGroups()
     {
-        var (service, teeTimes, users, _) = CreateService();
+        var (service, teeTimes, users, _, _) = CreateService();
         var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
 
         var joinableGroup = MakeTeeTime(host.Id);
@@ -165,7 +166,7 @@ public class TeeTimeServiceTests
     public async Task GetAllAsync_JoinableOnly_ExcludesOpenGroupsWithNoRemainingCapacity()
     {
         var joinRequests = new InMemoryJoinRequestRepository();
-        var (service, teeTimes, users, _) = CreateService(joinRequests);
+        var (service, teeTimes, users, _, _) = CreateService(joinRequests);
         var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
 
         // Status alone says Open, but its single spot has already been accepted.
@@ -192,7 +193,7 @@ public class TeeTimeServiceTests
     [Fact]
     public async Task GetAllAsync_JoinableOnlyFalse_StillReturnsBookingsFullCancelledAndPastGroups()
     {
-        var (service, teeTimes, users, _) = CreateService();
+        var (service, teeTimes, users, _, _) = CreateService();
         var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
 
         await teeTimes.AddAsync(MakeTeeTime(host.Id));
@@ -220,7 +221,7 @@ public class TeeTimeServiceTests
     [Fact]
     public async Task CreateGroupAsync_WithValidRequest_CreatesOpenGroupHostedByCaller()
     {
-        var (service, _, users, courses) = CreateService();
+        var (service, _, users, courses, _) = CreateService();
         var host = await AddHost(users, handicap: 14.5m, PaceOfPlay.Relaxed);
         var course = await AddCourse(courses);
 
@@ -239,7 +240,7 @@ public class TeeTimeServiceTests
     [Fact]
     public async Task CreateGroupAsync_ForUnknownCourse_ThrowsValidationError()
     {
-        var (service, _, users, _) = CreateService();
+        var (service, _, users, _, _) = CreateService();
         var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
 
         // CourseId is a request-body field, not a URL resource, so an unknown
@@ -252,7 +253,7 @@ public class TeeTimeServiceTests
     [Fact]
     public async Task CreateGroupAsync_ForFreshGroup_SpotsRemainingEqualsOpenSpots()
     {
-        var (service, _, users, courses) = CreateService();
+        var (service, _, users, courses, _) = CreateService();
         var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
         var course = await AddCourse(courses);
 
@@ -265,7 +266,7 @@ public class TeeTimeServiceTests
     [Fact]
     public async Task CreateGroupAsync_InThePast_ThrowsValidationError()
     {
-        var (service, _, users, courses) = CreateService();
+        var (service, _, users, courses, _) = CreateService();
         var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
         var course = await AddCourse(courses);
         var request = MakeGroupRequest(course.Id) with { DateTime = DateTime.UtcNow.AddDays(-1) };
@@ -278,7 +279,7 @@ public class TeeTimeServiceTests
     [InlineData(19)]
     public async Task CreateGroupAsync_WithInvalidHoles_ThrowsValidationError(int holes)
     {
-        var (service, _, users, courses) = CreateService();
+        var (service, _, users, courses, _) = CreateService();
         var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
         var course = await AddCourse(courses);
 
@@ -289,7 +290,7 @@ public class TeeTimeServiceTests
     [Fact]
     public async Task CreateGroupAsync_WithZeroOpenSpots_ThrowsValidationError()
     {
-        var (service, _, users, courses) = CreateService();
+        var (service, _, users, courses, _) = CreateService();
         var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
         var course = await AddCourse(courses);
 
@@ -300,7 +301,7 @@ public class TeeTimeServiceTests
     [Fact]
     public async Task CreateSoloAsync_WithNoHoles_DefaultsToEighteen()
     {
-        var (service, _, users, courses) = CreateService();
+        var (service, _, users, courses, _) = CreateService();
         var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
         var course = await AddCourse(courses);
 
@@ -314,7 +315,7 @@ public class TeeTimeServiceTests
     [InlineData(18)]
     public async Task CreateSoloAsync_WithValidHoles_PersistsThem(int holes)
     {
-        var (service, _, users, courses) = CreateService();
+        var (service, _, users, courses, _) = CreateService();
         var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
         var course = await AddCourse(courses);
 
@@ -326,7 +327,7 @@ public class TeeTimeServiceTests
     [Fact]
     public async Task CreateSoloAsync_WithInvalidHoles_ThrowsValidationError()
     {
-        var (service, _, users, courses) = CreateService();
+        var (service, _, users, courses, _) = CreateService();
         var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
         var course = await AddCourse(courses);
 
@@ -336,7 +337,7 @@ public class TeeTimeServiceTests
     [Fact]
     public async Task CreateGroupAsync_WithMinAboveMax_ThrowsValidationError()
     {
-        var (service, _, users, courses) = CreateService();
+        var (service, _, users, courses, _) = CreateService();
         var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
         var course = await AddCourse(courses);
 
@@ -348,7 +349,7 @@ public class TeeTimeServiceTests
     public async Task CreateGroupAsync_AutoDeclinesHostsOwnPendingGuestRequestsElsewhere()
     {
         var joinRequests = new InMemoryJoinRequestRepository();
-        var (service, _, users, courses) = CreateServiceWithJoinRequests(joinRequests);
+        var (service, _, users, courses, _) = CreateServiceWithJoinRequests(joinRequests);
         var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
         var course = await AddCourse(courses);
 
@@ -370,7 +371,7 @@ public class TeeTimeServiceTests
     [Fact]
     public async Task EditAsync_ByHost_UpdatesDetails()
     {
-        var (service, teeTimes, users, courses) = CreateService();
+        var (service, teeTimes, users, courses, _) = CreateService();
         var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
         var course = await AddCourse(courses);
         var created = await service.CreateGroupAsync(host.Id, MakeGroupRequest(course.Id, openSpots: 2));
@@ -384,7 +385,7 @@ public class TeeTimeServiceTests
     [Fact]
     public async Task EditAsync_ByNonHost_ThrowsForbidden()
     {
-        var (service, _, users, courses) = CreateService();
+        var (service, _, users, courses, _) = CreateService();
         var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
         var course = await AddCourse(courses);
         var created = await service.CreateGroupAsync(host.Id, MakeGroupRequest(course.Id));
@@ -397,7 +398,7 @@ public class TeeTimeServiceTests
     public async Task EditAsync_ShrinkingBelowAcceptedGuestCount_ThrowsValidationError()
     {
         var joinRequests = new InMemoryJoinRequestRepository();
-        var (service, teeTimes, users, courses) = CreateServiceWithJoinRequests(joinRequests);
+        var (service, teeTimes, users, courses, _) = CreateServiceWithJoinRequests(joinRequests);
         var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
         var course = await AddCourse(courses);
         var created = await service.CreateGroupAsync(host.Id, MakeGroupRequest(course.Id, openSpots: 3));
@@ -419,7 +420,7 @@ public class TeeTimeServiceTests
     [Fact]
     public async Task EditAsync_OnCancelledGroup_ThrowsValidationError()
     {
-        var (service, _, users, courses) = CreateService();
+        var (service, _, users, courses, _) = CreateService();
         var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
         var course = await AddCourse(courses);
         var created = await service.CreateGroupAsync(host.Id, MakeGroupRequest(course.Id));
@@ -430,11 +431,26 @@ public class TeeTimeServiceTests
     }
 
     [Fact]
+    public async Task EditAsync_WithExistingRound_ThrowsValidationError()
+    {
+        var (service, _, users, courses, rounds) = CreateService();
+        var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
+        var course = await AddCourse(courses);
+        var created = await service.CreateGroupAsync(host.Id, MakeGroupRequest(course.Id));
+        await rounds.AddAsync(new Round { Id = Guid.NewGuid(), TeeTimeId = created.Id });
+
+        // A round already tracks scores against this tee time's current Holes/DateTime — editing
+        // either out from under it would break PostScorecardAsync's server-side hole-count check.
+        await Assert.ThrowsAsync<DomainValidationException>(() =>
+            service.EditAsync(created.Id, host.Id, MakeEditRequest()));
+    }
+
+    [Fact]
     public async Task CancelAsync_ByHost_SetsCancelledAndNotifiesAffectedGuests()
     {
         var joinRequests = new InMemoryJoinRequestRepository();
         var notifications = new InMemoryNotificationRepository();
-        var (service, teeTimes, users, courses) = CreateServiceWithJoinRequests(joinRequests, notifications);
+        var (service, teeTimes, users, courses, _) = CreateServiceWithJoinRequests(joinRequests, notifications);
         var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
         var course = await AddCourse(courses);
         var created = await service.CreateGroupAsync(host.Id, MakeGroupRequest(course.Id, openSpots: 2));
@@ -454,7 +470,7 @@ public class TeeTimeServiceTests
     [Fact]
     public async Task CancelAsync_ByNonHost_ThrowsForbidden()
     {
-        var (service, _, users, courses) = CreateService();
+        var (service, _, users, courses, _) = CreateService();
         var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
         var course = await AddCourse(courses);
         var created = await service.CreateGroupAsync(host.Id, MakeGroupRequest(course.Id));
@@ -465,7 +481,7 @@ public class TeeTimeServiceTests
     [Fact]
     public async Task CancelAsync_AlreadyCancelled_ThrowsValidationError()
     {
-        var (service, _, users, courses) = CreateService();
+        var (service, _, users, courses, _) = CreateService();
         var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
         var course = await AddCourse(courses);
         var created = await service.CreateGroupAsync(host.Id, MakeGroupRequest(course.Id));
@@ -477,7 +493,7 @@ public class TeeTimeServiceTests
     [Fact]
     public async Task DeleteAsync_ByHostWithNoJoinRequests_RemovesTheGroup()
     {
-        var (service, teeTimes, users, courses) = CreateService();
+        var (service, teeTimes, users, courses, _) = CreateService();
         var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
         var course = await AddCourse(courses);
         var created = await service.CreateGroupAsync(host.Id, MakeGroupRequest(course.Id));
@@ -490,7 +506,7 @@ public class TeeTimeServiceTests
     [Fact]
     public async Task DeleteAsync_ByNonHost_ThrowsForbidden()
     {
-        var (service, _, users, courses) = CreateService();
+        var (service, _, users, courses, _) = CreateService();
         var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
         var course = await AddCourse(courses);
         var created = await service.CreateGroupAsync(host.Id, MakeGroupRequest(course.Id));
@@ -502,7 +518,7 @@ public class TeeTimeServiceTests
     public async Task DeleteAsync_WithExistingJoinRequests_ThrowsValidationError()
     {
         var joinRequests = new InMemoryJoinRequestRepository();
-        var (service, teeTimes, users, courses) = CreateServiceWithJoinRequests(joinRequests);
+        var (service, teeTimes, users, courses, _) = CreateServiceWithJoinRequests(joinRequests);
         var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
         var course = await AddCourse(courses);
         var created = await service.CreateGroupAsync(host.Id, MakeGroupRequest(course.Id));
@@ -511,6 +527,21 @@ public class TeeTimeServiceTests
             Id = Guid.NewGuid(), TeeTimeId = created.Id, GuestUserId = Guid.NewGuid(), Status = JoinRequestStatus.Declined
         });
 
+        await Assert.ThrowsAsync<DomainValidationException>(() => service.DeleteAsync(created.Id, host.Id));
+        Assert.NotNull(await teeTimes.GetByIdAsync(created.Id));
+    }
+
+    [Fact]
+    public async Task DeleteAsync_WithExistingRound_ThrowsValidationError()
+    {
+        var (service, teeTimes, users, courses, rounds) = CreateService();
+        var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
+        var course = await AddCourse(courses);
+        var created = await service.CreateGroupAsync(host.Id, MakeGroupRequest(course.Id));
+        await rounds.AddAsync(new Round { Id = Guid.NewGuid(), TeeTimeId = created.Id });
+
+        // A solo host with no join requests could otherwise hard-delete a group that already
+        // has posted scores, silently losing that round's data.
         await Assert.ThrowsAsync<DomainValidationException>(() => service.DeleteAsync(created.Id, host.Id));
         Assert.NotNull(await teeTimes.GetByIdAsync(created.Id));
     }

@@ -10,7 +10,8 @@ public class TeeTimeService(
     IUserRepository userRepository,
     ICourseRepository courseRepository,
     IJoinRequestRepository joinRequestRepository,
-    INotificationRepository notificationRepository) : ITeeTimeService
+    INotificationRepository notificationRepository,
+    IRoundRepository roundRepository) : ITeeTimeService
 {
     public async Task<IReadOnlyList<TeeTimeDto>> GetAllAsync(decimal? maxHandicap = null, PaceOfPlay? pace = null, bool joinableOnly = false)
     {
@@ -140,6 +141,12 @@ public class TeeTimeService(
             Status = TeeTimeStatus.Open
         };
 
+        // Guest lock on the host's own user id, held across the auto-decline loop below, so it
+        // can't race a concurrent JoinRequestService call touching one of these same requests
+        // (see GuestJoinRequestLock's doc comment — must be acquired before any TeeTimeJoinLock,
+        // though nothing here takes one since this is a brand-new tee time no one else knows of yet).
+        using var __ = await GuestJoinRequestLock.AcquireAsync(hostUserId);
+
         await teeTimeRepository.AddAsync(teeTime);
 
         // EME-323: hosting your own group makes any pending request you're holding as a guest
@@ -187,6 +194,12 @@ public class TeeTimeService(
             throw new ForbiddenException("Only the host can edit this group.");
         if (teeTime.Status == TeeTimeStatus.Cancelled)
             throw new DomainValidationException("A cancelled group cannot be edited.");
+        // A round tracks its hole count from this tee time's live Holes value (see
+        // RoundService.PostScorecardAsync), so changing it, or the schedule, once scoring has
+        // started would invalidate scores already posted or reject further ones. Cancel instead.
+        if (await roundRepository.GetByTeeTimeIdAsync(teeTimeId) is not null)
+            throw new DomainValidationException(
+                "This group already has a round in progress and cannot be edited; cancel it instead.");
 
         var siblings = await joinRequestRepository.GetByTeeTimeIdAsync(teeTimeId);
         var accepted = siblings.Where(j => j.Status == JoinRequestStatus.Accepted).ToList();
@@ -263,6 +276,15 @@ public class TeeTimeService(
         {
             throw new DomainValidationException(
                 "This group has join requests against it and cannot be deleted; cancel it instead.");
+        }
+
+        // A round (and any scorecard entries against it) would otherwise be silently lost —
+        // cascade-deleted with the tee time in the EF/Postgres-backed store, or left orphaned
+        // in the in-memory one. Either way a host who's posted scores must cancel, not delete.
+        if (await roundRepository.GetByTeeTimeIdAsync(teeTimeId) is not null)
+        {
+            throw new DomainValidationException(
+                "This group already has a round with scores and cannot be deleted; cancel it instead.");
         }
 
         await teeTimeRepository.DeleteAsync(teeTimeId);
