@@ -66,6 +66,61 @@ built by three students.
 - Real-time push notifications using Firebase Cloud Messaging.
 - Final production icons and images, and Google Play Store preparation.
 
+## Screenshots
+
+The app has four main tabs at the bottom of the screen once signed in:
+**Home**, **Rounds**, **Scorecard**, and **Profile**. The screenshots below
+follow a typical journey through the app, starting from sign-up and ending
+at profile settings.
+
+### Sign-up and sign-in
+
+| | |
+|---|---|
+| ![Auth landing screen](docs/screenshots/auth-landing.jpeg) | The first screen a new or returning user sees. From here you can continue with Google, continue with email, sign in with Face/Fingerprint (once set up), or tap **New here? Register** to create an account. |
+| ![Create account with email](docs/screenshots/create-account-email.jpeg) | Reached from **Continue with Email** in sign-up mode. Enter an email and password to create a Firebase account. |
+| ![Create your profile](docs/screenshots/create-profile.jpeg) | Shown automatically right after account creation. Set your display name, handicap index, home course, and pace of play before landing on Home. |
+| ![Sign in with email](docs/screenshots/sign-in-email.jpeg) | Reached from **Continue with Email** in sign-in mode, for a returning user who already has an account. |
+
+### Home: finding and joining a round
+
+| | |
+|---|---|
+| ![Home tab with search and filters](docs/screenshots/home-search-filters.jpeg) | The Home tab, reached by tapping **Home** in the bottom nav. Search by course or area, and filter by date/time, number of players, course, holes, and skill/pace. **Create a Group** starts a new group looking for players. |
+| ![Home tab browsing open groups](docs/screenshots/home-browse-groups.jpeg) | Scrolling down on Home shows the list of nearby open groups, each with the course, date, spots open, host, and the host's handicap/pace. |
+| ![Home tab after a new group was created](docs/screenshots/home-browse-groups-scrolled.jpeg) | The same list a little later, now showing a newly created group at the top alongside the earlier ones. |
+| ![Tee time detail as a guest](docs/screenshots/tee-time-detail-guest.jpeg) | Reached by tapping **View Group** on a listing. Shows the group's players and a **Request to Join** button for anyone who is not the host. |
+| ![Course preview map](docs/screenshots/course-preview-map.jpeg) | Reached by tapping **Preview Course** from a tee time's detail screen. Shows the course location on a map, its rating, and an **Open in Maps** button. |
+
+### Managing your own group
+
+| | |
+|---|---|
+| ![Tee time detail as the host](docs/screenshots/tee-time-detail-host.jpeg) | The same detail screen, but shown to the host instead of a guest. Hosts get **Edit Group**, **Cancel Group**, and **Delete Group** buttons instead of a join request, plus a live view of pending requests. |
+
+### Notifications
+
+| | |
+|---|---|
+| ![Notifications with one entry](docs/screenshots/notifications-single.jpeg) | Reached by tapping the bell icon on Home. Shows an accepted join request notification. |
+| ![Notifications with several entries](docs/screenshots/notifications-list.jpeg) | The same screen later, now also showing group-cancelled notifications from the host side. |
+
+### Rounds and scoring
+
+| | |
+|---|---|
+| ![My Rounds, upcoming tab, empty](docs/screenshots/my-rounds-upcoming-empty.jpeg) | The **Rounds** tab's Upcoming view, reached from the bottom nav, shown here with nothing scheduled yet. |
+| ![My Rounds, history tab](docs/screenshots/my-rounds-history.jpeg) | The **History** tab on the same screen, listing past and in-progress rounds with **Start Round** / **Continue Round** buttons. |
+| ![Scorecard tab landing screen](docs/screenshots/scorecard-landing.jpeg) | The **Scorecard** tab, reached from the bottom nav. Lists any round currently being scored and links back to My Rounds to start a new one. |
+| ![Entering a score for one hole](docs/screenshots/scorecard-hole-entry.jpeg) | Reached by starting or continuing a round. Enter strokes and putts for the current hole, then **Save & Next Hole**, or **Finish round now** at any point. |
+| ![Round summary after finishing](docs/screenshots/round-summary.jpeg) | Shown after finishing a round. Totals for strokes, putts, net score, and Stableford points, with a per-hole breakdown that can still be edited or deleted. |
+
+### Profile
+
+| | |
+|---|---|
+| ![Profile and settings screen](docs/screenshots/profile-settings.jpeg) | The **Profile** tab, reached from the bottom nav. Shows rounds played and current handicap, with links to Personal Details, Playing Details, Notification Preferences, Language, and Biometric Login. |
+
 ## Architecture
 
 The app is split into two parts that live in this same repository: the
