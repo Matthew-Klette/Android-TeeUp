@@ -186,8 +186,8 @@ public class JoinRequestServiceTests
         await teeTimes.AddAsync(teeTime);
         var joinRequest = await service.CreateAsync(teeTime.Id, Guid.NewGuid());
 
-        // Cancelled after the request was made — accept must still re-check the tee time's
-        // current state, not just the request's.
+        // Cancelled after the request was made. Accept must still re-check the
+        // tee time's current state, not just the request's.
         teeTime.Status = TeeTimeStatus.Cancelled;
         await teeTimes.UpdateAsync(teeTime);
 
@@ -204,9 +204,9 @@ public class JoinRequestServiceTests
         await teeTimes.AddAsync(teeTime);
         var joinRequest = await service.CreateAsync(teeTime.Id, Guid.NewGuid());
 
-        // Marked Full without any accepted request (e.g. another path flipped the status) — the
-        // explicit status check must reject this on its own; the accepted-count comparison alone
-        // wouldn't, since only 0 of 2 spots are actually accepted.
+        // Marked Full without any accepted request. The explicit status check
+        // must reject this on its own, since the accepted-count comparison
+        // alone wouldn't catch it (0 of 2 spots are actually accepted).
         teeTime.Status = TeeTimeStatus.Full;
         await teeTimes.UpdateAsync(teeTime);
 
@@ -238,11 +238,10 @@ public class JoinRequestServiceTests
     }
 
     /// <summary>
-    /// A fast sanity check that the lock exists and rejects a second accept once the first has
-    /// run — but the in-memory repositories complete every call synchronously (no real I/O to
-    /// yield on), so this can't prove the lock is what's enforcing it rather than incidental
-    /// ordering. <see cref="JoinRequestConcurrencyTests"/> (opt-in, real Postgres, separate
-    /// DbContexts) is the authoritative version of this test per the EME-313 review.
+    /// A fast sanity check that the lock rejects a second accept once the first
+    /// has run. The in-memory repositories complete synchronously though, so this
+    /// can't prove the lock itself is enforcing it. <see cref="JoinRequestConcurrencyTests"/>
+    /// is the authoritative version, against real Postgres.
     /// </summary>
     [Fact]
     public async Task UpdateStatusAsync_ConcurrentAcceptsForLastOpenSpot_ExactlyOneSucceeds()
@@ -254,9 +253,9 @@ public class JoinRequestServiceTests
         var first = await service.CreateAsync(teeTime.Id, Guid.NewGuid());
         var second = await service.CreateAsync(teeTime.Id, Guid.NewGuid());
 
-        // Both racers are scheduled onto separate thread-pool threads and released together,
-        // rather than invoked inline as Task.WhenAll's arguments — otherwise a fully-synchronous
-        // first call could run start-to-finish before the second is even constructed.
+        // Both racers run on separate thread-pool threads and are released together.
+        // Calling them inline as Task.WhenAll's arguments would let a synchronous
+        // first call finish before the second is even constructed.
         var gate = new TaskCompletionSource();
 
         async Task<bool> TryAccept(Guid joinRequestId)

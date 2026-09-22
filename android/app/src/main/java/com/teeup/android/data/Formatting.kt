@@ -5,18 +5,11 @@ import com.teeup.android.R
 import com.teeup.android.TeeUpApplication
 
 /**
- * Formats an ISO-8601 UTC timestamp like "2026-09-19T14:45:53.639622Z"
- * (what the API's System.Text.Json serializer emits for a `DateTime`) into
- * "19 Sep · 14:45". Plain substring parsing on purpose: `java.time` needs
- * API 26+ (minSdk here is 24) and desugaring is out of scope for this
- * ticket, so this avoids the dependency entirely. Displays the UTC value
- * as-is rather than converting to the device's local time zone — fine for
- * a Part 2 prototype, worth revisiting later. No Context is passed in (every
- * caller is a plain top-level fun), so this reads resources off the app-wide
- * Context the same way DevIdentity does — falling back to the English default
- * when that Context doesn't exist yet, which is only true in plain-JVM unit
- * tests (FormattingTest): Application.onCreate() always runs first in a real
- * app, so production code always has it.
+ * Formats an ISO-8601 UTC timestamp like "2026-09-19T14:45:53.639622Z" into
+ * "19 Sep · 14:45". Uses plain substring parsing since java.time needs API 26+
+ * and minSdk here is 24. Shows the UTC value as is, no local time zone conversion yet.
+ * Falls back to English month names if no app Context exists yet, which only
+ * happens in plain JVM unit tests.
  */
 private val FALLBACK_MONTH_NAMES = arrayOf(
     "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
@@ -46,8 +39,8 @@ fun formatPrice(price: Double): String = when {
 fun canRequestToJoin(existing: List<JoinRequest>, userId: String): Boolean =
     existing.none { it.guestUserId == userId && it.status != JoinRequestStatus.DECLINED }
 
-/** "14.5", "20" (no trailing .0), or a localized fallback when null — used for a group
- *  member's own handicap (EME-312) as well as a wanted-range endpoint value. */
+/** "14.5" or "20" (no trailing .0), or a fallback string when null.
+ *  Used for a member's own handicap and for wanted-range values. */
 fun formatHandicap(handicap: Double?): String {
     if (handicap == null) {
         return TeeUpApplication.appContextOrNull?.getString(R.string.group_no_handicap) ?: "No handicap"
@@ -55,9 +48,8 @@ fun formatHandicap(handicap: Double?): String {
     return if (handicap == handicap.toInt().toDouble()) handicap.toInt().toString() else "%.1f".format(handicap)
 }
 
-/** Labels a PaceOfPlay ordinal (0=Relaxed, 1=Standard, 2=Brisk) via the same array every
- *  pace spinner in the app already uses, so a bad/out-of-range value can't crash — it just
- *  falls back to the first label instead. */
+/** Labels a PaceOfPlay ordinal (0=Relaxed, 1=Standard, 2=Brisk).
+ *  Falls back to the first label if the value is out of range. */
 fun paceLabel(context: Context, paceOfPlay: Int): String {
     val options = context.resources.getStringArray(R.array.pace_of_play_options)
     return options.getOrElse(paceOfPlay) { options[0] }

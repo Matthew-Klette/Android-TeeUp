@@ -2,13 +2,12 @@ using TeeUp.Api.Models;
 
 namespace TeeUp.Api.Dtos;
 
-/// <summary>A golfer starting a solo round on their own, with no join-request flow — see RoundsActivity's "Start a Round".</summary>
+/// <summary>A golfer starting a solo round on their own, with no join-request flow.</summary>
 public record CreateTeeTimeRequest(Guid CourseId);
 
 /// <summary>
-/// Creates a real group looking for players (EME-311). <paramref name="OpenSpots"/> is guests
-/// wanted, not counting the host — matches how OpenSpots already works for solo rounds (0 = just
-/// the host) and how JoinRequestService's accept-limit check already reads it.
+/// Creates a real group looking for players. <paramref name="OpenSpots"/> is guests
+/// wanted, not counting the host, matching how OpenSpots already works for solo rounds.
 /// </summary>
 public record CreateGroupRequest(
     Guid CourseId,
@@ -37,7 +36,7 @@ public record TeeTimeDto(
     TeeTimeStatus Status,
     IReadOnlyList<GroupMemberDto> Members)
 {
-    /// <summary>No member list available (e.g. right after creating a solo round) — Members comes back empty.</summary>
+    /// <summary>No member list available yet, so Members comes back empty.</summary>
     public static TeeTimeDto From(TeeTime teeTime) => From(teeTime, []);
 
     /// <summary>

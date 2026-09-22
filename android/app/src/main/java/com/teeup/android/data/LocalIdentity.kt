@@ -5,11 +5,10 @@ import com.teeup.android.BuildConfig
 import com.google.firebase.auth.FirebaseAuth
 
 /**
- * Registers the signed-in Firebase user (EME-295's Google SSO) against
- * POST /api/auth/register (idempotent server-side — see AuthService.RegisterAsync)
- * and caches the backend user id. Falls back to [DevIdentity] in debug builds when
- * there's no real Firebase user (see SignInActivity's dev bypass) — same endpoint,
- * just keyed by the dev id instead of a real Firebase uid.
+ * Registers the signed-in Firebase user against POST /api/auth/register
+ * (idempotent server-side) and caches the backend user id. Falls back to
+ * [DevIdentity] in debug builds when there's no real Firebase user, using
+ * the same endpoint but keyed by the dev id instead.
  */
 object LocalIdentity {
     private const val PREFS = "teeup_local_identity"
@@ -34,9 +33,9 @@ object LocalIdentity {
     }
 
     /**
-     * Always hits the network (registration is idempotent server-side), so the
-     * caller gets an up-to-date [BackendIdentity.profileComplete] right after a
-     * sign-in — unlike [ensureRegistered], which may return a stale local cache.
+     * Always hits the network, so the caller gets an up-to-date
+     * [BackendIdentity.profileComplete] right after sign-in. Unlike
+     * [ensureRegistered], this never returns a stale local cache.
      */
     fun registerFresh(context: Context): BackendIdentity = register(context)
 

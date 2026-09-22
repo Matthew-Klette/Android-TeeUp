@@ -28,13 +28,10 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
         }
         catch (Exception ex)
         {
-            // EME-305 QA pass: anything not already a domain/not-found error (a bug, a DB
-            // timeout, an unexpected null) used to propagate unhandled — in Development that
-            // returns ASP.NET's diagnostic page complete with a stack trace, which the app has
-            // no contract for and which leaks internals. The Android client already treats any
-            // 5xx as "service unavailable, try again" (see TeeUpApiClient.httpFailureMessage /
-            // TeeUpRepository.call) without reading the body, so a plain generic 500 here is
-            // all it needs, and the real detail still goes to the server log for debugging.
+            // Anything not already a domain error used to propagate unhandled, which
+            // leaks a stack trace in Development. The Android client just treats any
+            // 5xx as "service unavailable, try again", so a plain generic 500 is
+            // enough here. The real detail still goes to the server log.
             logger.LogError(ex, "Unhandled exception for {Method} {Path}", context.Request.Method, context.Request.Path);
             if (!context.Response.HasStarted)
             {
