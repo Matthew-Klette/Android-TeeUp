@@ -14,6 +14,13 @@
     <string name="profile_name_placeholder">Vertoonnaam</string>
     <string name="profile_details_placeholder">Voorgee · Tuisbaan</string>
 
+    <string name="profile_photo_change">Verander profielfoto</string>
+    <string name="profile_photo_take">Neem Foto</string>
+    <string name="profile_photo_gallery">Kies uit Galery</string>
+    <string name="profile_photo_uploading">Stoor foto…</string>
+    <string name="profile_photo_upload_failed">Kon nie jou foto stoor nie. Probeer weer.</string>
+    <string name="profile_photo_camera_permission_denied">Kameratoestemming word benodig om \'n foto te neem</string>
+
     <string name="profile_stat_rounds">Rondtes</string>
     <string name="profile_stat_handicap">Voorgee</string>
     <string name="profile_stat_friends">Vriende</string>

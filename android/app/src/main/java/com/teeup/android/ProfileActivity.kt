@@ -1,35 +1,81 @@
 package com.teeup.android
 
+import android.Manifest
 import android.app.AlertDialog
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.teeup.android.data.AuthSession
+import com.teeup.android.data.LocalProfilePhoto
 import com.teeup.android.data.RegisteredUser
 import com.teeup.android.data.TeeUpApiClient
 import com.teeup.android.nav.BottomNav
 import com.teeup.android.nav.BottomNavTab
-import com.teeup.android.ui.LocaleActivity
+import com.teeup.android.ui.LocaleComponentActivity
 import com.teeup.android.ui.LocaleManager
+import com.teeup.android.ui.TeeUpBanner
+import java.io.File
 import java.text.NumberFormat
 
 /** Screen 4 · Profile & Settings. Every row here is a real screen — see each Activity's
- *  own doc comment for what's genuinely backed by the API vs. on-device only. */
-class ProfileActivity : LocaleActivity() {
+ *  own doc comment for what's genuinely backed by the API vs. on-device only.
+ *  ComponentActivity (not the plain-Activity LocaleActivity base every other screen uses),
+ *  since the photo picker needs registerForActivityResult (Google, n.d.d). */
+class ProfileActivity : LocaleComponentActivity() {
+    private lateinit var photoImage: ImageView
     private lateinit var nameText: TextView
     private lateinit var detailsText: TextView
     private lateinit var statusText: TextView
     private lateinit var progress: View
     private lateinit var retryButton: View
 
+    // Set right before the camera intent launches; onActivityResult has no way to
+    // hand back the file it wrote to itself, so this is how launchCamera() and the
+    // takePicture callback agree on which file was used.
+    private var pendingCameraFile: File? = null
+
+    private val cameraPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            launchCamera()
+        } else {
+            TeeUpBanner.show(this, getString(R.string.profile_photo_camera_permission_denied), isError = true)
+        }
+    }
+
+    // Camera app writes the photo to the FileProvider Uri we hand it (Google, n.d.a).
+    private val takePictureLauncher = registerForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { success ->
+        val file = pendingCameraFile
+        if (success && file != null) {
+            savePhoto(Uri.fromFile(file))
+        }
+    }
+
+    private val pickGalleryImageLauncher = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri -> uri?.let { savePhoto(it) } }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_profile)
         BottomNav.wire(this, BottomNavTab.PROFILE)
+
+        photoImage = findViewById(R.id.image_profile_photo)
+        photoImage.setOnClickListener { showPhotoPickerDialog() }
+        refreshLocalPhoto()
 
         nameText = findViewById(R.id.text_profile_name)
         detailsText = findViewById(R.id.text_profile_details)
@@ -118,6 +164,69 @@ class ProfileActivity : LocaleActivity() {
         )
     }
 
+    private fun showPhotoPickerDialog() {
+        // Take Photo / Choose from Gallery picker (Google, n.d.b)
+        AlertDialog.Builder(this)
+            .setTitle(R.string.profile_photo_change)
+            .setItems(
+                arrayOf(getString(R.string.profile_photo_take), getString(R.string.profile_photo_gallery))
+            ) { _, which ->
+                when (which) {
+                    0 -> requestCameraAndLaunch()
+                    1 -> pickGalleryImageLauncher.launch("image/*")
+                }
+            }
+            .show()
+    }
+
+    private fun requestCameraAndLaunch() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+            == PackageManager.PERMISSION_GRANTED
+        ) {
+            launchCamera()
+        } else {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    private fun launchCamera() {
+        val file = File(filesDir, "profile_photo_${System.currentTimeMillis()}.jpg")
+        pendingCameraFile = file
+        // Shares this private-storage file with the camera app as a content:// Uri (Google, n.d.c)
+        val uri = FileProvider.getUriForFile(this, "$packageName.provider", file)
+        takePictureLauncher.launch(uri)
+    }
+
+    // Saved to this device only — see LocalProfilePhoto's doc comment.
+    private fun savePhoto(imageUri: Uri) {
+        photoImage.isEnabled = false
+        TeeUpBanner.show(this, getString(R.string.profile_photo_uploading))
+
+        Thread {
+            try {
+                LocalProfilePhoto.save(this, imageUri)
+                runOnUiThread {
+                    photoImage.isEnabled = true
+                    refreshLocalPhoto()
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    photoImage.isEnabled = true
+                    TeeUpBanner.show(this, e.message ?: getString(R.string.profile_photo_upload_failed), isError = true)
+                }
+            }
+        }.start()
+    }
+
+    private fun refreshLocalPhoto() {
+        val bitmap = LocalProfilePhoto.loadOrNull(this)
+        if (bitmap != null) {
+            photoImage.setImageBitmap(bitmap)
+        } else {
+            photoImage.setImageResource(R.drawable.ic_logo)
+        }
+    }
+
     private fun showLoading(loading: Boolean) {
         progress.visibility = if (loading) View.VISIBLE else View.GONE
     }
@@ -183,3 +292,15 @@ class ProfileActivity : LocaleActivity() {
         startActivity(intent)
     }
 }
+
+/*
+References:
+
+Google (n.d.a). ActivityResultContracts.TakePicture. [online] Android Developers. Available at: <https://developer.android.com/reference/androidx/activity/result/contract/ActivityResultContracts.TakePicture> [Accessed 22 Sep. 2026].
+
+Google (n.d.b). AlertDialog. [online] Android Developers. Available at: <https://developer.android.com/reference/android/app/AlertDialog> [Accessed 22 Sep. 2026].
+
+Google (n.d.c). FileProvider. [online] Android Developers. Available at: <https://developer.android.com/reference/kotlin/androidx/core/content/FileProvider> [Accessed 22 Sep. 2026].
+
+Google (n.d.d). Get a result from an activity. [online] Android Developers. Available at: <https://developer.android.com/training/basics/intents/result> [Accessed 22 Sep. 2026].
+*/
