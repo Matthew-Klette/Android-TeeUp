@@ -162,8 +162,13 @@ class RoundsActivity : LocaleActivity() {
 
         val (label, onClick) = when {
             notYetStartable -> getString(R.string.rounds_not_started_yet) to null
+            // A group's hole count (round.holes) is already fixed at creation — only prompt
+            // when it's genuinely unset (a legacy/solo row, see totalHoles' own comment above).
+            // Prompting always, regardless, let a 9-hole group's Start Round answer "18" and post
+            // holes the API's own holeLimit check (RoundService.PostScorecardAsync) then rejects.
             notStarted -> getString(R.string.rounds_start_round) to
-                { promptHoleCount { holes -> openScorecard(round.teeTimeId, holes) } }
+                (round.holes?.let { fixedHoles -> { openScorecard(round.teeTimeId, fixedHoles) } }
+                    ?: { promptHoleCount { holes -> openScorecard(round.teeTimeId, holes) } })
             holesScored < totalHoles -> getString(R.string.rounds_continue_round) to
                 { openScorecard(round.teeTimeId, holes = totalHoles) }
             else -> getString(R.string.rounds_view_summary) to { openSummary(round.teeTimeId) }
