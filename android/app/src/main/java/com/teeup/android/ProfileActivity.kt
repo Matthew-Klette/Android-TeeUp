@@ -11,11 +11,11 @@ import com.google.firebase.auth.FirebaseAuth
 import com.teeup.android.data.AuthSession
 import com.teeup.android.data.RegisteredUser
 import com.teeup.android.data.TeeUpApiClient
+import com.teeup.android.data.formatHandicapValue
 import com.teeup.android.nav.BottomNav
 import com.teeup.android.nav.BottomNavTab
 import com.teeup.android.ui.LocaleActivity
 import com.teeup.android.ui.LocaleManager
-import java.text.NumberFormat
 
 /** Screen 4 · Profile & Settings. Every row here is a real screen — see each Activity's
  *  own doc comment for what's genuinely backed by the API vs. on-device only. */
@@ -117,9 +117,7 @@ class ProfileActivity : LocaleActivity() {
 
         nameText.text = user.displayName
 
-        val handicap = user.handicapIndex?.let {
-            NumberFormat.getNumberInstance().apply { maximumFractionDigits = 1 }.format(it)
-        }
+        val handicap = user.handicapIndex?.let { formatHandicapValue(it) }
         detailsText.text = getString(
             R.string.profile_details_summary,
             handicap ?: getString(R.string.profile_handicap_unset),
