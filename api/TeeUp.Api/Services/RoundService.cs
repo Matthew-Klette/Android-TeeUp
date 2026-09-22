@@ -55,18 +55,14 @@ public class RoundService(
                 $"Tee time {teeTimeId} is scheduled for {teeTime.DateTime:u}; scores cannot be posted before it starts.");
         }
 
-        // Belt-and-braces beyond the generic 1-18 check above: this tee time's own round length
-        // (9 or 18, set at Start Round/Create Group) caps what's valid here too — a client bug
-        // previously let a 9-hole round pick up spurious hole 10+ entries by continuing to post
-        // past it, since nothing server-side enforced the tee time's actual chosen length.
+        // Belt-and-braces beyond the generic 1-18 check above: this tee time's own round length (9 or 18) caps what's valid here too, since a client bug once let a 9-hole round post spurious hole 10+ entries.
         if (teeTime.Holes is int holeLimit && request.Entries.Any(e => e.HoleNumber > holeLimit))
         {
             throw new DomainValidationException(
                 $"Tee time {teeTimeId} is a {holeLimit}-hole round; hole numbers cannot exceed {holeLimit}.");
         }
 
-        // Serializes the round find-or-create and the per-hole upsert below against any other
-        // post/delete for this tee time — see RoundEntryLock.
+        // Serializes the round find-or-create and the per-hole upsert below against any other post/delete for this tee time. See RoundEntryLock.
         using var _ = await RoundEntryLock.AcquireAsync(teeTimeId);
 
         var round = await roundRepository.GetByTeeTimeIdAsync(teeTimeId);
@@ -76,13 +72,7 @@ public class RoundService(
             await roundRepository.AddAsync(round);
         }
 
-        // Upsert per hole rather than always inserting: a hole that already has an entry (from
-        // an earlier post, or an overlapping/retried request for the same hole) gets its score
-        // replaced in place. Deleting a hole first (RoundSummaryActivity's per-hole delete) and
-        // then reposting it is the normal path and still works, since that removes the row this
-        // lookup would otherwise find. Without this, a genuine double-submit would either collide
-        // with the DB's unique (RoundId, HoleNumber) index or, in a store that doesn't enforce
-        // that, create a second row that silently double-counts strokes/putts.
+        // Upsert per hole rather than always inserting: a hole that already has an entry gets its score replaced in place, so a retried or double-submitted post can't create a duplicate row that double-counts strokes/putts.
         var existingByHole = (await scorecardEntryRepository.GetByRoundIdAsync(round.Id))
             .ToDictionary(e => e.HoleNumber);
 
