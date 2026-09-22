@@ -43,6 +43,8 @@ public class TeeUpDbContext(DbContextOptions<TeeUpDbContext> options) : DbContex
             b.HasKey(c => c.Id);
             b.Property(c => c.Name).IsRequired();
             b.Property(c => c.Rating).HasPrecision(3, 1);
+            // Backfills existing rows to 72 (see Par's doc comment) when this column is added.
+            b.Property(c => c.Par).HasDefaultValue(72);
         });
 
         modelBuilder.Entity<TeeTime>(b =>

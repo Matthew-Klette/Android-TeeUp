@@ -283,7 +283,12 @@ object TeeUpApiClient {
         return PlayedRound(
             id = o.getString("id"),
             teeTimeId = o.getString("teeTimeId"),
-            scorecard = (0 until entries.length()).map { i -> parseHoleScore(entries.getJSONObject(i)) }
+            scorecard = (0 until entries.length()).map { i -> parseHoleScore(entries.getJSONObject(i)) },
+            totalStrokes = o.getInt("totalStrokes"),
+            totalPutts = o.getInt("totalPutts"),
+            averagePutts = o.getDouble("averagePutts"),
+            netScore = if (o.isNull("netScore")) null else o.getDouble("netScore"),
+            stablefordScore = if (o.isNull("stablefordScore")) null else o.getInt("stablefordScore")
         )
     }
 

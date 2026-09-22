@@ -40,13 +40,14 @@ public class RoundServiceTests
     }
 
     private static (RoundService Service, InMemoryTeeTimeRepository TeeTimes, InMemoryJoinRequestRepository JoinRequests)
-        CreateService()
+        CreateService(InMemoryCourseRepository? courses = null, InMemoryUserRepository? users = null)
     {
         var teeTimes = new InMemoryTeeTimeRepository();
         var joinRequests = new InMemoryJoinRequestRepository();
         var rounds = new InMemoryRoundRepository();
         var scorecardEntries = new InMemoryScorecardEntryRepository();
-        return (new RoundService(rounds, scorecardEntries, teeTimes, joinRequests), teeTimes, joinRequests);
+        return (new RoundService(rounds, scorecardEntries, teeTimes, joinRequests,
+            courses ?? new InMemoryCourseRepository(), users ?? new InMemoryUserRepository()), teeTimes, joinRequests);
     }
 
     private static TeeTime MakeTeeTime(DateTime dateTime, Guid? hostUserId = null) => new()
@@ -275,5 +276,57 @@ public class RoundServiceTests
         var hostRounds = await service.GetRoundsForUserAsync(hostId);
         Assert.Single(hostRounds);
         Assert.Equal(hostedTeeTime.Id, hostRounds[0].TeeTimeId);
+    }
+
+    // EME-304: total strokes/putts (SUM), average putts (AVG), net score and Stableford,
+    // all computed by RoundDto.From from the scorecard rows plus the viewer's handicap
+    // and the course's par.
+    [Fact]
+    public async Task GetRoundsForUserAsync_ComputesNetScoreAndStablefordFromViewerHandicap()
+    {
+        var courses = new InMemoryCourseRepository();
+        var users = new InMemoryUserRepository();
+        var (service, teeTimes, _) = CreateService(courses, users);
+        var hostId = Guid.NewGuid();
+        await users.AddAsync(new User { Id = hostId, FirebaseUid = "uid", DisplayName = "Host", HandicapIndex = 9.4m });
+        var course = new Course { Id = Guid.NewGuid(), Name = "Test Links", Par = 72 };
+        await courses.AddAsync(course);
+        var teeTime = MakeTeeTime(DateTime.UtcNow.AddHours(-1), hostId);
+        teeTime.CourseId = course.Id;
+        await teeTimes.AddAsync(teeTime);
+
+        await service.PostScorecardAsync(teeTime.Id, new PostScorecardRequest([
+            new ScorecardEntryRequest(1, 5, 2),
+            new ScorecardEntryRequest(2, 4, 1),
+            new ScorecardEntryRequest(3, 6, 3),
+        ]));
+
+        var round = Assert.Single(await service.GetRoundsForUserAsync(hostId));
+
+        Assert.Equal(15, round.TotalStrokes);
+        Assert.Equal(6, round.TotalPutts);
+        Assert.Equal(2.0, round.AveragePutts);
+        // 15 strokes - 9.4 handicap.
+        Assert.Equal(5.6m, round.NetScore);
+        // Par 72 -> 4 per hole; handicap 9.4 rounds to 9 strokes received, so every one of
+        // these 3 holes gets one: net 4/3/5 vs par 4 -> points 2/3/1 -> 6 total.
+        Assert.Equal(6, round.StablefordScore);
+    }
+
+    [Fact]
+    public async Task GetRoundsForUserAsync_WithNoHandicapSet_LeavesNetScoreAndStablefordNull()
+    {
+        var (service, teeTimes, _) = CreateService();
+        var hostId = Guid.NewGuid();
+        var teeTime = MakeTeeTime(DateTime.UtcNow.AddHours(-1), hostId);
+        await teeTimes.AddAsync(teeTime);
+
+        await service.PostScorecardAsync(teeTime.Id, OneHole(strokes: 5, putts: 2));
+
+        var round = Assert.Single(await service.GetRoundsForUserAsync(hostId));
+
+        Assert.Equal(5, round.TotalStrokes);
+        Assert.Null(round.NetScore);
+        Assert.Null(round.StablefordScore);
     }
 }

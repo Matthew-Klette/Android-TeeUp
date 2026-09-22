@@ -17,7 +17,20 @@ private fun invalidRoundDateMessage(value: String): String =
  *  created before the API persisted it. Lets RoundsActivity tell "finished a 9-hole round" apart
  *  from "9 of 18 holes scored, still going" instead of assuming every round is 18 holes. */
 data class ScheduledRound(val teeTimeId: String, val courseId: String, val dateTime: String, val holes: Int?, val round: PlayedRound?)
-data class PlayedRound(val id: String, val teeTimeId: String, val scorecard: List<HoleScore>)
+
+/** [averagePutts] is putts per hole played (AVG). [netScore]/[stablefordScore] are null when
+ *  the scoring player has no handicap index set — both are computed net of handicap server-side
+ *  (RoundDto, EME-304), not recomputed here. */
+data class PlayedRound(
+    val id: String,
+    val teeTimeId: String,
+    val scorecard: List<HoleScore>,
+    val totalStrokes: Int,
+    val totalPutts: Int,
+    val averagePutts: Double,
+    val netScore: Double?,
+    val stablefordScore: Int?
+)
 data class HoleScore(val id: String, val holeNumber: Int, val strokes: Int, val putts: Int, val synced: Boolean)
 
 /** What POST /api/rounds/{id}/scorecard accepts per hole — no id/synced yet, those come back from the server. */
