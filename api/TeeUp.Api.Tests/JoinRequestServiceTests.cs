@@ -19,14 +19,17 @@ public class JoinRequestServiceTests
         return (new JoinRequestService(joinRequests, teeTimes, notifications), teeTimes, joinRequests, notifications);
     }
 
-    private static TeeTime MakeTeeTime(int openSpots = 1) => new()
+    private static TeeTime MakeTeeTime(
+        int openSpots = 1, Guid? hostUserId = null, TeeTimeStatus status = TeeTimeStatus.Open, DateTime? dateTime = null) => new()
     {
         Id = Guid.NewGuid(),
+        HostUserId = hostUserId,
         CourseId = Guid.NewGuid(),
-        DateTime = DateTime.UtcNow.AddDays(1),
+        DateTime = dateTime ?? DateTime.UtcNow.AddDays(1),
         OpenSpots = openSpots,
         Price = 0,
-        Type = TeeTimeType.OpenRound
+        Type = TeeTimeType.OpenRound,
+        Status = status
     };
 
     [Fact]
@@ -52,31 +55,109 @@ public class JoinRequestServiceTests
     }
 
     [Fact]
-    public async Task UpdateStatusAsync_AcceptingWithinOpenSpots_Succeeds()
+    public async Task CreateAsync_ForOwnTeeTime_ThrowsDomainValidation()
     {
         var (service, teeTimes, _, _) = CreateService();
-        var teeTime = MakeTeeTime(openSpots: 1);
+        var hostId = Guid.NewGuid();
+        var teeTime = MakeTeeTime(hostUserId: hostId);
+        await teeTimes.AddAsync(teeTime);
+
+        await Assert.ThrowsAsync<DomainValidationException>(
+            () => service.CreateAsync(teeTime.Id, hostId));
+    }
+
+    [Fact]
+    public async Task CreateAsync_WithExistingPendingRequest_ThrowsConflict()
+    {
+        var (service, teeTimes, _, _) = CreateService();
+        var teeTime = MakeTeeTime(openSpots: 2);
+        await teeTimes.AddAsync(teeTime);
+        var guestId = Guid.NewGuid();
+        await service.CreateAsync(teeTime.Id, guestId);
+
+        await Assert.ThrowsAsync<ConflictException>(
+            () => service.CreateAsync(teeTime.Id, guestId));
+    }
+
+    [Fact]
+    public async Task CreateAsync_AfterBeingDeclined_CanRequestAgain()
+    {
+        var (service, teeTimes, _, _) = CreateService();
+        var hostId = Guid.NewGuid();
+        var teeTime = MakeTeeTime(openSpots: 2, hostUserId: hostId);
+        await teeTimes.AddAsync(teeTime);
+        var guestId = Guid.NewGuid();
+        var first = await service.CreateAsync(teeTime.Id, guestId);
+        await service.UpdateStatusAsync(first.Id, JoinRequestStatus.Declined, hostId);
+
+        var second = await service.CreateAsync(teeTime.Id, guestId);
+
+        Assert.Equal(JoinRequestStatus.Pending, second.Status);
+    }
+
+    [Fact]
+    public async Task CreateAsync_ForCancelledTeeTime_ThrowsDomainValidation()
+    {
+        var (service, teeTimes, _, _) = CreateService();
+        var teeTime = MakeTeeTime(status: TeeTimeStatus.Cancelled);
+        await teeTimes.AddAsync(teeTime);
+
+        await Assert.ThrowsAsync<DomainValidationException>(
+            () => service.CreateAsync(teeTime.Id, Guid.NewGuid()));
+    }
+
+    [Fact]
+    public async Task CreateAsync_ForPastTeeTime_ThrowsDomainValidation()
+    {
+        var (service, teeTimes, _, _) = CreateService();
+        var teeTime = MakeTeeTime(dateTime: DateTime.UtcNow.AddDays(-1));
+        await teeTimes.AddAsync(teeTime);
+
+        await Assert.ThrowsAsync<DomainValidationException>(
+            () => service.CreateAsync(teeTime.Id, Guid.NewGuid()));
+    }
+
+    [Fact]
+    public async Task UpdateStatusAsync_ByHost_Succeeds()
+    {
+        var (service, teeTimes, _, _) = CreateService();
+        var hostId = Guid.NewGuid();
+        var teeTime = MakeTeeTime(openSpots: 1, hostUserId: hostId);
         await teeTimes.AddAsync(teeTime);
         var joinRequest = await service.CreateAsync(teeTime.Id, Guid.NewGuid());
 
-        var result = await service.UpdateStatusAsync(joinRequest.Id, JoinRequestStatus.Accepted);
+        var result = await service.UpdateStatusAsync(joinRequest.Id, JoinRequestStatus.Accepted, hostId);
 
         Assert.Equal(JoinRequestStatus.Accepted, result.Status);
+    }
+
+    [Fact]
+    public async Task UpdateStatusAsync_ByNonHost_ThrowsForbidden()
+    {
+        var (service, teeTimes, _, _) = CreateService();
+        var hostId = Guid.NewGuid();
+        var teeTime = MakeTeeTime(openSpots: 1, hostUserId: hostId);
+        await teeTimes.AddAsync(teeTime);
+        var joinRequest = await service.CreateAsync(teeTime.Id, Guid.NewGuid());
+
+        await Assert.ThrowsAsync<ForbiddenException>(
+            () => service.UpdateStatusAsync(joinRequest.Id, JoinRequestStatus.Accepted, Guid.NewGuid()));
     }
 
     [Fact]
     public async Task UpdateStatusAsync_AcceptingTheLastOpenSpot_MarksTeeTimeFull()
     {
         var (service, teeTimes, _, _) = CreateService();
-        var teeTime = MakeTeeTime(openSpots: 2);
+        var hostId = Guid.NewGuid();
+        var teeTime = MakeTeeTime(openSpots: 2, hostUserId: hostId);
         await teeTimes.AddAsync(teeTime);
         var first = await service.CreateAsync(teeTime.Id, Guid.NewGuid());
         var second = await service.CreateAsync(teeTime.Id, Guid.NewGuid());
 
-        await service.UpdateStatusAsync(first.Id, JoinRequestStatus.Accepted);
+        await service.UpdateStatusAsync(first.Id, JoinRequestStatus.Accepted, hostId);
         Assert.Equal(TeeTimeStatus.Open, (await teeTimes.GetByIdAsync(teeTime.Id))!.Status);
 
-        await service.UpdateStatusAsync(second.Id, JoinRequestStatus.Accepted);
+        await service.UpdateStatusAsync(second.Id, JoinRequestStatus.Accepted, hostId);
         Assert.Equal(TeeTimeStatus.Full, (await teeTimes.GetByIdAsync(teeTime.Id))!.Status);
     }
 
@@ -84,28 +165,67 @@ public class JoinRequestServiceTests
     public async Task UpdateStatusAsync_AcceptingBeyondOpenSpots_ThrowsDomainValidation()
     {
         var (service, teeTimes, _, _) = CreateService();
-        var teeTime = MakeTeeTime(openSpots: 1);
+        var hostId = Guid.NewGuid();
+        var teeTime = MakeTeeTime(openSpots: 1, hostUserId: hostId);
         await teeTimes.AddAsync(teeTime);
 
         var first = await service.CreateAsync(teeTime.Id, Guid.NewGuid());
         var second = await service.CreateAsync(teeTime.Id, Guid.NewGuid());
-        await service.UpdateStatusAsync(first.Id, JoinRequestStatus.Accepted);
+        await service.UpdateStatusAsync(first.Id, JoinRequestStatus.Accepted, hostId);
 
         await Assert.ThrowsAsync<DomainValidationException>(
-            () => service.UpdateStatusAsync(second.Id, JoinRequestStatus.Accepted));
+            () => service.UpdateStatusAsync(second.Id, JoinRequestStatus.Accepted, hostId));
+    }
+
+    [Fact]
+    public async Task UpdateStatusAsync_AcceptingIntoCancelledTeeTime_ThrowsDomainValidation()
+    {
+        var (service, teeTimes, joinRequests, _) = CreateService();
+        var hostId = Guid.NewGuid();
+        var teeTime = MakeTeeTime(openSpots: 1, hostUserId: hostId);
+        await teeTimes.AddAsync(teeTime);
+        var joinRequest = await service.CreateAsync(teeTime.Id, Guid.NewGuid());
+
+        // Cancelled after the request was made — accept must still re-check the tee time's
+        // current state, not just the request's.
+        teeTime.Status = TeeTimeStatus.Cancelled;
+        await teeTimes.UpdateAsync(teeTime);
+
+        await Assert.ThrowsAsync<DomainValidationException>(
+            () => service.UpdateStatusAsync(joinRequest.Id, JoinRequestStatus.Accepted, hostId));
+    }
+
+    [Fact]
+    public async Task UpdateStatusAsync_AcceptingIntoFullTeeTime_ThrowsDomainValidation()
+    {
+        var (service, teeTimes, _, _) = CreateService();
+        var hostId = Guid.NewGuid();
+        var teeTime = MakeTeeTime(openSpots: 2, hostUserId: hostId);
+        await teeTimes.AddAsync(teeTime);
+        var joinRequest = await service.CreateAsync(teeTime.Id, Guid.NewGuid());
+
+        // Marked Full without any accepted request (e.g. another path flipped the status) — the
+        // explicit status check must reject this on its own; the accepted-count comparison alone
+        // wouldn't, since only 0 of 2 spots are actually accepted.
+        teeTime.Status = TeeTimeStatus.Full;
+        await teeTimes.UpdateAsync(teeTime);
+
+        await Assert.ThrowsAsync<DomainValidationException>(
+            () => service.UpdateStatusAsync(joinRequest.Id, JoinRequestStatus.Accepted, hostId));
     }
 
     [Fact]
     public async Task UpdateStatusAsync_OnAlreadyResolvedRequest_ThrowsDomainValidation()
     {
         var (service, teeTimes, _, _) = CreateService();
-        var teeTime = MakeTeeTime(openSpots: 2);
+        var hostId = Guid.NewGuid();
+        var teeTime = MakeTeeTime(openSpots: 2, hostUserId: hostId);
         await teeTimes.AddAsync(teeTime);
         var joinRequest = await service.CreateAsync(teeTime.Id, Guid.NewGuid());
-        await service.UpdateStatusAsync(joinRequest.Id, JoinRequestStatus.Declined);
+        await service.UpdateStatusAsync(joinRequest.Id, JoinRequestStatus.Declined, hostId);
 
         await Assert.ThrowsAsync<DomainValidationException>(
-            () => service.UpdateStatusAsync(joinRequest.Id, JoinRequestStatus.Accepted));
+            () => service.UpdateStatusAsync(joinRequest.Id, JoinRequestStatus.Accepted, hostId));
     }
 
     [Fact]
@@ -114,7 +234,85 @@ public class JoinRequestServiceTests
         var (service, _, _, _) = CreateService();
 
         await Assert.ThrowsAsync<NotFoundException>(
-            () => service.UpdateStatusAsync(Guid.NewGuid(), JoinRequestStatus.Accepted));
+            () => service.UpdateStatusAsync(Guid.NewGuid(), JoinRequestStatus.Accepted, Guid.NewGuid()));
+    }
+
+    /// <summary>
+    /// A fast sanity check that the lock exists and rejects a second accept once the first has
+    /// run — but the in-memory repositories complete every call synchronously (no real I/O to
+    /// yield on), so this can't prove the lock is what's enforcing it rather than incidental
+    /// ordering. <see cref="JoinRequestConcurrencyTests"/> (opt-in, real Postgres, separate
+    /// DbContexts) is the authoritative version of this test per the EME-313 review.
+    /// </summary>
+    [Fact]
+    public async Task UpdateStatusAsync_ConcurrentAcceptsForLastOpenSpot_ExactlyOneSucceeds()
+    {
+        var (service, teeTimes, _, _) = CreateService();
+        var hostId = Guid.NewGuid();
+        var teeTime = MakeTeeTime(openSpots: 1, hostUserId: hostId);
+        await teeTimes.AddAsync(teeTime);
+        var first = await service.CreateAsync(teeTime.Id, Guid.NewGuid());
+        var second = await service.CreateAsync(teeTime.Id, Guid.NewGuid());
+
+        // Both racers are scheduled onto separate thread-pool threads and released together,
+        // rather than invoked inline as Task.WhenAll's arguments — otherwise a fully-synchronous
+        // first call could run start-to-finish before the second is even constructed.
+        var gate = new TaskCompletionSource();
+
+        async Task<bool> TryAccept(Guid joinRequestId)
+        {
+            await gate.Task;
+            try
+            {
+                await service.UpdateStatusAsync(joinRequestId, JoinRequestStatus.Accepted, hostId);
+                return true;
+            }
+            catch (DomainValidationException)
+            {
+                return false;
+            }
+        }
+
+        var taskA = Task.Run(() => TryAccept(first.Id));
+        var taskB = Task.Run(() => TryAccept(second.Id));
+        gate.SetResult();
+        var results = await Task.WhenAll(taskA, taskB);
+
+        Assert.Single(results, succeeded => succeeded);
+        Assert.Equal(TeeTimeStatus.Full, (await teeTimes.GetByIdAsync(teeTime.Id))!.Status);
+    }
+
+    [Fact]
+    public async Task UpdateStatusAsync_AcceptAndDeclineOnSameRequest_ExactlyOneSucceeds()
+    {
+        var (service, teeTimes, _, _) = CreateService();
+        var hostId = Guid.NewGuid();
+        var teeTime = MakeTeeTime(openSpots: 1, hostUserId: hostId);
+        await teeTimes.AddAsync(teeTime);
+        var joinRequest = await service.CreateAsync(teeTime.Id, Guid.NewGuid());
+
+        var gate = new TaskCompletionSource();
+
+        async Task<bool> TryUpdate(JoinRequestStatus status)
+        {
+            await gate.Task;
+            try
+            {
+                await service.UpdateStatusAsync(joinRequest.Id, status, hostId);
+                return true;
+            }
+            catch (DomainValidationException)
+            {
+                return false;
+            }
+        }
+
+        var acceptTask = Task.Run(() => TryUpdate(JoinRequestStatus.Accepted));
+        var declineTask = Task.Run(() => TryUpdate(JoinRequestStatus.Declined));
+        gate.SetResult();
+        var results = await Task.WhenAll(acceptTask, declineTask);
+
+        Assert.Single(results, succeeded => succeeded);
     }
 
     [Theory]
@@ -124,12 +322,13 @@ public class JoinRequestServiceTests
         JoinRequestStatus status, NotificationType expectedType)
     {
         var (service, teeTimes, _, notifications) = CreateService();
-        var teeTime = MakeTeeTime(openSpots: 1);
+        var hostId = Guid.NewGuid();
+        var teeTime = MakeTeeTime(openSpots: 1, hostUserId: hostId);
         await teeTimes.AddAsync(teeTime);
         var guestId = Guid.NewGuid();
         var joinRequest = await service.CreateAsync(teeTime.Id, guestId);
 
-        await service.UpdateStatusAsync(joinRequest.Id, status);
+        await service.UpdateStatusAsync(joinRequest.Id, status, hostId);
 
         var notification = Assert.Single(await notifications.GetByUserIdAsync(guestId));
         Assert.Equal(expectedType, notification.Type);
