@@ -3,10 +3,13 @@ package com.teeup.android
 import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -18,6 +21,7 @@ import com.teeup.android.data.TeeUpApiClient
 import com.teeup.android.data.handicapValue
 import com.teeup.android.data.roundTimestamp
 import com.teeup.android.data.validHandicap
+import com.teeup.android.ui.CourseSearchAdapter
 import com.teeup.android.ui.LocaleActivity
 import com.teeup.android.ui.TeeUpBanner
 import java.text.SimpleDateFormat
@@ -30,13 +34,16 @@ import java.util.TimeZone
  * EME-311: create a real group looking for players — course, date/time, holes, guests wanted,
  * wanted handicap range, wanted pace. Posts to POST /api/teetimes/groups. Reachable from Home
  * (see HomeActivity's "Create a Group" button); the groups-list UI itself is EME-312's job, kept
- * deliberately separate from this screen.
+ * deliberately separate from this screen. Course is a search-as-you-type field
+ * (CourseSearchAdapter, GET /api/courses?search=), not a fixed dropdown — matches Register/
+ * Playing Details' home course picker.
  *
  * EME-321: also doubles as the edit screen for an existing group — TeeTimeDetailActivity's Edit
  * button starts this Activity with [EXTRA_EDIT_TEE_TIME_ID] set and the group's current values
  * as the other EXTRA_EDIT_* extras, which switches the form to pre-filled/edit mode and PATCHes
  * instead of POSTing on save. The course isn't editable in that mode (see EditAsync's doc
- * comment), so the course spinner is locked to the group's existing course.
+ * comment), so the course field is locked (disabled) and pre-filled by resolving the group's
+ * existing course id to a name — it isn't sent in the edit request at all.
  */
 class CreateGroupActivity : LocaleActivity() {
     companion object {
@@ -52,7 +59,7 @@ class CreateGroupActivity : LocaleActivity() {
 
     private lateinit var statusText: TextView
     private lateinit var contentGroup: View
-    private lateinit var courseSpinner: Spinner
+    private lateinit var courseInput: AutoCompleteTextView
     private lateinit var pickDateTimeButton: Button
     private lateinit var holesSpinner: Spinner
     private lateinit var playersNeededText: TextView
@@ -61,11 +68,13 @@ class CreateGroupActivity : LocaleActivity() {
     private lateinit var paceSpinner: Spinner
     private lateinit var createButton: Button
 
-    private var courses: List<Course> = emptyList()
+    /** Set when a suggestion is tapped, or (edit mode only) resolved from the group's existing
+     *  course id; cleared as soon as the typed text no longer matches it. Unused for the edit
+     *  request itself (the course isn't editable) — only for display in the locked field. */
+    private var selectedCourse: Course? = null
     private var pickedDateTimeIso: String? = null
     private var playersNeeded = 1
     private var editTeeTimeId: String? = null
-    private var editCourseId: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,7 +82,7 @@ class CreateGroupActivity : LocaleActivity() {
 
         statusText = findViewById(R.id.text_status)
         contentGroup = findViewById(R.id.group_content)
-        courseSpinner = findViewById(R.id.input_course)
+        courseInput = findViewById(R.id.input_course)
         pickDateTimeButton = findViewById(R.id.button_pick_date_time)
         holesSpinner = findViewById(R.id.input_holes)
         playersNeededText = findViewById(R.id.text_players_needed)
@@ -97,25 +106,47 @@ class CreateGroupActivity : LocaleActivity() {
             setDropDownViewResource(R.layout.spinner_dropdown_item)
         }
 
+        wireCourseSearch()
         pickDateTimeButton.setOnClickListener { showDateTimePicker() }
         findViewById<Button>(R.id.button_players_minus).setOnClickListener { changePlayersNeeded(-1) }
         findViewById<Button>(R.id.button_players_plus).setOnClickListener { changePlayersNeeded(1) }
         createButton.setOnClickListener { onCreateClicked() }
 
         updatePlayersNeededDisplay()
+        // No upfront course fetch needed anymore (search is live), so the form is ready
+        // immediately — the "loading courses" status view is no longer used at all here.
+        statusText.visibility = View.GONE
+        contentGroup.visibility = View.VISIBLE
         applyEditModeIfRequested()
-        loadCourses()
     }
 
-    /** Pre-fills every field an edit carries except the course (applied once courses load, in
-     *  [render], since the course spinner's adapter isn't ready yet here). */
+    private fun wireCourseSearch() {
+        val adapter = CourseSearchAdapter(this)
+        courseInput.setAdapter(adapter)
+        courseInput.setOnItemClickListener { _, _, position, _ ->
+            selectedCourse = adapter.getItem(position)
+        }
+        courseInput.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                if (s?.toString() != selectedCourse?.name) selectedCourse = null
+            }
+        })
+    }
+
+    /** Pre-fills every field an edit carries. The course field is locked (disabled) and its
+     *  name resolved asynchronously from [EXTRA_EDIT_COURSE_ID], since only the id is passed —
+     *  editing doesn't need it, this is purely so the host can see which course the group is on. */
     private fun applyEditModeIfRequested() {
         val id = intent.getStringExtra(EXTRA_EDIT_TEE_TIME_ID) ?: return
         editTeeTimeId = id
-        editCourseId = intent.getStringExtra(EXTRA_EDIT_COURSE_ID)
 
         findViewById<TextView>(R.id.text_screen_title).text = getString(R.string.edit_group_title)
         createButton.text = getString(R.string.edit_group_save)
+
+        courseInput.isEnabled = false
+        intent.getStringExtra(EXTRA_EDIT_COURSE_ID)?.let { resolveLockedCourseName(it) }
 
         intent.getStringExtra(EXTRA_EDIT_DATE_TIME_ISO)?.let { iso ->
             try {
@@ -143,41 +174,23 @@ class CreateGroupActivity : LocaleActivity() {
         }
     }
 
-    private fun formatHandicapForInput(value: Double): String =
-        if (value == value.toInt().toDouble()) value.toInt().toString() else value.toString()
-
-    private fun loadCourses() {
+    private fun resolveLockedCourseName(courseId: String) {
         Thread {
-            try {
-                val fetched = TeeUpApiClient.fetchCourses()
-                runOnUiThread { render(fetched) }
+            val course = try {
+                TeeUpApiClient.fetchCourses().firstOrNull { it.id == courseId }
             } catch (e: Exception) {
-                runOnUiThread {
-                    statusText.text = e.message ?: getString(R.string.create_group_no_courses)
-                }
+                null
+            }
+            runOnUiThread {
+                selectedCourse = course
+                // `false` skips triggering the (disabled, so irrelevant anyway) search dropdown.
+                courseInput.setText(course?.name.orEmpty(), false)
             }
         }.start()
     }
 
-    private fun render(fetchedCourses: List<Course>) {
-        courses = fetchedCourses
-        if (fetchedCourses.isEmpty()) {
-            statusText.text = getString(R.string.create_group_no_courses)
-            return
-        }
-        statusText.visibility = View.GONE
-        contentGroup.visibility = View.VISIBLE
-        courseSpinner.adapter = ArrayAdapter(
-            this, R.layout.spinner_item, fetchedCourses.map { it.name }
-        ).apply { setDropDownViewResource(R.layout.spinner_dropdown_item) }
-
-        val lockedCourseId = editCourseId
-        if (lockedCourseId != null) {
-            val index = fetchedCourses.indexOfFirst { it.id == lockedCourseId }
-            if (index >= 0) courseSpinner.setSelection(index)
-            courseSpinner.isEnabled = false
-        }
-    }
+    private fun formatHandicapForInput(value: Double): String =
+        if (value == value.toInt().toDouble()) value.toInt().toString() else value.toString()
 
     /**
      * The date/month/hour/minute the picker widgets return are plain wall-clock numbers with no
@@ -284,10 +297,10 @@ class CreateGroupActivity : LocaleActivity() {
     }
 
     private fun onCreateClicked() {
-        val courseIndex = courseSpinner.selectedItemPosition
-        val course = courses.getOrNull(courseIndex)
-        if (course == null) {
-            TeeUpBanner.show(this, getString(R.string.create_group_no_courses), isError = true)
+        val editId = editTeeTimeId
+        // Edit mode never sends the course, so no selection is required there.
+        if (editId == null && selectedCourse == null) {
+            TeeUpBanner.show(this, getString(R.string.create_group_course_required), isError = true)
             return
         }
 
@@ -320,8 +333,10 @@ class CreateGroupActivity : LocaleActivity() {
 
         val holes = if (holesSpinner.selectedItemPosition == 0) 9 else 18
         val pace = (paceSpinner.selectedItemPosition - 1).takeIf { it in 0..2 }
+        // Snapshotted now, not read from the field inside Thread{} below — the field is mutable
+        // and the course input stays enabled/editable while the request is in flight.
+        val courseId = selectedCourse?.id
 
-        val editId = editTeeTimeId
         createButton.isEnabled = false
         createButton.text = getString(if (editId != null) R.string.edit_group_saving else R.string.create_group_creating)
 
@@ -338,8 +353,9 @@ class CreateGroupActivity : LocaleActivity() {
                         wantedPace = pace
                     )
                 } else {
+                    // Guarded above: editId == null implies courseId != null.
                     TeeUpApiClient.createGroup(
-                        courseId = course.id,
+                        courseId = courseId!!,
                         dateTimeIso = dateTimeIso,
                         holes = holes,
                         openSpots = playersNeeded,

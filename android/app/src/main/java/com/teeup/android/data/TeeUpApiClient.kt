@@ -19,8 +19,12 @@ import java.util.concurrent.TimeUnit
  * Every function here blocks and must be called off the main thread.
  */
 object TeeUpApiClient {
-    fun fetchCourses(): List<Course> {
-        val array = JSONArray(request("GET", "api/courses"))
+    /** [search] filters by course name (case-insensitive substring match) server-side;
+     *  null/blank returns every course, same as calling this with no argument. */
+    fun fetchCourses(search: String? = null): List<Course> {
+        val path = if (search.isNullOrBlank()) "api/courses"
+            else "api/courses?search=${java.net.URLEncoder.encode(search, "UTF-8")}"
+        val array = JSONArray(request("GET", path))
         return (0 until array.length()).map { i -> parseCourse(array.getJSONObject(i)) }
     }
 

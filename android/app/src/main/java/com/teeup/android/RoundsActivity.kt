@@ -7,6 +7,7 @@ import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.widget.AutoCompleteTextView
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -19,6 +20,7 @@ import com.teeup.android.data.roundTimestamp
 import com.teeup.android.data.selectRounds
 import com.teeup.android.nav.BottomNav
 import com.teeup.android.nav.BottomNavTab
+import com.teeup.android.ui.CourseSearchAdapter
 import com.teeup.android.ui.LocaleActivity
 import com.teeup.android.ui.TeeUpBanner
 
@@ -176,17 +178,33 @@ class RoundsActivity : LocaleActivity() {
         return card
     }
 
+    /** Search-as-you-type (CourseSearchAdapter, GET /api/courses?search=) rather than a fixed
+     *  list of whatever [coursesById] happened to have cached — that list exists only to label
+     *  already-known rounds/schedule rows, not to enumerate every course that could be picked
+     *  here, so it's not reused for this dialog. Tapping a suggestion both fills the field and
+     *  immediately advances to the hole-count prompt — there's nothing else to confirm on this
+     *  screen, unlike a form field that still needs a Save tap. */
     private fun onStartARoundClicked() {
-        val courses = coursesById.values.sortedBy { it.name }
-        if (courses.isEmpty()) {
-            TeeUpBanner.show(this, getString(R.string.rounds_no_courses), isError = true)
-            return
-        }
-        AlertDialog.Builder(this)
-            .setTitle(getString(R.string.rounds_pick_course))
-            .setItems(courses.map { it.name }.toTypedArray()) { _, index ->
-                promptHoleCount { holes -> createSoloRoundAndOpen(courses[index].id, holes) }
+        lateinit var dialog: AlertDialog
+        val searchInput = AutoCompleteTextView(this).apply {
+            hint = getString(R.string.course_search_hint)
+            threshold = 1
+            val adapter = CourseSearchAdapter(this@RoundsActivity)
+            setAdapter(adapter)
+            setOnItemClickListener { _, _, position, _ ->
+                val course = adapter.getItem(position)
+                dialog.dismiss()
+                promptHoleCount { holes -> createSoloRoundAndOpen(course.id, holes) }
             }
+        }
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(20), dp(8), dp(20), dp(0))
+            addView(searchInput)
+        }
+        dialog = AlertDialog.Builder(this)
+            .setTitle(getString(R.string.rounds_pick_course))
+            .setView(container)
             .setNegativeButton(getString(R.string.wireflow_back), null)
             .show()
     }
