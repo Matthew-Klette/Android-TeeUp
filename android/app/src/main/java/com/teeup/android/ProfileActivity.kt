@@ -28,11 +28,15 @@ import com.teeup.android.ui.TeeUpBanner
 import java.io.File
 import java.text.NumberFormat
 
-/** Screen 4 · Profile & Settings. Every row here is a real screen — see each Activity's
+/** Screen 4 · Profile & Settings. Every row here is a real screen, see each Activity's
  *  own doc comment for what's genuinely backed by the API vs. on-device only.
  *  ComponentActivity (not the plain-Activity LocaleActivity base every other screen uses),
  *  since the photo picker needs registerForActivityResult (Google, n.d.d). */
 class ProfileActivity : LocaleComponentActivity() {
+    companion object {
+        private const val KEY_PENDING_CAMERA_FILE = "pendingCameraFile"
+    }
+
     private lateinit var photoImage: ImageView
     private lateinit var nameText: TextView
     private lateinit var detailsText: TextView
@@ -76,9 +80,13 @@ class ProfileActivity : LocaleComponentActivity() {
         setContentView(R.layout.activity_profile)
         BottomNav.wire(this, BottomNavTab.PROFILE)
 
+        // Survives Android recreating this Activity while the camera app is open.
+        // Without it, the takePicture callback finds pendingCameraFile null and
+        // drops an otherwise-successful capture.
+        pendingCameraFile = savedInstanceState?.getString(KEY_PENDING_CAMERA_FILE)?.let { File(it) }
+
         photoImage = findViewById(R.id.image_profile_photo)
         photoImage.setOnClickListener { showPhotoPickerDialog() }
-        refreshLocalPhoto()
 
         nameText = findViewById(R.id.text_profile_name)
         detailsText = findViewById(R.id.text_profile_details)
@@ -109,8 +117,13 @@ class ProfileActivity : LocaleComponentActivity() {
         findViewById<Button>(R.id.button_sign_out).setOnClickListener { AuthSession.signOut(this) }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        pendingCameraFile?.let { outState.putString(KEY_PENDING_CAMERA_FILE, it.absolutePath) }
+    }
+
     /** Personal/Playing/Notification Details are separate Activities on the back stack, not
-     *  dialogs — this Activity is only resumed, not recreated, when the user backs out of one
+     *  dialogs. This Activity is only resumed, not recreated, when the user backs out of one
      *  after saving, so onCreate alone left the header showing whatever was true when the
      *  screen first opened. Refreshing on every resume picks up edits made on those screens. */
     override fun onResume() {
@@ -120,7 +133,7 @@ class ProfileActivity : LocaleComponentActivity() {
 
     /** Refreshes the name/handicap summary at the top of the screen. The 2026-09 UI revamp
      *  (#15) split personal/playing details out into their own screens and, in the process,
-     *  dropped the code that kept this header populated — it was left showing the layout's
+     *  dropped the code that kept this header populated. It was left showing the layout's
      *  static "Display Name" / "Handicap · Home course" placeholders forever. Personal/Playing
      *  Details already load the same data this way (there's no separate GET, so the idempotent
      *  POST /api/auth/register doubles as "fetch current profile"), so this mirrors that. */
@@ -129,8 +142,13 @@ class ProfileActivity : LocaleComponentActivity() {
         if (firebaseUser == null) {
             showLoading(false)
             showStatus(getString(R.string.profile_load_signed_out), showRetry = false)
+            photoImage.setImageResource(R.drawable.ic_logo)
             return
         }
+
+        // Re-read on every resume, not just onCreate, so switching accounts on this
+        // device never shows the previous account's cached photo.
+        refreshLocalPhoto(firebaseUser.uid)
 
         showLoading(true)
         showStatus(null, showRetry = false)
@@ -208,17 +226,23 @@ class ProfileActivity : LocaleComponentActivity() {
         takePictureLauncher.launch(uri)
     }
 
-    // Saved to this device only — see LocalProfilePhoto's doc comment.
+    // Saved to this device only, keyed by the signed-in uid. See LocalProfilePhoto's doc comment.
     private fun savePhoto(imageUri: Uri) {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid
+        if (uid == null) {
+            TeeUpBanner.show(this, getString(R.string.profile_load_signed_out), isError = true)
+            return
+        }
+
         photoImage.isEnabled = false
         TeeUpBanner.show(this, getString(R.string.profile_photo_uploading))
 
         Thread {
             try {
-                LocalProfilePhoto.save(this, imageUri)
+                LocalProfilePhoto.save(this, uid, imageUri)
                 runOnUiThread {
                     photoImage.isEnabled = true
-                    refreshLocalPhoto()
+                    refreshLocalPhoto(uid)
                 }
             } catch (e: Exception) {
                 runOnUiThread {
@@ -229,8 +253,8 @@ class ProfileActivity : LocaleComponentActivity() {
         }.start()
     }
 
-    private fun refreshLocalPhoto() {
-        val bitmap = LocalProfilePhoto.loadOrNull(this)
+    private fun refreshLocalPhoto(uid: String) {
+        val bitmap = LocalProfilePhoto.loadOrNull(this, uid)
         if (bitmap != null) {
             photoImage.setImageBitmap(bitmap)
         } else {
