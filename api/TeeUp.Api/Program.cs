@@ -71,6 +71,7 @@ builder.Services.AddScoped<IRoundRepository, EfRoundRepository>();
 builder.Services.AddScoped<IScorecardEntryRepository, EfScorecardEntryRepository>();
 builder.Services.AddScoped<IEndorsementRepository, EfEndorsementRepository>();
 builder.Services.AddScoped<INotificationRepository, EfNotificationRepository>();
+builder.Services.AddScoped<IUnitOfWork, EfUnitOfWork>();
 
 // Services
 builder.Services.AddScoped<IAuthService, AuthService>();

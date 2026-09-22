@@ -14,6 +14,8 @@ enum class NotificationCategory(val labelRes: Int) {
     REQUEST_DECLINED(R.string.notification_category_declined),
     TEE_TIME_REMINDER(R.string.notification_category_reminder),
     SYNC_PENDING(R.string.notification_category_sync),
+    // Never actually sent (the weather-alerts preference was removed). Kept in place since this
+    // list is looked up by ordinal, and removing it would shift TEE_TIME_CANCELLED out of sync.
     WEATHER_ALERT(R.string.notification_category_weather),
     TEE_TIME_CANCELLED(R.string.notification_category_cancelled);
 

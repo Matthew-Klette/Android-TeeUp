@@ -9,8 +9,7 @@ data class UserProfile(
     val language: Int,
     val profileComplete: Boolean,
     val joinRequestNotifications: Boolean,
-    val teeTimeReminders: Boolean,
-    val weatherAlerts: Boolean
+    val teeTimeReminders: Boolean
 )
 
 /**
@@ -24,7 +23,6 @@ data class ProfileUpdateRequest(
     val paceOfPlay: Int? = null,
     val joinRequestNotifications: Boolean? = null,
     val teeTimeReminders: Boolean? = null,
-    val weatherAlerts: Boolean? = null,
     val clearHandicapIndex: Boolean = false,
     val clearHomeCourse: Boolean = false
 )

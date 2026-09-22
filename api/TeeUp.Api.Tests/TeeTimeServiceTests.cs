@@ -21,8 +21,10 @@ public class TeeTimeServiceTests
         var users = new InMemoryUserRepository();
         var courses = new InMemoryCourseRepository();
         var rounds = new InMemoryRoundRepository();
+        var resolvedNotifications = notifications ?? new InMemoryNotificationRepository();
+        var unitOfWork = new InMemoryUnitOfWork(teeTimes, joinRequests, resolvedNotifications);
         return (
-            new TeeTimeService(teeTimes, users, courses, joinRequests, notifications ?? new InMemoryNotificationRepository(), rounds),
+            new TeeTimeService(teeTimes, users, courses, joinRequests, resolvedNotifications, rounds, unitOfWork),
             teeTimes, users, courses, rounds);
     }
 
@@ -530,24 +532,133 @@ public class TeeTimeServiceTests
     }
 
     [Fact]
-    public async Task DeleteAsync_WithExistingJoinRequests_ThrowsValidationError()
+    public async Task DeleteAsync_WithOnlyPendingOrDeclinedRequests_StillDeletesAndNotifiesPendingGuest()
     {
         var joinRequests = new InMemoryJoinRequestRepository();
-        var (service, teeTimes, users, courses, _) = CreateServiceWithJoinRequests(joinRequests);
+        var notifications = new InMemoryNotificationRepository();
+        var (service, teeTimes, users, courses, _) = CreateServiceWithJoinRequests(joinRequests, notifications);
         var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
         var course = await AddCourse(courses);
         var created = await service.CreateGroupAsync(host.Id, MakeGroupRequest(course.Id));
+        var pendingGuestId = Guid.NewGuid();
         await joinRequests.AddAsync(new JoinRequest
         {
             Id = Guid.NewGuid(), TeeTimeId = created.Id, GuestUserId = Guid.NewGuid(), Status = JoinRequestStatus.Declined
         });
+        await joinRequests.AddAsync(new JoinRequest
+        {
+            Id = Guid.NewGuid(), TeeTimeId = created.Id, GuestUserId = pendingGuestId, Status = JoinRequestStatus.Pending
+        });
 
-        await Assert.ThrowsAsync<DomainValidationException>(() => service.DeleteAsync(created.Id, host.Id));
-        Assert.NotNull(await teeTimes.GetByIdAsync(created.Id));
+        await service.DeleteAsync(created.Id, host.Id);
+
+        Assert.Null(await teeTimes.GetByIdAsync(created.Id));
+        var notification = Assert.Single(await notifications.GetAllAsync());
+        Assert.Equal(pendingGuestId, notification.UserId);
     }
 
     [Fact]
-    public async Task DeleteAsync_WithExistingRound_ThrowsValidationError()
+    public async Task DeleteAsync_WithAcceptedGuest_StillDeletesAndNotifiesTheGuest()
+    {
+        var joinRequests = new InMemoryJoinRequestRepository();
+        var notifications = new InMemoryNotificationRepository();
+        var (service, teeTimes, users, courses, _) = CreateServiceWithJoinRequests(joinRequests, notifications);
+        var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
+        var course = await AddCourse(courses);
+        var created = await service.CreateGroupAsync(host.Id, MakeGroupRequest(course.Id));
+        var acceptedGuestId = Guid.NewGuid();
+        await joinRequests.AddAsync(new JoinRequest
+        {
+            Id = Guid.NewGuid(), TeeTimeId = created.Id, GuestUserId = acceptedGuestId, Status = JoinRequestStatus.Accepted
+        });
+
+        await service.DeleteAsync(created.Id, host.Id);
+
+        Assert.Null(await teeTimes.GetByIdAsync(created.Id));
+        var notification = Assert.Single(await notifications.GetAllAsync());
+        Assert.Equal(acceptedGuestId, notification.UserId);
+    }
+
+    /// <summary>Wraps a real repository so a test can force DeleteAsync to fail, proving no
+    /// notification goes out unless the delete itself actually went through.</summary>
+    private sealed class ThrowingOnDeleteTeeTimeRepository(ITeeTimeRepository inner) : ITeeTimeRepository
+    {
+        public Task<TeeTime?> GetByIdAsync(Guid id) => inner.GetByIdAsync(id);
+        public Task<TeeTime?> GetByIdFreshAsync(Guid id) => inner.GetByIdFreshAsync(id);
+        public Task<IReadOnlyList<TeeTime>> GetAllAsync() => inner.GetAllAsync();
+        public Task<TeeTime> AddAsync(TeeTime entity) => inner.AddAsync(entity);
+        public Task UpdateAsync(TeeTime entity) => inner.UpdateAsync(entity);
+        public Task DeleteAsync(Guid id) => throw new InvalidOperationException("Simulated delete failure.");
+    }
+
+    [Fact]
+    public async Task DeleteAsync_WhenDeleteFails_SendsNoNotifications()
+    {
+        var teeTimes = new InMemoryTeeTimeRepository();
+        var joinRequests = new InMemoryJoinRequestRepository();
+        var notifications = new InMemoryNotificationRepository();
+        var users = new InMemoryUserRepository();
+        var courses = new InMemoryCourseRepository();
+        var rounds = new InMemoryRoundRepository();
+        var unitOfWork = new InMemoryUnitOfWork(teeTimes, joinRequests, notifications);
+        var service = new TeeTimeService(
+            new ThrowingOnDeleteTeeTimeRepository(teeTimes), users, courses, joinRequests, notifications, rounds, unitOfWork);
+        var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
+        var course = await AddCourse(courses);
+        var created = await teeTimes.AddAsync(MakeTeeTime(host.Id));
+        await joinRequests.AddAsync(new JoinRequest
+        {
+            Id = Guid.NewGuid(), TeeTimeId = created.Id, GuestUserId = Guid.NewGuid(), Status = JoinRequestStatus.Accepted
+        });
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.DeleteAsync(created.Id, host.Id));
+
+        Assert.Empty(await notifications.GetAllAsync());
+    }
+
+    /// <summary>Wraps a real repository so a test can force the notification insert inside
+    /// DeleteAsync's transaction to fail after the delete has already run.</summary>
+    private sealed class ThrowingOnAddNotificationRepository(INotificationRepository inner) : INotificationRepository
+    {
+        public Task<Notification?> GetByIdAsync(Guid id) => inner.GetByIdAsync(id);
+        public Task<Notification?> GetByIdFreshAsync(Guid id) => inner.GetByIdFreshAsync(id);
+        public Task<IReadOnlyList<Notification>> GetAllAsync() => inner.GetAllAsync();
+        public Task<Notification> AddAsync(Notification entity) => throw new InvalidOperationException("Simulated notification failure.");
+        public Task UpdateAsync(Notification entity) => inner.UpdateAsync(entity);
+        public Task DeleteAsync(Guid id) => inner.DeleteAsync(id);
+        public Task<IReadOnlyList<Notification>> GetByUserIdAsync(Guid userId) => inner.GetByUserIdAsync(userId);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_WhenNotificationInsertFails_RollsBackTheDelete()
+    {
+        var teeTimes = new InMemoryTeeTimeRepository();
+        var joinRequests = new InMemoryJoinRequestRepository();
+        var notifications = new InMemoryNotificationRepository();
+        var users = new InMemoryUserRepository();
+        var courses = new InMemoryCourseRepository();
+        var rounds = new InMemoryRoundRepository();
+        var unitOfWork = new InMemoryUnitOfWork(teeTimes, joinRequests, notifications);
+        var service = new TeeTimeService(
+            teeTimes, users, courses, joinRequests, new ThrowingOnAddNotificationRepository(notifications), rounds, unitOfWork);
+        var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
+        var course = await AddCourse(courses);
+        var created = await teeTimes.AddAsync(MakeTeeTime(host.Id));
+        await joinRequests.AddAsync(new JoinRequest
+        {
+            Id = Guid.NewGuid(), TeeTimeId = created.Id, GuestUserId = Guid.NewGuid(), Status = JoinRequestStatus.Accepted
+        });
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.DeleteAsync(created.Id, host.Id));
+
+        // The delete already ran before the notification insert failed; the transaction
+        // must undo it too, or the group would be gone with no guest ever notified.
+        Assert.NotNull(await teeTimes.GetByIdAsync(created.Id));
+        Assert.Empty(await notifications.GetAllAsync());
+    }
+
+    [Fact]
+    public async Task DeleteAsync_WithExistingRound_StillDeletes()
     {
         var (service, teeTimes, users, courses, rounds) = CreateService();
         var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
@@ -555,9 +666,45 @@ public class TeeTimeServiceTests
         var created = await service.CreateGroupAsync(host.Id, MakeGroupRequest(course.Id));
         await rounds.AddAsync(new Round { Id = Guid.NewGuid(), TeeTimeId = created.Id });
 
-        // A solo host with no join requests could otherwise hard-delete a group that already
-        // has posted scores, silently losing that round's data.
-        await Assert.ThrowsAsync<DomainValidationException>(() => service.DeleteAsync(created.Id, host.Id));
-        Assert.NotNull(await teeTimes.GetByIdAsync(created.Id));
+        // The host can delete a group even with posted scores; the round cascades with it
+        // in the real database (see TeeUpDbContext), this test just checks the tee time itself.
+        await service.DeleteAsync(created.Id, host.Id);
+
+        Assert.Null(await teeTimes.GetByIdAsync(created.Id));
+    }
+
+    [Fact]
+    public async Task GetMineAsync_ReturnsHostedAndAcceptedTeeTimesOnly()
+    {
+        var joinRequests = new InMemoryJoinRequestRepository();
+        var (service, teeTimes, users, _, _) = CreateService(joinRequests);
+        var me = await AddHost(users, handicap: null, PaceOfPlay.Standard);
+        var otherHost = await AddHost(users, handicap: null, PaceOfPlay.Standard);
+
+        var hostedByMe = MakeTeeTime(me.Id);
+        var acceptedElsewhere = MakeTeeTime(otherHost.Id);
+        var pendingElsewhere = MakeTeeTime(otherHost.Id);
+        var unrelated = MakeTeeTime(otherHost.Id);
+        await teeTimes.AddAsync(hostedByMe);
+        await teeTimes.AddAsync(acceptedElsewhere);
+        await teeTimes.AddAsync(pendingElsewhere);
+        await teeTimes.AddAsync(unrelated);
+
+        await joinRequests.AddAsync(new JoinRequest
+        {
+            Id = Guid.NewGuid(), TeeTimeId = acceptedElsewhere.Id, GuestUserId = me.Id, Status = JoinRequestStatus.Accepted
+        });
+        await joinRequests.AddAsync(new JoinRequest
+        {
+            Id = Guid.NewGuid(), TeeTimeId = pendingElsewhere.Id, GuestUserId = me.Id, Status = JoinRequestStatus.Pending
+        });
+
+        var result = await service.GetMineAsync(me.Id);
+
+        Assert.Equal(2, result.Count);
+        Assert.Contains(result, r => r.Id == hostedByMe.Id);
+        Assert.Contains(result, r => r.Id == acceptedElsewhere.Id);
+        Assert.DoesNotContain(result, r => r.Id == pendingElsewhere.Id);
+        Assert.DoesNotContain(result, r => r.Id == unrelated.Id);
     }
 }

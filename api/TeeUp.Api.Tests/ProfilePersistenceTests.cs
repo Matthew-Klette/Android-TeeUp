@@ -40,7 +40,7 @@ public class ProfilePersistenceTests
 
         await service.UpdateProfileAsync(user.FirebaseUid,
             new UpdateProfileRequest("Updated Golfer", 14.5m, null, PaceOfPlay.Brisk, null, null,
-                JoinRequestNotifications: false, TeeTimeReminders: false, WeatherAlerts: false));
+                JoinRequestNotifications: false, TeeTimeReminders: false));
         context.ChangeTracker.Clear();
         var saved = await service.GetProfileAsync(user.FirebaseUid);
         Assert.Equal("Updated Golfer", saved.DisplayName);
@@ -48,7 +48,6 @@ public class ProfilePersistenceTests
         Assert.Equal(PaceOfPlay.Brisk, saved.PaceOfPlay);
         Assert.False(saved.JoinRequestNotifications);
         Assert.False(saved.TeeTimeReminders);
-        Assert.False(saved.WeatherAlerts);
 
         await service.UpdateProfileAsync(user.FirebaseUid,
             new UpdateProfileRequest("Renamed", null, null, null, null, null, ClearHandicapIndex: true));
@@ -59,6 +58,5 @@ public class ProfilePersistenceTests
         Assert.Equal(PaceOfPlay.Brisk, reloaded.PaceOfPlay);
         Assert.False(reloaded.JoinRequestNotifications);
         Assert.False(reloaded.TeeTimeReminders);
-        Assert.False(reloaded.WeatherAlerts);
     }
 }

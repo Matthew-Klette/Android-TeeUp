@@ -18,8 +18,11 @@ namespace TeeUp.Api.Services;
 public class JoinRequestService(
     IJoinRequestRepository joinRequestRepository,
     ITeeTimeRepository teeTimeRepository,
-    INotificationRepository notificationRepository) : IJoinRequestService
+    INotificationRepository notificationRepository,
+    IUserRepository userRepository) : IJoinRequestService
 {
+    private const string UnknownGuestName = "Unknown golfer";
+
     public async Task<JoinRequestDto> CreateAsync(Guid teeTimeId, Guid guestUserId)
     {
         var teeTime = await teeTimeRepository.GetByIdAsync(teeTimeId)
@@ -57,7 +60,8 @@ public class JoinRequestService(
         };
 
         await joinRequestRepository.AddAsync(joinRequest);
-        return JoinRequestDto.From(joinRequest);
+        var guest = await userRepository.GetByIdAsync(guestUserId);
+        return JoinRequestDto.From(joinRequest, guest?.DisplayName ?? UnknownGuestName);
     }
 
     public async Task<JoinRequestDto> UpdateStatusAsync(Guid joinRequestId, JoinRequestStatus status, Guid callerId)
@@ -161,13 +165,17 @@ public class JoinRequestService(
             RelatedEntityId = joinRequest.TeeTimeId
         });
 
-        return JoinRequestDto.From(joinRequest);
+        var guest = await userRepository.GetByIdAsync(joinRequest.GuestUserId);
+        return JoinRequestDto.From(joinRequest, guest?.DisplayName ?? UnknownGuestName);
     }
 
     public async Task<IReadOnlyList<JoinRequestDto>> GetForTeeTimeAsync(Guid teeTimeId)
     {
         var joinRequests = await joinRequestRepository.GetByTeeTimeIdAsync(teeTimeId);
-        return joinRequests.Select(JoinRequestDto.From).ToList();
+        var usersById = (await userRepository.GetAllAsync()).ToDictionary(u => u.Id);
+        return joinRequests
+            .Select(j => JoinRequestDto.From(j, usersById.GetValueOrDefault(j.GuestUserId)?.DisplayName ?? UnknownGuestName))
+            .ToList();
     }
 
     public async Task WithdrawAsync(Guid joinRequestId, Guid guestUserId)

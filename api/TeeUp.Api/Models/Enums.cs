@@ -41,6 +41,10 @@ public enum NotificationType
     RequestDeclined,
     TeeTimeReminder,
     SyncPending,
+    // Kept as an unused placeholder (never actually constructed anywhere) rather than removed:
+    // this enum serializes to JSON by ordinal, not by name, so deleting a case here would shift
+    // every later case's wire value and silently break the Android client's own NotificationType
+    // constants, which mirror these ordinals by hand.
     WeatherAlert,
     /// <summary>A group's host cancelled it (EME-321) while this user had a pending/accepted join request against it.</summary>
     TeeTimeCancelled

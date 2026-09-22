@@ -11,7 +11,8 @@ public class TeeTimeService(
     ICourseRepository courseRepository,
     IJoinRequestRepository joinRequestRepository,
     INotificationRepository notificationRepository,
-    IRoundRepository roundRepository) : ITeeTimeService
+    IRoundRepository roundRepository,
+    IUnitOfWork unitOfWork) : ITeeTimeService
 {
     public async Task<IReadOnlyList<TeeTimeDto>> GetAllAsync(decimal? maxHandicap = null, PaceOfPlay? pace = null, bool joinableOnly = false)
     {
@@ -268,20 +269,49 @@ public class TeeTimeService(
         if (teeTime.HostUserId != hostUserId)
             throw new ForbiddenException("Only the host can delete this group.");
 
+        // The host can delete their group unconditionally. Join requests, the round and its
+        // scorecard entries all cascade-delete with the tee time itself (see TeeUpDbContext).
         var siblings = await joinRequestRepository.GetByTeeTimeIdAsync(teeTimeId);
-        if (siblings.Count > 0)
-        {
-            throw new DomainValidationException(
-                "This group has join requests against it and cannot be deleted; cancel it instead.");
-        }
+        var affected = siblings.Where(j => j.Status is JoinRequestStatus.Pending or JoinRequestStatus.Accepted).ToList();
 
-        // A round and its scorecard entries would otherwise be silently lost or orphaned, so a host who's posted scores must cancel instead of delete.
-        if (await roundRepository.GetByTeeTimeIdAsync(teeTimeId) is not null)
+        // Delete and its notifications run as one transaction: if either step fails, both
+        // roll back, so a guest can never be told the group is gone when it isn't, and the
+        // group can never actually vanish without its guests being notified.
+        await unitOfWork.RunInTransactionAsync(async () =>
         {
-            throw new DomainValidationException(
-                "This group already has a round with scores and cannot be deleted; cancel it instead.");
-        }
+            await teeTimeRepository.DeleteAsync(teeTimeId);
 
-        await teeTimeRepository.DeleteAsync(teeTimeId);
+            foreach (var guest in affected)
+            {
+                await notificationRepository.AddAsync(new Notification
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = guest.GuestUserId,
+                    Type = NotificationType.TeeTimeCancelled,
+                    Message = "A tee time group you were part of was deleted by the host.",
+                    RelatedEntityId = teeTime.Id
+                });
+            }
+        });
+    }
+
+    public async Task<IReadOnlyList<TeeTimeDto>> GetMineAsync(Guid userId)
+    {
+        var teeTimes = await teeTimeRepository.GetAllAsync();
+        var joinRequests = await joinRequestRepository.GetAllAsync();
+        var acceptedByTeeTime = joinRequests
+            .Where(j => j.Status == JoinRequestStatus.Accepted)
+            .ToLookup(j => j.TeeTimeId);
+        var myAcceptedTeeTimeIds = joinRequests
+            .Where(j => j.GuestUserId == userId && j.Status == JoinRequestStatus.Accepted)
+            .Select(j => j.TeeTimeId)
+            .ToHashSet();
+
+        var mine = teeTimes.Where(t => t.HostUserId == userId || myAcceptedTeeTimeIds.Contains(t.Id));
+
+        var usersById = (await userRepository.GetAllAsync()).ToDictionary(u => u.Id);
+        return mine
+            .Select(t => TeeTimeDto.From(t, BuildMemberList(t, usersById, acceptedByTeeTime[t.Id])))
+            .ToList();
     }
 }

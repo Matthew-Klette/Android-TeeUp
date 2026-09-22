@@ -42,7 +42,7 @@ public class ProfileEndpointTests
         var update = await client.PatchAsJsonAsync("/api/profiles/me", new
         {
             displayName = "Updated Owner", handicapIndex = 12.5, paceOfPlay = 1,
-            joinRequestNotifications = false, teeTimeReminders = false, weatherAlerts = false,
+            joinRequestNotifications = false, teeTimeReminders = false,
             firebaseUid = other.FirebaseUid
         });
         Assert.Equal(HttpStatusCode.OK, update.StatusCode);
@@ -55,7 +55,6 @@ public class ProfileEndpointTests
         Assert.Equal(12.5m, saved.HandicapIndex);
         Assert.False(saved.JoinRequestNotifications);
         Assert.False(saved.TeeTimeReminders);
-        Assert.False(saved.WeatherAlerts);
         Assert.Equal("Other", (await users.GetByIdAsync(other.Id))!.DisplayName);
 
         var invalid = await client.PatchAsJsonAsync("/api/profiles/me", new { displayName = "Invalid", handicapIndex = 55 });

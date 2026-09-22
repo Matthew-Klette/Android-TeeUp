@@ -147,8 +147,15 @@
                 android:id="@+id/button_filter_skill"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/space_md"
+                android:layout_marginBottom="@dimen/space_sm"
                 android:text="@string/home_filter_skill" />
+
+            <Button
+                android:id="@+id/button_filter_mine"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_md"
+                android:text="@string/home_filter_mine_off" />
 
             <!-- EME-311: persistent entry point, reachable whether or not groups already exist -->
             <Button

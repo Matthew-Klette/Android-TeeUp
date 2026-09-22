@@ -63,6 +63,11 @@ class HomeActivity : LocaleActivity() {
     private var filterPace: Int? = null
     private var hasLoadedOnce = false
 
+    /** True shows only groups the user hosts or is accepted into (GET /api/teetimes/me), not
+     *  the public joinable list. Re-queries the API rather than filtering [allTeeTimes], since
+     *  it's a different data set (includes full/past/cancelled rows). */
+    private var showMineOnly = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
@@ -113,6 +118,11 @@ class HomeActivity : LocaleActivity() {
         findViewById<Button>(R.id.button_filter_skill).setOnClickListener { showSkillFilterDialog() }
         findViewById<Button>(R.id.button_filter_course).setOnClickListener { showCourseFilterDialog() }
         findViewById<Button>(R.id.button_filter_holes).setOnClickListener { showHolesFilterDialog() }
+        findViewById<Button>(R.id.button_filter_mine).setOnClickListener {
+            showMineOnly = !showMineOnly
+            updateFilterLabels()
+            loadNearbyTeeTimes()
+        }
 
         findViewById<Button>(R.id.button_create_group).setOnClickListener {
             startActivity(Intent(this, CreateGroupActivity::class.java))
@@ -143,7 +153,11 @@ class HomeActivity : LocaleActivity() {
         Thread {
             try {
                 val courses = TeeUpApiClient.fetchCourses().associateBy { it.id }
-                val teeTimes = TeeUpApiClient.fetchTeeTimes(filterMaxHandicap, filterPace, joinableOnly = true)
+                val teeTimes = if (showMineOnly) {
+                    TeeUpApiClient.fetchMyTeeTimes()
+                } else {
+                    TeeUpApiClient.fetchTeeTimes(filterMaxHandicap, filterPace, joinableOnly = true)
+                }
                 SyncStatus.recordSuccess(this)
 
                 runOnUiThread {
@@ -178,7 +192,8 @@ class HomeActivity : LocaleActivity() {
             val matchesPlayers = teeTime.spotsRemaining >= minOpenSpots
             val matchesCourse = courseFilterId == null || teeTime.courseId == courseFilterId
             val matchesHoles = holesFilter == null || teeTime.holes == holesFilter
-            matchesSearch && matchesDate && matchesPlayers && matchesCourse && matchesHoles
+            val matchesSkill = matchesHostSkill(teeTime)
+            matchesSearch && matchesDate && matchesPlayers && matchesCourse && matchesHoles && matchesSkill
         }
 
         if (filtered.isEmpty()) {
@@ -186,6 +201,18 @@ class HomeActivity : LocaleActivity() {
         } else {
             renderTeeTimes(filtered)
         }
+    }
+
+    /** fetchMyTeeTimes (My Groups) doesn't filter by host skill/pace server-side like
+     *  fetchTeeTimes does, so this re-checks it client-side against the host already in
+     *  [teeTime]'s member list. No-op where the server already filtered. */
+    private fun matchesHostSkill(teeTime: TeeTime): Boolean {
+        if (filterMaxHandicap == null && filterPace == null) return true
+        val host = teeTime.members.firstOrNull { it.isHost } ?: return false
+        val matchesHandicap = filterMaxHandicap == null ||
+            (host.handicapIndex != null && host.handicapIndex <= filterMaxHandicap!!)
+        val matchesPace = filterPace == null || host.paceOfPlay == filterPace
+        return matchesHandicap && matchesPace
     }
 
     private fun isoDateOnly(isoDateTime: String): String = isoDateTime.substring(0, 10)
@@ -221,6 +248,9 @@ class HomeActivity : LocaleActivity() {
             courseFilterId?.let { coursesById[it]?.name } ?: getString(R.string.home_filter_course)
         findViewById<Button>(R.id.button_filter_holes).text =
             holesFilter?.let { getString(R.string.home_filter_holes_active_format, it) } ?: getString(R.string.home_filter_holes)
+        findViewById<Button>(R.id.button_filter_mine).setText(
+            if (showMineOnly) R.string.home_filter_mine_on else R.string.home_filter_mine_off
+        )
     }
 
     /** Unlike the other filter dialogs, this one re-queries the API (see loadNearbyTeeTimes)

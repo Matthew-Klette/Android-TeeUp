@@ -14,14 +14,20 @@ public class InputValidationTests
     [InlineData(12.25)]
     public async Task InvalidHandicapFilterReturnsValidationError(double handicap)
     {
-        var service = new TeeTimeService(new InMemoryTeeTimeRepository(), new InMemoryUserRepository(), new InMemoryCourseRepository(), new InMemoryJoinRequestRepository(), new InMemoryNotificationRepository(), new InMemoryRoundRepository());
+        var teeTimes = new InMemoryTeeTimeRepository();
+        var joinRequests = new InMemoryJoinRequestRepository();
+        var notifications = new InMemoryNotificationRepository();
+        var service = new TeeTimeService(teeTimes, new InMemoryUserRepository(), new InMemoryCourseRepository(), joinRequests, notifications, new InMemoryRoundRepository(), new InMemoryUnitOfWork(teeTimes, joinRequests, notifications));
         await Assert.ThrowsAsync<DomainValidationException>(() => service.GetAllAsync((decimal)handicap));
     }
 
     [Fact]
     public async Task InvalidPaceReturnsValidationError()
     {
-        var service = new TeeTimeService(new InMemoryTeeTimeRepository(), new InMemoryUserRepository(), new InMemoryCourseRepository(), new InMemoryJoinRequestRepository(), new InMemoryNotificationRepository(), new InMemoryRoundRepository());
+        var teeTimes = new InMemoryTeeTimeRepository();
+        var joinRequests = new InMemoryJoinRequestRepository();
+        var notifications = new InMemoryNotificationRepository();
+        var service = new TeeTimeService(teeTimes, new InMemoryUserRepository(), new InMemoryCourseRepository(), joinRequests, notifications, new InMemoryRoundRepository(), new InMemoryUnitOfWork(teeTimes, joinRequests, notifications));
         await Assert.ThrowsAsync<DomainValidationException>(() => service.GetAllAsync(pace: (PaceOfPlay)99));
     }
 

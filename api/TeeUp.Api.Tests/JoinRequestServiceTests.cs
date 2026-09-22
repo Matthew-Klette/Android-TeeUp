@@ -16,7 +16,8 @@ public class JoinRequestServiceTests
         var teeTimes = new InMemoryTeeTimeRepository();
         var joinRequests = new InMemoryJoinRequestRepository();
         var notifications = new InMemoryNotificationRepository();
-        return (new JoinRequestService(joinRequests, teeTimes, notifications), teeTimes, joinRequests, notifications);
+        var users = new InMemoryUserRepository();
+        return (new JoinRequestService(joinRequests, teeTimes, notifications, users), teeTimes, joinRequests, notifications);
     }
 
     private static TeeTime MakeTeeTime(

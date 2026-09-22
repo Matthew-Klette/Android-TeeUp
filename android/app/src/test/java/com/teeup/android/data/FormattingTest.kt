@@ -31,25 +31,25 @@ class FormattingTest {
 
     @Test
     fun canRequestToJoin_falseWhenAlreadyPending() {
-        val existing = listOf(JoinRequest("jr-1", "tt-1", "user-1", JoinRequestStatus.PENDING))
+        val existing = listOf(JoinRequest("jr-1", "tt-1", "user-1", "Test Golfer", JoinRequestStatus.PENDING))
         assertEquals(false, canRequestToJoin(existing, "user-1"))
     }
 
     @Test
     fun canRequestToJoin_falseWhenAlreadyAccepted() {
-        val existing = listOf(JoinRequest("jr-1", "tt-1", "user-1", JoinRequestStatus.ACCEPTED))
+        val existing = listOf(JoinRequest("jr-1", "tt-1", "user-1", "Test Golfer", JoinRequestStatus.ACCEPTED))
         assertEquals(false, canRequestToJoin(existing, "user-1"))
     }
 
     @Test
     fun canRequestToJoin_trueAgainAfterDeclined() {
-        val existing = listOf(JoinRequest("jr-1", "tt-1", "user-1", JoinRequestStatus.DECLINED))
+        val existing = listOf(JoinRequest("jr-1", "tt-1", "user-1", "Test Golfer", JoinRequestStatus.DECLINED))
         assertEquals(true, canRequestToJoin(existing, "user-1"))
     }
 
     @Test
     fun canRequestToJoin_ignoresOtherUsersRequests() {
-        val existing = listOf(JoinRequest("jr-1", "tt-1", "someone-else", JoinRequestStatus.PENDING))
+        val existing = listOf(JoinRequest("jr-1", "tt-1", "someone-else", "Test Golfer", JoinRequestStatus.PENDING))
         assertEquals(true, canRequestToJoin(existing, "user-1"))
     }
 }

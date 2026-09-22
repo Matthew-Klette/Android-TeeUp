@@ -11,6 +11,8 @@ import android.widget.EditText
 import android.widget.TextView
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthException
+import com.teeup.android.data.ApiException
 import com.teeup.android.ui.LocaleActivity
 import com.teeup.android.ui.TeeUpBanner
 
@@ -160,7 +162,7 @@ class EmailSignInActivity : LocaleActivity() {
                     submitButton.isEnabled = true
                     toggleModeText.isEnabled = true
                     updateModeUi()
-                    TeeUpBanner.show(this, e.message ?: getString(R.string.email_auth_failed_generic), isError = true)
+                    TeeUpBanner.show(this, friendlyAuthErrorMessage(e), isError = true)
                 }
                 false
             }
@@ -185,8 +187,30 @@ class EmailSignInActivity : LocaleActivity() {
                 awaitingBackendRetry = true
                 submitButton.isEnabled = true
                 updateModeUi()
-                TeeUpBanner.show(this, e.message ?: getString(R.string.email_auth_registration_failed), isError = true)
+                val fallback = getString(R.string.email_auth_registration_failed)
+                val message = if (e is ApiException) e.message ?: fallback else fallback
+                TeeUpBanner.show(this, message, isError = true)
             }
+        }
+    }
+
+    /** Firebase's own exception message is a raw Java class name, not something to show a
+     *  user. Map known error codes to a plain sentence, falling back to the generic message. */
+    private fun friendlyAuthErrorMessage(e: Exception): String {
+        // Tasks.await wraps a failed task's exception in ExecutionException, so the real
+        // FirebaseAuthException is the cause, not e itself.
+        val errorCode = ((e as? FirebaseAuthException) ?: (e.cause as? FirebaseAuthException))?.errorCode
+        return when (errorCode) {
+            "ERROR_EMAIL_ALREADY_IN_USE" -> getString(R.string.email_auth_error_email_in_use)
+            "ERROR_INVALID_EMAIL" -> getString(R.string.email_auth_error_email_invalid)
+            "ERROR_WRONG_PASSWORD" -> getString(R.string.email_auth_error_wrong_password)
+            "ERROR_USER_NOT_FOUND" -> getString(R.string.email_auth_error_user_not_found)
+            "ERROR_USER_DISABLED" -> getString(R.string.email_auth_error_user_disabled)
+            "ERROR_WEAK_PASSWORD" -> getString(R.string.email_auth_error_weak_password)
+            "ERROR_TOO_MANY_REQUESTS" -> getString(R.string.email_auth_error_too_many_requests)
+            "ERROR_NETWORK_REQUEST_FAILED" -> getString(R.string.email_auth_error_network)
+            "ERROR_INVALID_CREDENTIAL" -> getString(R.string.email_auth_error_invalid_credential)
+            else -> getString(R.string.email_auth_failed_generic)
         }
     }
 

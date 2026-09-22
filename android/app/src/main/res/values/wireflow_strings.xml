@@ -82,7 +82,7 @@
     <string name="teetime_no_join_requests">No join requests yet.</string>
     <string name="teetime_join_requests_title">Join requests</string>
     <string name="teetime_close">Close</string>
-    <string name="teetime_guest_status_format">Guest %1$s · %2$s</string>
+    <string name="teetime_guest_status_format">%1$s · %2$s</string>
     <string name="teetime_accept">Accept</string>
     <string name="teetime_decline">Decline</string>
     <string name="teetime_updated">Updated</string>
@@ -98,7 +98,7 @@
     <string name="teetime_cancel_confirm_title">Cancel this group?</string>
     <string name="teetime_cancel_confirm_message">Guests with a pending or accepted request will be notified.</string>
     <string name="teetime_delete_confirm_title">Delete this group?</string>
-    <string name="teetime_delete_confirm_message">This can\'t be undone.</string>
+    <string name="teetime_delete_confirm_message">This removes it for everyone, including any accepted players and posted scores. This can\'t be undone.</string>
     <string name="teetime_withdraw_confirm_title">Withdraw your request?</string>
     <string name="teetime_withdraw_confirm_message">You can request to join again later.</string>
     <string name="teetime_group_cancelled">Group cancelled.</string>
@@ -114,6 +114,11 @@
     <string name="summary_delete_confirm_message">You can add it again from the scorecard.</string>
     <string name="summary_hole_deleted">Hole entry deleted.</string>
     <string name="summary_delete_failed_fallback">Couldn\'t delete this entry — try again.</string>
+    <string name="summary_delete_round">Delete Round</string>
+    <string name="summary_delete_round_confirm_title">Delete this whole round?</string>
+    <string name="summary_delete_round_confirm_message">This removes every hole you\'ve scored. This can\'t be undone.</string>
+    <string name="summary_round_deleted">Round deleted.</string>
+    <string name="summary_delete_round_failed_fallback">Couldn\'t delete this round. Try again.</string>
 
     <!-- Register / Sign In error fallbacks -->
     <string name="register_error_name_required">Enter a display name</string>
