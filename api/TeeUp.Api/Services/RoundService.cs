@@ -55,6 +55,16 @@ public class RoundService(
                 $"Tee time {teeTimeId} is scheduled for {teeTime.DateTime:u}; scores cannot be posted before it starts.");
         }
 
+        // Belt-and-braces beyond the generic 1-18 check above: this tee time's own round length
+        // (9 or 18, set at Start Round/Create Group) caps what's valid here too — a client bug
+        // previously let a 9-hole round pick up spurious hole 10+ entries by continuing to post
+        // past it, since nothing server-side enforced the tee time's actual chosen length.
+        if (teeTime.Holes is int holeLimit && request.Entries.Any(e => e.HoleNumber > holeLimit))
+        {
+            throw new DomainValidationException(
+                $"Tee time {teeTimeId} is a {holeLimit}-hole round; hole numbers cannot exceed {holeLimit}.");
+        }
+
         var round = await roundRepository.GetByTeeTimeIdAsync(teeTimeId);
         if (round is null)
         {

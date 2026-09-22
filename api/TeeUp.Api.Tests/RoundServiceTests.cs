@@ -91,6 +91,30 @@ public class RoundServiceTests
     }
 
     [Fact]
+    public async Task PostScorecardAsync_BeyondTheTeeTimesHoleCount_ThrowsDomainValidation()
+    {
+        var (service, teeTimes, _) = CreateService();
+        var teeTime = MakeTeeTime(DateTime.UtcNow.AddHours(-1));
+        teeTime.Holes = 9;
+        await teeTimes.AddAsync(teeTime);
+
+        await Assert.ThrowsAsync<DomainValidationException>(
+            () => service.PostScorecardAsync(teeTime.Id, new PostScorecardRequest([new ScorecardEntryRequest(10, 4, 2)])));
+    }
+
+    [Fact]
+    public async Task PostScorecardAsync_WithNoHoleCountSet_AllowsUpToEighteen()
+    {
+        var (service, teeTimes, _) = CreateService();
+        var teeTime = MakeTeeTime(DateTime.UtcNow.AddHours(-1));
+        await teeTimes.AddAsync(teeTime);
+
+        var result = await service.PostScorecardAsync(teeTime.Id, new PostScorecardRequest([new ScorecardEntryRequest(18, 4, 2)]));
+
+        Assert.Single(result.Scorecard);
+    }
+
+    [Fact]
     public async Task PostScorecardAsync_ForFutureTeeTime_ThrowsDomainValidation()
     {
         var (service, teeTimes, _) = CreateService();
