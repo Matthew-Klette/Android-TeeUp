@@ -22,17 +22,10 @@ enum class NotificationCategory(val labelRes: Int) {
 }
 
 /**
- * EME-318: five of these six categories are real, persisted preferences now, not on-device
- * only — PATCH /api/profiles/me's `JoinRequestNotifications` field covers JOIN_REQUEST_RECEIVED,
- * REQUEST_ACCEPTED and REQUEST_DECLINED as a single toggle (the backend only has one field for
- * all three; splitting them into their own fields would need a migration this ticket didn't
- * call for), `TeeTimeReminders` covers TEE_TIME_REMINDER, and `WeatherAlerts` covers
- * WEATHER_ALERT. NotificationPreferencesActivity reads/writes those three straight through
- * TeeUpApiClient.fetchProfile()/updateNotificationPreference() — this object doesn't hold them.
- *
- * SYNC_PENDING is the one category with no backing field on User (api/TeeUp.Api/Models/User.cs):
- * offline-sync reminders are a device-local concept the server has no notion of, so it alone
- * still lives here, in SharedPreferences.
+ * Five of these six categories are now real, server-persisted preferences, read and written
+ * by NotificationPreferencesActivity via TeeUpApiClient. Only SYNC_PENDING stays here in
+ * SharedPreferences, since offline-sync reminders are a device-local concept the backend has
+ * no field for.
  */
 object NotificationPreferences {
     private const val PREFS = "teeup_notification_prefs"

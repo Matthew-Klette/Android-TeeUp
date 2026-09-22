@@ -18,14 +18,9 @@ import com.teeup.android.ui.LocaleActivity
 import com.teeup.android.ui.TeeUpBanner
 
 /**
- * Screen 6: Notifications. Reached from Home's bell icon. Calls the real
- * GET /api/notifications instead of showing hardcoded sample rows. A real
- * RequestAccepted/RequestDeclined notification created server-side now shows
- * up here for the requester.
- *
- * Not filtered by NotificationPreferences on purpose. Those toggles control
- * whether a notification is created, not whether it's hidden from history,
- * so filtering already-delivered notifications here would just be confusing.
+ * Screen 6: Notifications, reached from Home's bell icon. Loads real notifications from
+ * GET /api/notifications and is deliberately not filtered by NotificationPreferences, since
+ * those toggles control creation, not history visibility.
  */
 class NotificationsActivity : LocaleActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -152,10 +147,9 @@ class NotificationsActivity : LocaleActivity() {
         return card
     }
 
-    /** RequestAccepted/RequestDeclined notifications carry the tee time's id as
-     *  relatedEntityId. Tapping one opens that tee time, same as anywhere else
-     *  in the app. Tee Time Detail already handles a deleted/unavailable id
-     *  with its own load-failed state, so no need to check first. */
+    /** relatedEntityId is the tee time to open. Tee Time Detail already handles a
+     *  deleted/unavailable id with its own load-failed state, so there's nothing to check
+     *  first. */
     private fun onNotificationClicked(notification: AppNotification) {
         val teeTimeId = notification.relatedEntityId
         if (teeTimeId == null) {

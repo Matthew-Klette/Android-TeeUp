@@ -17,8 +17,8 @@ import com.teeup.android.nav.BottomNavTab
 import com.teeup.android.ui.LocaleActivity
 import com.teeup.android.ui.LocaleManager
 
-/** Screen 4 · Profile & Settings. Every row here is a real screen — see each Activity's
- *  own doc comment for what's genuinely backed by the API vs. on-device only. */
+/** Screen 4 · Profile & Settings. Every row here is a real screen; see each Activity's own
+ *  doc comment for what's backed by the API versus on-device only. */
 class ProfileActivity : LocaleActivity() {
     private lateinit var nameText: TextView
     private lateinit var detailsText: TextView
@@ -62,21 +62,17 @@ class ProfileActivity : LocaleActivity() {
         findViewById<Button>(R.id.button_sign_out).setOnClickListener { AuthSession.signOut(this) }
     }
 
-    /** Personal/Playing/Notification Details are separate Activities on the back stack, not
-     *  dialogs — this Activity is only resumed, not recreated, when the user backs out of one
-     *  after saving, so onCreate alone left the header showing whatever was true when the
-     *  screen first opened. Refreshing on every resume picks up edits made on those screens. */
+    /** Personal/Playing/Notification Details are separate Activities, so returning from one
+     *  only resumes this screen instead of recreating it. Refresh on every resume to pick up
+     *  edits made there. */
     override fun onResume() {
         super.onResume()
         loadProfile()
     }
 
-    /** Refreshes the name/handicap summary at the top of the screen. The 2026-09 UI revamp
-     *  (#15) split personal/playing details out into their own screens and, in the process,
-     *  dropped the code that kept this header populated — it was left showing the layout's
-     *  static "Display Name" / "Handicap · Home course" placeholders forever. Personal/Playing
-     *  Details already load the same data this way (there's no separate GET, so the idempotent
-     *  POST /api/auth/register doubles as "fetch current profile"), so this mirrors that. */
+    /** Refreshes the name/handicap summary. The 2026-09 UI revamp (#15) split Personal/Playing
+     *  Details into their own screens and dropped the code that kept this header populated, so
+     *  this mirrors how those screens already load the current profile. */
     private fun loadProfile() {
         val firebaseUser = FirebaseAuth.getInstance().currentUser
         if (firebaseUser == null) {
