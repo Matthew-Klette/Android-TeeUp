@@ -62,6 +62,57 @@
         <item>Brisk</item>
     </string-array>
 
+    <string-array name="home_date_filter_options">
+        <item>All dates</item>
+        <item>Today</item>
+        <item>Tomorrow</item>
+    </string-array>
+
+    <string-array name="home_players_filter_options">
+        <item>Any</item>
+        <item>1+ open spot</item>
+        <item>2+ open spots</item>
+        <item>3+ open spots</item>
+        <item>4+ open spots</item>
+    </string-array>
+
+    <string-array name="home_holes_filter_options">
+        <item>Any holes</item>
+        <item>9 holes</item>
+        <item>18 holes</item>
+    </string-array>
+
+    <string-array name="month_abbreviations">
+        <item>Jan</item>
+        <item>Feb</item>
+        <item>Mar</item>
+        <item>Apr</item>
+        <item>May</item>
+        <item>Jun</item>
+        <item>Jul</item>
+        <item>Aug</item>
+        <item>Sep</item>
+        <item>Oct</item>
+        <item>Nov</item>
+        <item>Dec</item>
+    </string-array>
+
+    <!-- Formatting.kt fallbacks -->
+    <string name="date_unavailable">Date unavailable</string>
+    <string name="price_free">Free</string>
+
+    <!-- InputValidation.kt / TeeUpApiClient.kt — HTTP error messages -->
+    <string name="http_error_400">Some details are invalid. Check your entries and try again.</string>
+    <string name="http_error_401">Please sign in again to continue.</string>
+    <string name="http_error_403">You do not have permission to do that.</string>
+    <string name="http_error_404">This item is no longer available.</string>
+    <string name="http_error_409">This item has changed. Reload it before trying again.</string>
+    <string name="http_error_429">Too many requests. Wait a moment and try again.</string>
+    <string name="http_error_5xx">The service is unavailable. Please try again shortly.</string>
+    <string name="http_error_default">The request could not be completed. Please try again.</string>
+    <string name="http_error_no_connection">Could not connect. Check your connection and try again.</string>
+    <string name="invalid_round_date_format">Invalid round date: %1$s</string>
+
     <!-- Home Screen -->
     <string name="home_notifications">Notifications</string>
     <string name="home_title">Find your next round</string>
@@ -72,6 +123,10 @@
     <string name="home_filter_players">Players 1–4</string>
     <string name="home_filter_skill">Skill / Pace Filter</string>
     <string name="home_filter_active">Skill / Pace ✓</string>
+    <string name="home_filter_course">Course</string>
+    <string name="home_filter_course_any">Any course</string>
+    <string name="home_filter_holes">Holes</string>
+    <string name="home_filter_holes_active_format">Holes: %1$d</string>
 
     <string name="filter_skill_title">Skill / Pace</string>
     <string name="filter_max_handicap_hint">Max handicap (optional)</string>
@@ -82,13 +137,23 @@
 
     <string name="home_results_heading">NEARBY</string>
     <string name="home_loading">Loading nearby tee times…</string>
+    <string name="home_load_failed">Couldn\'t load groups. Check your connection and try again.</string>
 
     <string name="home_card_heading">%1$s · %2$s</string>
     <string name="home_card_open_round">OPEN ROUND</string>
-    <string name="home_card_booking">BOOKING</string>
-    <string name="home_card_availability">%1$d spot(s) open · %2$s</string>
+    <string name="home_card_details_format">%1$d holes · %2$d of %3$d spots open</string>
+    <string name="home_card_hosted_by_format">Hosted by %1$s</string>
+    <string name="home_card_members_heading">PLAYERS</string>
+    <string name="group_host_member_format">%1$s (Host)</string>
+    <string name="group_member_row_format">%1$s · HCP %2$s · %3$s</string>
+    <string name="group_no_handicap">—</string>
+    <string name="home_card_wanted_format">Looking for: %1$s</string>
+    <string name="home_card_wanted_handicap_range_format">HCP %1$s–%2$s</string>
+    <string name="home_card_wanted_handicap_max_format">HCP up to %1$s</string>
+    <string name="home_card_wanted_handicap_min_format">HCP %1$s+</string>
+    <string name="home_card_wanted_handicap_any">Any handicap</string>
     <string name="home_card_preview">Preview</string>
-    <string name="home_card_book">Book</string>
+    <string name="home_card_view_group">View Group</string>
 
     <!-- Tee Time Detail Screen -->
     <string name="detail_title">Tee Time Detail</string>
@@ -96,9 +161,9 @@
     <string name="detail_back_symbol">←</string>
     <string name="detail_loading">Loading tee time…</string>
     <string name="detail_host">HOST</string>
+    <string name="detail_members">PLAYERS</string>
     <string name="detail_request_to_join">Request to Join</string>
     <string name="detail_pending_requests">Pending Requests</string>
-    <string name="detail_group_chat">Group Chat</string>
     <string name="detail_preview_course">Preview Course</string>
 
     <!-- Course Preview Screen -->
@@ -115,48 +180,28 @@
 
     <!-- Scoreboard Screen -->
     <string name="scorecard_title">Scorecard</string>
-    <string name="scorecard_preview_notice">Sample round preview. Live scoring is coming soon.</string>
-    <string name="scorecard_sample_hole">HOLE 7 · PAR 4</string>
-
-    <string name="scorecard_distance_label">GPS TO GREEN</string>
-    <string name="scorecard_sample_distance">152 m</string>
-    <string name="scorecard_map_label">HOLE MAP</string>
-    <string name="scorecard_map_placeholder">Not available yet</string>
+    <string name="scorecard_entry_notice">Enter your score for each hole, then finish the round to save it to your scorecard.</string>
+    <string name="scorecard_hole_heading">HOLE %1$d</string>
 
     <string name="scorecard_strokes">Strokes</string>
     <string name="scorecard_putts">Putts</string>
-    <string name="scorecard_sample_strokes">4</string>
-    <string name="scorecard_sample_putts">2</string>
+    <string name="scorecard_strokes_hint">e.g. 4</string>
+    <string name="scorecard_putts_hint">e.g. 2</string>
 
-    <string name="scorecard_group_heading">GROUP SCORECARD</string>
-    <string name="scorecard_sample_player_two">Player 2 · Through hole 7</string>
-    <string name="scorecard_sample_player_three">Player 3 · Through hole 6</string>
-    <string name="scorecard_sample_player_four">Player 4 · Through hole 5</string>
-
-    <string name="scorecard_save_notice">Preview only — scores are not saved.</string>
-    <string name="scorecard_next_hole">Next Hole / Finish Round</string>
+    <string name="scorecard_next_hole">Save &amp; Next Hole</string>
+    <string name="scorecard_finish_round">Finish Round</string>
+    <string name="scorecard_finish_early">Finish round now</string>
+    <string name="scorecard_progress_format">%1$d of %2$d holes saved this round</string>
+    <string name="scorecard_validation_error">Enter strokes (1 or more) and putts (0 up to strokes) for this hole.</string>
+    <string name="scorecard_finish_empty_error">Enter at least one hole before finishing the round.</string>
+    <string name="scorecard_finish_success">Round saved.</string>
+    <string name="scorecard_missing_round">No round selected. Choose one from My Rounds.</string>
+    <string name="scorecard_already_complete">This round already has all 18 holes scored.</string>
 
     <!-- Notification Screen -->
     <string name="notifications_title">Notifications</string>
     <string name="notifications_back">Go back</string>
     <string name="notifications_back_symbol">←</string>
-    <string name="notifications_preview_notice">Sample notifications. Live updates are coming soon.</string>
-
-    <string name="notifications_today">TODAY</string>
-    <string name="notifications_yesterday">YESTERDAY</string>
-
-    <string name="notifications_join_title">New Join Request</string>
-    <string name="notifications_join_body">For your 07:40 Fancourt round</string>
-
-    <string name="notifications_accepted_title">Request Accepted</string>
-    <string name="notifications_accepted_body">Tee off in 2 hours</string>
-
-    <string name="notifications_sync_title">Sync Reminder</string>
-    <string name="notifications_sync_body">1 offline round pending</string>
-
-    <string name="notifications_weather_title">Weather Alert</string>
-    <string name="notifications_weather_body">Rain expected at Humewood GC</string>
-
     <!-- Shared across Personal/Playing Details -->
     <string name="profile_load_signed_out">You need to be signed in to view this</string>
     <string name="profile_load_error_fallback">Couldn\'t load your profile</string>
@@ -181,8 +226,9 @@
 
     <!-- Notification Preferences Screen -->
     <string name="notification_prefs_title">Notification Preferences</string>
-    <string name="notification_prefs_subtitle">Choose what shows on your Notifications screen. Stored on this device only — there\'s no server-side preference sync yet.</string>
+    <string name="notification_prefs_subtitle">Join request, tee time reminder, and weather preferences sync to your account and apply on any device you sign into. Sync reminders are stored on this device only.</string>
     <string name="notification_category_join_request">New join requests</string>
+    <string name="notification_pref_join_updates">Join request updates</string>
     <string name="notification_category_accepted">Accepted requests</string>
     <string name="notification_category_declined">Declined requests</string>
     <string name="notification_category_reminder">Tee time reminders</string>
@@ -247,4 +293,33 @@
     <string name="privacy_body_controls">You can edit or clear your profile fields any time under Personal Details / Playing Details, and sign out below. In-app account deletion isn\'t available yet — request it directly from the team in the meantime.</string>
     <string name="privacy_sign_out">Sign Out</string>
     <string name="privacy_signing_out">Signing out…</string>
+
+    <!-- Create Group Screen (EME-311) -->
+    <string name="create_group_title">Create a Group</string>
+    <string name="create_group_loading_courses">Loading courses…</string>
+    <string name="create_group_when">Date &amp; time</string>
+    <string name="create_group_pick_date_time">Pick date &amp; time</string>
+    <string name="create_group_pick_time_title">Choose a time</string>
+    <string name="create_group_date_time_format">%1$s at %2$02d:%3$02d</string>
+    <string name="create_group_holes">Number of holes</string>
+    <string name="create_group_players_needed">How many more players do you need?</string>
+    <string name="create_group_minus">−</string>
+    <string name="create_group_plus">+</string>
+    <string name="create_group_wanted_handicap">Wanted handicap range (optional)</string>
+    <string name="create_group_handicap_min_hint">Min</string>
+    <string name="create_group_handicap_max_hint">Max</string>
+    <string name="create_group_create">Create Group</string>
+    <string name="create_group_creating">Creating…</string>
+    <string name="create_group_no_courses">No courses available yet — try again shortly.</string>
+    <string name="create_group_pick_date_time_error">Pick a date and time first.</string>
+    <string name="create_group_date_time_in_past">Choose a date and time in the future.</string>
+    <string name="create_group_handicap_range_invalid">The minimum handicap can\'t be above the maximum.</string>
+    <string name="create_group_created">Group created.</string>
+    <string name="create_group_failed_fallback">Couldn\'t create the group — try again.</string>
+    <string name="home_create_group">Create a Group</string>
+
+    <string-array name="create_group_holes_options">
+        <item>9 holes</item>
+        <item>18 holes</item>
+    </string-array>
 </resources>

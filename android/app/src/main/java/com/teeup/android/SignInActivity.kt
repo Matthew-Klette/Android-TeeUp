@@ -18,9 +18,9 @@ import com.teeup.android.ui.TeeUpBanner
 
 /**
  * Screen 1 · Sign In. "Continue with Google" is the real Firebase Google SSO
- * flow (EME-295); Email/biometric remain stubs for their own tickets. Android
- * only — no Apple sign-in. No guest/anonymous option — every session is a
- * real Google-backed identity.
+ * flow (EME-295). Email/biometric have no credential UI of their own yet, so
+ * both route to that same Google flow rather than a dead end — swap in real
+ * credential flows once they have tickets.
  */
 class SignInActivity : LocaleActivity() {
     private val tag = "SignInActivity"
@@ -41,15 +41,10 @@ class SignInActivity : LocaleActivity() {
         googleButton = findViewById(R.id.button_continue_google)
         googleButton.setOnClickListener { onGoogleSignInClicked() }
 
-        // Stubs for their own tickets — must not drop the user into HomeActivity
-        // without a real Firebase session, or every action that needs an identity
-        // (e.g. requesting to join a tee time) fails with "no signed-in Firebase user".
-        findViewById<View>(R.id.button_continue_email).setOnClickListener {
-            TeeUpBanner.show(this, "Email sign-in isn't built yet — use Continue with Google.")
-        }
-        findViewById<View>(R.id.button_use_biometric).setOnClickListener {
-            TeeUpBanner.show(this, "Biometric sign-in isn't built yet — use Continue with Google.")
-        }
+        // Neither has its own credential UI yet — both route to the same real
+        // Google SSO flow as the primary button rather than a dead end.
+        findViewById<Button>(R.id.button_continue_email).setOnClickListener { onGoogleSignInClicked() }
+        findViewById<Button>(R.id.button_use_biometric).setOnClickListener { onGoogleSignInClicked() }
 
         // No separate sign-up credential flow — Google SSO doubles as registration
         // for a first-time user, so this link starts the same flow as the button.
@@ -78,7 +73,7 @@ class SignInActivity : LocaleActivity() {
             // The user backing out of the Google chooser isn't a failure worth surfacing.
             if (e.statusCode != GoogleSignInStatusCodes.SIGN_IN_CANCELLED) {
                 Log.w(tag, "Google sign-in failed: ${e.statusCode}", e)
-                TeeUpBanner.show(this, "Google sign-in failed — please try again", isError = true)
+                TeeUpBanner.show(this, getString(R.string.signin_google_failed), isError = true)
             }
         }
     }
@@ -93,7 +88,7 @@ class SignInActivity : LocaleActivity() {
                 Log.w(tag, "Firebase sign-in failed", e)
                 runOnUiThread {
                     resetGoogleButton()
-                    TeeUpBanner.show(this, "Sign-in failed — check your connection and try again", isError = true)
+                    TeeUpBanner.show(this, getString(R.string.signin_failed_generic), isError = true)
                 }
             }
         }.start()

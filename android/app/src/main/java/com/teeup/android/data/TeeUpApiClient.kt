@@ -1,5 +1,8 @@
 package com.teeup.android.data
 
+import com.teeup.android.BuildConfig
+import com.teeup.android.R
+import com.teeup.android.TeeUpApplication
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
 import org.json.JSONArray
@@ -21,16 +24,53 @@ object TeeUpApiClient {
         return (0 until array.length()).map { i -> parseCourse(array.getJSONObject(i)) }
     }
 
-    /** `maxHandicap`/`pace` filter by the tee time's host (EME-299); null means "no filter". */
-    fun fetchTeeTimes(maxHandicap: Double? = null, pace: Int? = null): List<TeeTime> {
+    /** `maxHandicap`/`pace` filter by the tee time's host (EME-299); null means "no filter".
+     *  `joinableOnly` (EME-312) narrows to groups a guest could actually join right now —
+     *  false (the default) keeps returning bookings/full/past/cancelled rows too, which
+     *  TeeTimeDetailActivity's by-id lookups still need. */
+    fun fetchTeeTimes(maxHandicap: Double? = null, pace: Int? = null, joinableOnly: Boolean = false): List<TeeTime> {
         val query = buildList {
             maxHandicap?.let { add("maxHandicap=$it") }
             pace?.let { add("pace=$it") }
+            if (joinableOnly) add("joinableOnly=true")
         }.joinToString("&")
         val path = if (query.isEmpty()) "api/teetimes" else "api/teetimes?$query"
 
         val array = JSONArray(request("GET", path))
         return (0 until array.length()).map { i -> parseTeeTime(array.getJSONObject(i)) }
+    }
+
+    /** POST /api/teetimes — a tee time hosted by and reserved entirely for the caller,
+     *  dated right now, for the solo "Start a Round" flow (no join-request needed). */
+    fun createSoloTeeTime(courseId: String): TeeTime {
+        val body = JSONObject().put("courseId", courseId)
+        return parseTeeTime(JSONObject(request("POST", "api/teetimes", body)))
+    }
+
+    /**
+     * POST /api/teetimes/groups (EME-311) — a real group looking for players. [openSpots] is
+     * guests wanted, not counting the host. [dateTimeIso] must be a future UTC instant, e.g.
+     * "2026-12-01T10:00:00Z". [wantedPace] is the PaceOfPlay ordinal (0=Relaxed, 1=Standard,
+     * 2=Brisk); null on either handicap bound or on pace means "no preference".
+     */
+    fun createGroup(
+        courseId: String,
+        dateTimeIso: String,
+        holes: Int,
+        openSpots: Int,
+        wantedHandicapMin: Double?,
+        wantedHandicapMax: Double?,
+        wantedPace: Int?
+    ): TeeTime {
+        val body = JSONObject()
+            .put("courseId", courseId)
+            .put("dateTime", dateTimeIso)
+            .put("holes", holes)
+            .put("openSpots", openSpots)
+            .put("wantedHandicapMin", wantedHandicapMin)
+            .put("wantedHandicapMax", wantedHandicapMax)
+            .put("wantedPace", wantedPace)
+        return parseTeeTime(JSONObject(request("POST", "api/teetimes/groups", body)))
     }
 
     fun fetchNotifications(): List<AppNotification> {
@@ -42,6 +82,12 @@ object TeeUpApiClient {
         val body = JSONObject().put("firebaseUid", firebaseUid).put("displayName", displayName)
         return parseRegisteredUser(JSONObject(request("POST", "api/auth/register", body)))
     }
+
+    /** GET /api/profiles/me — the current profile with no register side effect, so a
+     *  screen that only needs to *read* (e.g. NotificationPreferencesActivity, EME-318)
+     *  doesn't have to piggyback on the register call the way Personal/Playing Details do. */
+    fun fetchProfile(): RegisteredUser =
+        parseRegisteredUser(JSONObject(request("GET", "api/profiles/me")))
 
     /**
      * PATCH /api/profiles/me. `homeCourseId`/`handicapIndex` null means "leave unset";
@@ -63,6 +109,22 @@ object TeeUpApiClient {
         return parseRegisteredUser(JSONObject(request("PATCH", "api/profiles/me", body)))
     }
 
+    /** PATCH /api/profiles/me with only a notification-preference field set. Every parameter
+     *  defaults to null ("leave unset"), and the backend leaves a null/omitted field exactly
+     *  as it was (see UpdateProfileRequest's doc comment) — so unlike [updateProfile], this
+     *  never needs the caller to first fetch and resend fields it isn't changing. */
+    fun updateNotificationPreference(
+        joinRequestNotifications: Boolean? = null,
+        teeTimeReminders: Boolean? = null,
+        weatherAlerts: Boolean? = null
+    ): RegisteredUser {
+        val body = JSONObject()
+        joinRequestNotifications?.let { body.put("joinRequestNotifications", it) }
+        teeTimeReminders?.let { body.put("teeTimeReminders", it) }
+        weatherAlerts?.let { body.put("weatherAlerts", it) }
+        return parseRegisteredUser(JSONObject(request("PATCH", "api/profiles/me", body)))
+    }
+
     fun createJoinRequest(teeTimeId: String, guestUserId: String): JoinRequest {
         val body = JSONObject().put("guestUserId", guestUserId)
         return parseJoinRequest(JSONObject(request("POST", "api/teetimes/$teeTimeId/joinrequests", body)))
@@ -78,13 +140,38 @@ object TeeUpApiClient {
         return parseJoinRequest(JSONObject(request("PATCH", "api/join-requests/$joinRequestId", body)))
     }
 
+    fun fetchSchedule(): List<ScheduledRound> {
+        val array = JSONArray(request("GET", "api/rounds/me/schedule"))
+        return (0 until array.length()).map { i -> parseScheduledRound(array.getJSONObject(i)) }
+    }
+
+    /** POST /api/rounds/{teeTimeId}/scorecard. `entries` must be new holes only — posting an
+     *  already-submitted hole number creates a duplicate row (RoundService only de-dupes within
+     *  a single request, not against what's already stored). */
+    fun postScorecard(teeTimeId: String, entries: List<HoleScoreInput>): PlayedRound {
+        val entriesArray = JSONArray()
+        entries.forEach { entry ->
+            entriesArray.put(
+                JSONObject()
+                    .put("holeNumber", entry.holeNumber)
+                    .put("strokes", entry.strokes)
+                    .put("putts", entry.putts)
+            )
+        }
+        val body = JSONObject().put("entries", entriesArray)
+        return parsePlayedRound(JSONObject(request("POST", "api/rounds/$teeTimeId/scorecard", body)))
+    }
+
     private fun parseRegisteredUser(o: JSONObject) = RegisteredUser(
         id = o.getString("id"),
         displayName = o.getString("displayName"),
         handicapIndex = if (o.isNull("handicapIndex")) null else o.getDouble("handicapIndex"),
         homeCourseId = if (o.isNull("homeCourseId")) null else o.getString("homeCourseId"),
         paceOfPlay = o.getInt("paceOfPlay"),
-        profileComplete = o.getBoolean("profileComplete")
+        profileComplete = o.getBoolean("profileComplete"),
+        joinRequestNotifications = o.getBoolean("joinRequestNotifications"),
+        teeTimeReminders = o.getBoolean("teeTimeReminders"),
+        weatherAlerts = o.getBoolean("weatherAlerts")
     )
 
     private fun parseCourse(o: JSONObject) = Course(
@@ -101,8 +188,25 @@ object TeeUpApiClient {
         courseId = o.getString("courseId"),
         dateTime = o.getString("dateTime"),
         openSpots = o.getInt("openSpots"),
+        spotsRemaining = o.getInt("spotsRemaining"),
         price = o.getDouble("price"),
-        type = o.getInt("type")
+        type = o.getInt("type"),
+        holes = if (o.isNull("holes")) null else o.getInt("holes"),
+        wantedHandicapMin = if (o.isNull("wantedHandicapMin")) null else o.getDouble("wantedHandicapMin"),
+        wantedHandicapMax = if (o.isNull("wantedHandicapMax")) null else o.getDouble("wantedHandicapMax"),
+        wantedPace = if (o.isNull("wantedPace")) null else o.getInt("wantedPace"),
+        status = o.getInt("status"),
+        members = o.optJSONArray("members")?.let { array ->
+            (0 until array.length()).map { i -> parseGroupMember(array.getJSONObject(i)) }
+        } ?: emptyList()
+    )
+
+    private fun parseGroupMember(o: JSONObject) = GroupMember(
+        userId = o.getString("userId"),
+        displayName = o.getString("displayName"),
+        handicapIndex = if (o.isNull("handicapIndex")) null else o.getDouble("handicapIndex"),
+        paceOfPlay = o.getInt("paceOfPlay"),
+        isHost = o.getBoolean("isHost")
     )
 
     private fun parseNotification(o: JSONObject) = AppNotification(
@@ -121,13 +225,45 @@ object TeeUpApiClient {
         status = o.getInt("status")
     )
 
+    private fun parseScheduledRound(o: JSONObject) = ScheduledRound(
+        teeTimeId = o.getString("teeTimeId"),
+        courseId = o.getString("courseId"),
+        dateTime = o.getString("dateTime"),
+        round = if (o.isNull("round")) null else parsePlayedRound(o.getJSONObject("round"))
+    )
+
+    private fun parsePlayedRound(o: JSONObject): PlayedRound {
+        val entries = o.getJSONArray("scorecard")
+        return PlayedRound(
+            id = o.getString("id"),
+            teeTimeId = o.getString("teeTimeId"),
+            scorecard = (0 until entries.length()).map { i -> parseHoleScore(entries.getJSONObject(i)) }
+        )
+    }
+
+    private fun parseHoleScore(o: JSONObject) = HoleScore(
+        id = o.getString("id"),
+        holeNumber = o.getInt("holeNumber"),
+        strokes = o.getInt("strokes"),
+        putts = o.getInt("putts"),
+        synced = o.getBoolean("synced")
+    )
+
     private fun request(method: String, path: String, body: JSONObject? = null): String {
         val connection = URL(ApiConfig.BASE_URL + path).openConnection() as HttpURLConnection
         connection.requestMethod = method
         connection.setRequestProperty("Accept", "application/json")
         connection.connectTimeout = 10_000
         connection.readTimeout = 10_000
-        authorizationHeaderOrNull()?.let { connection.setRequestProperty("Authorization", it) }
+        val authHeader = authorizationHeaderOrNull()
+        if (authHeader != null) {
+            connection.setRequestProperty("Authorization", authHeader)
+        } else if (BuildConfig.DEBUG) {
+            // No real Firebase session (see DevIdentity's doc comment) — fall back to the
+            // dev-only header a backend running with DevAuth:Enabled accepts. Debug-only,
+            // so this is never sent from a release build even by accident.
+            connection.setRequestProperty("X-Dev-User-Id", DevIdentity.deviceId)
+        }
         try {
             if (body != null) {
                 connection.doOutput = true
@@ -136,11 +272,21 @@ object TeeUpApiClient {
             }
             val code = connection.responseCode
             if (code !in 200..299) {
-                throw ApiException(httpFailureMessage(code))
+                // The API's ExceptionHandlingMiddleware writes a specific, human-readable
+                // {status, detail} body for every domain/auth error (EME-313: "Only the host
+                // can accept or decline...", "You've already requested to join...", etc.) —
+                // prefer that over the generic per-status-code fallback whenever it's present.
+                val serverDetail = try {
+                    connection.errorStream?.bufferedReader()?.use { it.readText() }
+                        ?.let { JSONObject(it).optString("detail").takeIf { detail -> detail.isNotBlank() } }
+                } catch (e: Exception) {
+                    null
+                }
+                throw ApiException(serverDetail ?: httpFailureMessage(code))
             }
             return connection.inputStream.bufferedReader().use { it.readText() }
         } catch (e: IOException) {
-            throw ApiException("Could not connect. Check your connection and try again.")
+            throw ApiException(TeeUpApplication.appContext.getString(R.string.http_error_no_connection))
         } finally {
             connection.disconnect()
         }

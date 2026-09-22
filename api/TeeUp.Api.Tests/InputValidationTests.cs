@@ -14,14 +14,14 @@ public class InputValidationTests
     [InlineData(12.25)]
     public async Task InvalidHandicapFilterReturnsValidationError(double handicap)
     {
-        var service = new TeeTimeService(new InMemoryTeeTimeRepository(), new InMemoryUserRepository());
+        var service = new TeeTimeService(new InMemoryTeeTimeRepository(), new InMemoryUserRepository(), new InMemoryCourseRepository(), new InMemoryJoinRequestRepository());
         await Assert.ThrowsAsync<DomainValidationException>(() => service.GetAllAsync((decimal)handicap));
     }
 
     [Fact]
     public async Task InvalidPaceReturnsValidationError()
     {
-        var service = new TeeTimeService(new InMemoryTeeTimeRepository(), new InMemoryUserRepository());
+        var service = new TeeTimeService(new InMemoryTeeTimeRepository(), new InMemoryUserRepository(), new InMemoryCourseRepository(), new InMemoryJoinRequestRepository());
         await Assert.ThrowsAsync<DomainValidationException>(() => service.GetAllAsync(pace: (PaceOfPlay)99));
     }
 

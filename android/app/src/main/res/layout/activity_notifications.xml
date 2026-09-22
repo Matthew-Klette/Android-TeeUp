@@ -44,154 +44,40 @@
 
         </LinearLayout>
 
-        <TextView
+        <ProgressBar
+            android:id="@+id/notifications_progress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginBottom="@dimen/space_md"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/notifications_retry"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/space_xl"
-            android:text="@string/notifications_preview_notice"
+            android:layout_marginBottom="@dimen/space_md"
+            android:text="@string/profile_retry"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/text_notifications_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_md"
+            android:background="@drawable/bg_card"
+            android:elevation="@dimen/elevation_card"
+            android:gravity="center"
+            android:padding="@dimen/screen_padding"
             android:textColor="@color/teeup_text_secondary"
-            android:textSize="@dimen/text_body" />
-
-        <!-- Today -->
-        <TextView
-            style="@style/TeeUpEyebrow"
-            android:layout_width="match_parent"
-            android:layout_marginBottom="@dimen/space_md"
-            android:text="@string/notifications_today" />
+            android:textSize="@dimen/text_body_large"
+            android:visibility="gone" />
 
         <LinearLayout
-            android:id="@+id/row_notification_join"
+            android:id="@+id/notifications_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/space_sm"
-            android:background="@drawable/bg_card_outline"
-            android:elevation="@dimen/elevation_card"
-            android:orientation="vertical"
-            android:padding="@dimen/space_lg">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <View
-                    android:layout_width="7dp"
-                    android:layout_height="7dp"
-                    android:layout_marginEnd="@dimen/space_sm"
-                    android:background="@drawable/bg_dot_accent"
-                    android:importantForAccessibility="no" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/notifications_join_title"
-                    android:textColor="@color/teeup_text_primary"
-                    android:textSize="@dimen/text_body_large"
-                    android:textStyle="bold" />
-
-            </LinearLayout>
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_xs"
-                android:text="@string/notifications_join_body"
-                android:textColor="@color/teeup_text_secondary"
-                android:textSize="@dimen/text_body" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/row_notification_accepted"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/space_xl"
-            android:background="@drawable/bg_card"
-            android:elevation="@dimen/elevation_card"
-            android:orientation="vertical"
-            android:padding="@dimen/space_lg">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/notifications_accepted_title"
-                android:textColor="@color/teeup_text_primary"
-                android:textSize="@dimen/text_body_large"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_xs"
-                android:text="@string/notifications_accepted_body"
-                android:textColor="@color/teeup_text_secondary"
-                android:textSize="@dimen/text_body" />
-
-        </LinearLayout>
-
-        <!-- Yesterday -->
-        <TextView
-            style="@style/TeeUpEyebrow"
-            android:layout_width="match_parent"
-            android:layout_marginBottom="@dimen/space_md"
-            android:text="@string/notifications_yesterday" />
-
-        <LinearLayout
-            android:id="@+id/row_notification_sync"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/space_sm"
-            android:background="@drawable/bg_card"
-            android:elevation="@dimen/elevation_card"
-            android:orientation="vertical"
-            android:padding="@dimen/space_lg">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/notifications_sync_title"
-                android:textColor="@color/teeup_text_primary"
-                android:textSize="@dimen/text_body_large"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_xs"
-                android:text="@string/notifications_sync_body"
-                android:textColor="@color/teeup_text_secondary"
-                android:textSize="@dimen/text_body" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/row_notification_weather"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_card"
-            android:elevation="@dimen/elevation_card"
-            android:orientation="vertical"
-            android:padding="@dimen/space_lg">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/notifications_weather_title"
-                android:textColor="@color/teeup_text_primary"
-                android:textSize="@dimen/text_body_large"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_xs"
-                android:text="@string/notifications_weather_body"
-                android:textColor="@color/teeup_text_secondary"
-                android:textSize="@dimen/text_body" />
-
-        </LinearLayout>
+            android:orientation="vertical" />
 
     </LinearLayout>
 

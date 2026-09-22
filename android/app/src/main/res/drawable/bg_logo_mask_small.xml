@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Same as bg_logo_mask, sized for the 36dp header logo (HomeActivity) so the
+     rounding stays proportional at a smaller icon size. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@android:color/transparent" />
+    <corners android:radius="@dimen/logo_radius_small" />
+</shape>

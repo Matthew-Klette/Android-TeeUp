@@ -12,16 +12,20 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import com.teeup.android.data.ApiException
 import com.teeup.android.data.Course
+import com.teeup.android.data.GroupMember
 import com.teeup.android.data.JoinRequest
 import com.teeup.android.data.JoinRequestStatus
 import com.teeup.android.data.LocalIdentity
 import com.teeup.android.data.MockCatalog
 import com.teeup.android.data.SyncStatus
 import com.teeup.android.data.TeeTime
+import com.teeup.android.data.TeeTimeStatus
 import com.teeup.android.data.TeeUpApiClient
 import com.teeup.android.data.canRequestToJoin
+import com.teeup.android.data.formatHandicap
 import com.teeup.android.data.formatPrice
 import com.teeup.android.data.formatTeeTime
+import com.teeup.android.data.paceLabel
 import com.teeup.android.ui.LocaleActivity
 import com.teeup.android.ui.TeeUpBanner
 
@@ -30,8 +34,8 @@ import com.teeup.android.ui.TeeUpBanner
  * Loads the real tee time + course from the API, wires Request to Join
  * (POST /api/teetimes/{id}/joinrequests) and a Pending Requests
  * approve/decline dialog (GET/PATCH added alongside this ticket — see
- * TeeTimesController.GetJoinRequests). Group Chat has no backend/ticket
- * yet, so it's gated with an honest placeholder message, not a fake screen.
+ * TeeTimesController.GetJoinRequests). Messaging (Group Chat) is Part 3
+ * scope and out of this screen entirely for now (EME-317).
  */
 class TeeTimeDetailActivity : LocaleActivity() {
     companion object {
@@ -58,7 +62,7 @@ class TeeTimeDetailActivity : LocaleActivity() {
 
         val id = intent.getStringExtra(EXTRA_TEE_TIME_ID)
         if (id == null) {
-            showError("No tee time was specified")
+            showError(getString(R.string.teetime_no_id))
             return
         }
         teeTimeId = id
@@ -67,7 +71,7 @@ class TeeTimeDetailActivity : LocaleActivity() {
 
     private fun loadDetail() {
         statusText.visibility = View.VISIBLE
-        statusText.text = "Loading tee time..."
+        statusText.text = getString(R.string.teetime_loading)
         contentGroup.visibility = View.GONE
 
         Thread {
@@ -80,7 +84,7 @@ class TeeTimeDetailActivity : LocaleActivity() {
                     result
                 } catch (e: Exception) {
                     null
-                } ?: MockCatalog.teeTimeById(teeTimeId) ?: throw ApiException("Tee time not found")
+                } ?: MockCatalog.teeTimeById(teeTimeId) ?: throw ApiException(getString(R.string.teetime_not_found))
 
                 val course = try {
                     TeeUpApiClient.fetchCourses().firstOrNull { it.id == teeTime.courseId }
@@ -99,7 +103,7 @@ class TeeTimeDetailActivity : LocaleActivity() {
                 if (reachedApi) SyncStatus.recordSuccess(this)
                 runOnUiThread { render(teeTime, course, requests) }
             } catch (e: Exception) {
-                runOnUiThread { showError(e.message ?: "Couldn't load this tee time") }
+                runOnUiThread { showError(e.message ?: getString(R.string.teetime_load_failed)) }
             }
         }.start()
     }
@@ -110,9 +114,9 @@ class TeeTimeDetailActivity : LocaleActivity() {
         contentGroup.visibility = View.VISIBLE
 
         findViewById<TextView>(R.id.text_teetime_title).text =
-            "${course?.name ?: "Unknown course"} · ${formatTeeTime(teeTime.dateTime)}"
+            "${course?.name ?: getString(R.string.teetime_unknown_course)} · ${formatTeeTime(teeTime.dateTime)}"
         findViewById<TextView>(R.id.text_teetime_subtitle).text =
-            "${teeTime.openSpots} spot(s) open · ${formatPrice(teeTime.price)}"
+            getString(R.string.teetime_subtitle_format, teeTime.spotsRemaining, formatPrice(teeTime.price))
 
         findViewById<Button>(R.id.button_preview_course).setOnClickListener {
             openCoursePreview(course)
@@ -122,43 +126,56 @@ class TeeTimeDetailActivity : LocaleActivity() {
         val pendingCount = requests.count { it.status == JoinRequestStatus.PENDING }
 
         findViewById<TextView>(R.id.text_host_info).text = when {
-            teeTime.hostUserId == null && teeTime.type == 0 -> "Booking — reserved slot, no host required"
-            teeTime.hostUserId == null -> "Open round — no host assigned yet"
-            else -> "Hosted round"
+            teeTime.hostUserId == null && teeTime.type == 0 -> getString(R.string.teetime_host_booking_no_host)
+            teeTime.hostUserId == null -> getString(R.string.teetime_host_open_no_host)
+            else -> getString(R.string.teetime_host_hosted)
         }
         // Host handicap/pace/home-course can't be shown yet: there's no public-profile-by-id
         // endpoint (ProfilesController only exposes PATCH /me for the caller's own profile),
         // and adding one raises the same privacy question flagged elsewhere in this POE
         // (Privacy & Data / POPIA). Worth a follow-up ticket, not solved here.
         findViewById<TextView>(R.id.text_host_subtitle).text =
-            "$acceptedCount accepted · $pendingCount pending"
+            getString(R.string.teetime_host_subtitle_format, acceptedCount, pendingCount)
+
+        renderMembers(teeTime.members)
 
         val requestButton = findViewById<Button>(R.id.button_request_to_join)
         val myUserIdIfKnown = LocalIdentity.cachedUserIdOrNull(this)
         val alreadyRequested = myUserIdIfKnown != null && !canRequestToJoin(requests, myUserIdIfKnown)
-        requestButton.isEnabled = !alreadyRequested
-        requestButton.text = if (alreadyRequested) "Request sent" else "Request to Join"
+        val isFull = teeTime.status == TeeTimeStatus.FULL || teeTime.spotsRemaining <= 0
+        requestButton.isEnabled = !alreadyRequested && !isFull
+        requestButton.text = when {
+            alreadyRequested -> getString(R.string.teetime_request_sent)
+            isFull -> getString(R.string.teetime_full)
+            else -> getString(R.string.teetime_request_to_join)
+        }
         requestButton.setOnClickListener { onRequestToJoinClicked() }
 
         findViewById<TextView>(R.id.text_pending_requests_subtitle).text =
-            if (pendingCount > 0) "$pendingCount waiting — tap to approve or decline" else "None pending"
+            if (pendingCount > 0) getString(R.string.teetime_pending_waiting_format, pendingCount) else getString(R.string.teetime_pending_none)
         findViewById<View>(R.id.row_pending_requests).setOnClickListener { showPendingRequestsDialog() }
+    }
 
-        findViewById<TextView>(R.id.text_group_chat_subtitle).text =
-            if (acceptedCount > 0) "Tap to open" else "Opens once a request is accepted"
-        findViewById<View>(R.id.row_group_chat).setOnClickListener {
-            if (acceptedCount > 0) {
-                TeeUpBanner.show(this, "Group chat isn't built yet — no ticket/backend for it.")
-            } else {
-                TeeUpBanner.show(this, "Opens once a join request is accepted")
-            }
-        }
+    /** EME-312: every current member (host + accepted guests) with their handicap/pace —
+     *  the accepted/pending counts above only say how many, not who. */
+    private fun renderMembers(members: List<GroupMember>) {
+        val container = findViewById<LinearLayout>(R.id.members_container)
+        container.removeAllViews()
+        members.forEach { member -> container.addView(buildMemberRow(member)) }
+    }
+
+    private fun buildMemberRow(member: GroupMember): View = TextView(this).apply {
+        val name = if (member.isHost) getString(R.string.group_host_member_format, member.displayName) else member.displayName
+        text = getString(R.string.group_member_row_format, name, formatHandicap(member.handicapIndex), paceLabel(this@TeeTimeDetailActivity, member.paceOfPlay))
+        setTextColor(colorOf(R.color.teeup_text_secondary))
+        setTextSize(TypedValue.COMPLEX_UNIT_PX, resources.getDimension(R.dimen.text_body))
+        layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = dp(4) }
     }
 
     private fun onRequestToJoinClicked() {
         val button = findViewById<Button>(R.id.button_request_to_join)
         button.isEnabled = false
-        button.text = "Sending..."
+        button.text = getString(R.string.teetime_sending)
 
         Thread {
             try {
@@ -170,7 +187,7 @@ class TeeTimeDetailActivity : LocaleActivity() {
                     TeeUpApiClient.fetchCourses().firstOrNull { it.id == tt.courseId }
                 }
                 runOnUiThread {
-                    TeeUpBanner.show(this, "Request sent")
+                    TeeUpBanner.show(this, getString(R.string.teetime_request_sent))
                     if (refreshedTeeTime != null) {
                         render(refreshedTeeTime, refreshedCourse, refreshedRequests)
                     }
@@ -179,14 +196,14 @@ class TeeTimeDetailActivity : LocaleActivity() {
                 // LocalIdentity.ensureRegistered() throws this when there's no signed-in
                 // Firebase user — surface a friendly prompt instead of the raw internal message.
                 runOnUiThread {
-                    TeeUpBanner.show(this, "Please sign in again to request to join", isError = true)
+                    TeeUpBanner.show(this, getString(R.string.teetime_signin_again), isError = true)
                     startActivity(Intent(this, SignInActivity::class.java))
                 }
             } catch (e: Exception) {
                 runOnUiThread {
-                    TeeUpBanner.show(this, e.message ?: "Couldn't send the request", isError = true)
+                    TeeUpBanner.show(this, e.message ?: getString(R.string.teetime_request_failed_fallback), isError = true)
                     button.isEnabled = true
-                    button.text = "Request to Join"
+                    button.text = getString(R.string.teetime_request_to_join)
                 }
             }
         }.start()
@@ -199,15 +216,15 @@ class TeeTimeDetailActivity : LocaleActivity() {
         }
 
         if (joinRequests.isEmpty()) {
-            container.addView(TextView(this).apply { text = "No join requests yet." })
+            container.addView(TextView(this).apply { text = getString(R.string.teetime_no_join_requests) })
         } else {
             joinRequests.forEach { request -> container.addView(buildJoinRequestRow(request)) }
         }
 
         AlertDialog.Builder(this)
-            .setTitle("Join requests")
+            .setTitle(R.string.teetime_join_requests_title)
             .setView(container)
-            .setNegativeButton("Close", null)
+            .setNegativeButton(R.string.teetime_close, null)
             .show()
     }
 
@@ -218,13 +235,13 @@ class TeeTimeDetailActivity : LocaleActivity() {
         }
 
         row.addView(TextView(this).apply {
-            text = "Guest ${request.guestUserId.take(8)} · ${JoinRequestStatus.label(request.status)}"
+            text = getString(R.string.teetime_guest_status_format, request.guestUserId.take(8), JoinRequestStatus.label(this@TeeTimeDetailActivity, request.status))
             layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)
         })
 
         if (request.status == JoinRequestStatus.PENDING) {
             row.addView(Button(this).apply {
-                text = "Accept"
+                text = getString(R.string.teetime_accept)
                 setBackgroundResource(R.drawable.bg_button_primary)
                 setTextColor(colorOf(R.color.teeup_text_on_primary))
                 layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
@@ -233,7 +250,7 @@ class TeeTimeDetailActivity : LocaleActivity() {
                 setOnClickListener { respondToJoinRequest(request.id, JoinRequestStatus.ACCEPTED) }
             })
             row.addView(Button(this).apply {
-                text = "Decline"
+                text = getString(R.string.teetime_decline)
                 setBackgroundResource(R.drawable.bg_button_danger_outline)
                 setTextColor(colorOf(R.color.teeup_danger))
                 setOnClickListener { respondToJoinRequest(request.id, JoinRequestStatus.DECLINED) }
@@ -254,11 +271,11 @@ class TeeTimeDetailActivity : LocaleActivity() {
                     if (teeTime != null) {
                         render(teeTime, course, requests)
                     }
-                    TeeUpBanner.show(this, "Updated")
+                    TeeUpBanner.show(this, getString(R.string.teetime_updated))
                 }
             } catch (e: Exception) {
                 runOnUiThread {
-                    TeeUpBanner.show(this, e.message ?: "Couldn't update the request", isError = true)
+                    TeeUpBanner.show(this, e.message ?: getString(R.string.teetime_update_failed_fallback), isError = true)
                 }
             }
         }.start()
@@ -272,7 +289,7 @@ class TeeTimeDetailActivity : LocaleActivity() {
 
     private fun openCoursePreview(course: Course?) {
         if (course == null) {
-            TeeUpBanner.show(this, "Course details aren't available yet")
+            TeeUpBanner.show(this, getString(R.string.teetime_course_unavailable))
             return
         }
         val intent = Intent(this, CoursePreviewActivity::class.java).apply {

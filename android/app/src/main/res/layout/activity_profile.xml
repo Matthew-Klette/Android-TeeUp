@@ -30,6 +30,8 @@
                 android:layout_width="72dp"
                 android:layout_height="72dp"
                 android:layout_gravity="center_horizontal"
+                android:background="@drawable/bg_logo_mask"
+                android:clipToOutline="true"
                 android:src="@drawable/ic_logo"
                 android:scaleType="centerCrop"
                 android:importantForAccessibility="no" />

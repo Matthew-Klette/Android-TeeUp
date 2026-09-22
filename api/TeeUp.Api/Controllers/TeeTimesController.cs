@@ -18,9 +18,27 @@ public class TeeTimesController(
 {
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<TeeTimeDto>>> GetAll(
-        [FromQuery] decimal? maxHandicap, [FromQuery] PaceOfPlay? pace)
+        [FromQuery] decimal? maxHandicap, [FromQuery] PaceOfPlay? pace, [FromQuery] bool joinableOnly = false)
     {
-        return Ok(await teeTimeService.GetAllAsync(maxHandicap, pace));
+        return Ok(await teeTimeService.GetAllAsync(maxHandicap, pace, joinableOnly));
+    }
+
+    [Authorize]
+    [HttpPost]
+    public async Task<ActionResult<TeeTimeDto>> CreateSolo(CreateTeeTimeRequest request)
+    {
+        var hostUserId = await ResolveCurrentUserIdAsync();
+        var teeTime = await teeTimeService.CreateSoloAsync(hostUserId, request.CourseId);
+        return Ok(teeTime);
+    }
+
+    [Authorize]
+    [HttpPost("groups")]
+    public async Task<ActionResult<TeeTimeDto>> CreateGroup(CreateGroupRequest request)
+    {
+        var hostUserId = await ResolveCurrentUserIdAsync();
+        var group = await teeTimeService.CreateGroupAsync(hostUserId, request);
+        return Ok(group);
     }
 
     [Authorize]

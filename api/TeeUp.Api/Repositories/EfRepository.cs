@@ -13,6 +13,11 @@ public class EfRepository<T>(TeeUpDbContext context) : IRepository<T> where T : 
         return await Set.FindAsync(id);
     }
 
+    public async Task<T?> GetByIdFreshAsync(Guid id)
+    {
+        return await Set.AsNoTracking().FirstOrDefaultAsync(e => EF.Property<Guid>(e, "Id") == id);
+    }
+
     public async Task<IReadOnlyList<T>> GetAllAsync()
     {
         return await Set.AsNoTracking().ToListAsync();

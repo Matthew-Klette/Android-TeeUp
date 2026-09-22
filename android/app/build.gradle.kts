@@ -30,6 +30,12 @@ android {
         }
     }
 
+    // Needed for BuildConfig.DEBUG, which gates the dev-only auth bypass
+    // (DevIdentity/TeeUpApiClient) to debug builds only.
+    buildFeatures {
+        buildConfig = true
+    }
+
     lint {
         // This project deliberately uses ComponentActivity, not AppCompatActivity
         // (see dependency comment below), so android:tint is the correct, functional

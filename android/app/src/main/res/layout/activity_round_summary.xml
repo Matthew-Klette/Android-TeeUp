@@ -8,8 +8,67 @@
         <TextView style="@style/TeeUpText" android:layout_width="match_parent" android:layout_height="wrap_content"
             android:text="@string/summary_title" android:textSize="@dimen/text_heading" android:textStyle="bold" />
         <TextView android:id="@+id/round_reference" style="@style/TeeUpText"
-            android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginVertical="@dimen/space_lg" />
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_sm" />
         <TextView style="@style/TeeUpText" android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:text="@string/summary_preview" />
+            android:layout_marginBottom="@dimen/space_lg" android:text="@string/summary_preview" />
+
+        <ProgressBar android:id="@+id/summary_progress"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_gravity="center" android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/summary_totals"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_lg"
+            android:background="@drawable/bg_card_outline"
+            android:elevation="@dimen/elevation_card"
+            android:orientation="vertical"
+            android:padding="@dimen/space_lg">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_md" android:gravity="center_vertical" android:orientation="horizontal">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                    android:text="@string/summary_holes_played" android:textColor="@color/teeup_text_secondary" android:textSize="@dimen/text_body_large" />
+                <TextView android:id="@+id/text_holes_played" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textColor="@color/teeup_text_primary" android:textSize="@dimen/text_subheading" android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_md" android:gravity="center_vertical" android:orientation="horizontal">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                    android:text="@string/summary_total_strokes" android:textColor="@color/teeup_text_secondary" android:textSize="@dimen/text_body_large" />
+                <TextView android:id="@+id/text_total_strokes" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textColor="@color/teeup_text_primary" android:textSize="@dimen/text_subheading" android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:gravity="center_vertical" android:orientation="horizontal">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                    android:text="@string/summary_total_putts" android:textColor="@color/teeup_text_secondary" android:textSize="@dimen/text_body_large" />
+                <TextView android:id="@+id/text_total_putts" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textColor="@color/teeup_text_primary" android:textSize="@dimen/text_subheading" android:textStyle="bold" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <TextView
+            style="@style/TeeUpEyebrow"
+            android:layout_width="match_parent"
+            android:layout_marginBottom="@dimen/space_md"
+            android:text="@string/scorecard_title" />
+
+        <LinearLayout android:id="@+id/holes_container"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_lg"
+            android:orientation="vertical" />
+
+        <Button
+            android:id="@+id/button_done"
+            style="@style/TeeUpButton.Primary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/summary_done" />
+
     </LinearLayout>
 </ScrollView>

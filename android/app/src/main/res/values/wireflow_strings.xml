@@ -10,13 +10,86 @@
     <string name="rounds_open_scorecard">Open scorecard preview</string>
     <string name="rounds_view_summary">View round summary</string>
     <string name="rounds_browse">View My Rounds</string>
-    <string name="scorecard_landing">Choose a started round from My Rounds → History to preview its scorecard. Live scoring and offline sync will be available in a later version.</string>
-    <string name="summary_title">Post-Round Summary</string>
-    <string name="summary_preview">Summary preview. Final totals, endorsements and offline sync will be available in a later version. No scores are saved by this preview.</string>
+    <string name="rounds_start_round">Start Round</string>
+    <string name="rounds_continue_round">Continue Round</string>
+    <string name="rounds_not_started_yet">Not started yet</string>
+    <string name="rounds_start_a_round">Start a Round</string>
+    <string name="rounds_pick_course">Choose a course</string>
+    <string name="rounds_choose_holes">How many holes?</string>
+    <string name="rounds_nine_holes">9 holes</string>
+    <string name="rounds_eighteen_holes">18 holes</string>
+    <string name="rounds_no_courses">Courses aren\'t available yet — check your connection and try again.</string>
+    <string name="rounds_start_solo_failed">Couldn\'t start a round</string>
+    <string name="scorecard_landing">Choose an upcoming round from My Rounds to start entering scores hole by hole.</string>
+    <string name="summary_title">Round Summary</string>
+    <string name="summary_preview">Final totals for this round.</string>
+    <string name="summary_total_strokes">Total strokes</string>
+    <string name="summary_total_putts">Total putts</string>
+    <string name="summary_holes_played">Holes played</string>
+    <string name="summary_hole_row_format">Hole %1$d — %2$d strokes, %3$d putts</string>
+    <string name="summary_no_holes">No holes scored yet for this round.</string>
+    <string name="summary_done">Done</string>
     <string name="round_reference">Tee time: %1$s</string>
     <string name="round_missing">No round selected. Return to My Rounds and select a round.</string>
     <string name="wireflow_back">Back</string>
     <string name="notification_unavailable">This notification has no available destination.</string>
     <string name="notification_round_missing">The linked tee time is unavailable. Showing My Rounds.</string>
-    <string name="scorecard_summary_preview">Preview round summary</string>
+    <string name="notifications_load_failed">Could not load your notifications. Check your connection and retry.</string>
+    <string name="notifications_empty">No notifications yet.</string>
+    <string name="scorecard_summary_preview">View round summary</string>
+
+    <!-- Home Screen — inline filter labels/dialogs -->
+    <string name="home_filter_date_today">Date: Today</string>
+    <string name="home_filter_date_tomorrow">Date: Tomorrow</string>
+    <string name="home_filter_players_min_format">Players: %1$d+</string>
+    <string name="dialog_cancel">Cancel</string>
+    <string name="home_empty_no_teetimes">No groups are looking for players right now</string>
+    <string name="home_empty_no_matches">No groups match your filters</string>
+    <string name="home_unknown_course">Unknown course</string>
+
+    <!-- Tee Time Detail Screen -->
+    <string name="teetime_no_id">No tee time was specified</string>
+    <string name="teetime_not_found">Tee time not found</string>
+    <string name="join_request_status_pending">Pending</string>
+    <string name="join_request_status_accepted">Accepted</string>
+    <string name="join_request_status_declined">Declined</string>
+    <string name="join_request_status_unknown">Unknown</string>
+    <string name="teetime_loading">Loading tee time...</string>
+    <string name="teetime_load_failed">Couldn\'t load this tee time</string>
+    <string name="teetime_unknown_course">Unknown course</string>
+    <string name="teetime_subtitle_format">%1$d spot(s) open · %2$s</string>
+    <string name="teetime_host_booking_no_host">Booking — reserved slot, no host required</string>
+    <string name="teetime_host_open_no_host">Open round — no host assigned yet</string>
+    <string name="teetime_host_hosted">Hosted round</string>
+    <string name="teetime_host_subtitle_format">%1$d accepted · %2$d pending</string>
+    <string name="teetime_request_sent">Request sent</string>
+    <string name="teetime_request_to_join">Request to Join</string>
+    <string name="teetime_full">Group is full</string>
+    <string name="teetime_pending_waiting_format">%1$d waiting — tap to approve or decline</string>
+    <string name="teetime_pending_none">None pending</string>
+    <string name="teetime_sending">Sending...</string>
+    <string name="teetime_signin_again">Please sign in again to request to join</string>
+    <string name="teetime_request_failed_fallback">Couldn\'t send the request</string>
+    <string name="teetime_no_join_requests">No join requests yet.</string>
+    <string name="teetime_join_requests_title">Join requests</string>
+    <string name="teetime_close">Close</string>
+    <string name="teetime_guest_status_format">Guest %1$s · %2$s</string>
+    <string name="teetime_accept">Accept</string>
+    <string name="teetime_decline">Decline</string>
+    <string name="teetime_updated">Updated</string>
+    <string name="teetime_update_failed_fallback">Couldn\'t update the request</string>
+    <string name="teetime_course_unavailable">Course details aren\'t available yet</string>
+
+    <!-- Register / Sign In error fallbacks -->
+    <string name="register_error_name_required">Enter a display name</string>
+    <string name="register_error_handicap_invalid">Enter a valid handicap between 0 and 54, or leave it blank</string>
+    <string name="register_error_save_failed">Couldn\'t save your profile — try again</string>
+    <string name="signin_google_failed">Google sign-in failed — please try again</string>
+    <string name="signin_failed_generic">Sign-in failed — check your connection and try again</string>
+
+    <!-- Rounds / Scorecard / Summary error fallbacks -->
+    <string name="rounds_date_error_fallback">Couldn\'t read a round\'s date</string>
+    <string name="scorecard_load_failed">Couldn\'t load this round</string>
+    <string name="scorecard_save_failed">Couldn\'t save this round</string>
+    <string name="summary_load_failed">Couldn\'t load this round</string>
 </resources>
