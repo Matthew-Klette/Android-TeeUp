@@ -20,7 +20,8 @@
 
     <string name="profile_stat_rounds">Rounds</string>
     <string name="profile_stat_handicap">Handicap</string>
-    <string name="profile_stat_friends">Friends</string>
+    <string name="profile_stat_value_placeholder">…</string>
+    <string name="profile_stat_handicap_none">N/A</string>
 
     <string name="profile_section_account">ACCOUNT</string>
     <string name="profile_personal_details">Personal Details</string>

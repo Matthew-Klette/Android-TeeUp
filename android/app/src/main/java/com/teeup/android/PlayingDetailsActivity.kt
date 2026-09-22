@@ -15,6 +15,7 @@ import com.teeup.android.data.Course
 import com.teeup.android.data.RegisteredUser
 import com.teeup.android.data.TeeUpApiClient
 import com.teeup.android.ui.CourseSearchAdapter
+import com.teeup.android.data.formatHandicapOrEmpty
 import com.teeup.android.ui.LocaleActivity
 import com.teeup.android.ui.TeeUpBanner
 
@@ -105,7 +106,7 @@ class PlayingDetailsActivity : LocaleActivity() {
         statusText.visibility = View.GONE
         contentGroup.visibility = View.VISIBLE
 
-        handicapInput.setText(user.handicapIndex?.toString().orEmpty())
+        handicapInput.setText(formatHandicapOrEmpty(user.handicapIndex))
 
         // `false` skips triggering the search dropdown for this programmatic prefill.
         selectedCourse = fetchedCourses.firstOrNull { it.id == user.homeCourseId }
