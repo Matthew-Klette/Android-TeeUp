@@ -225,7 +225,7 @@ pull request, so problems get caught before they reach `main`.
 
 ## Demo Video
 
-The demonstration video will be linked here once it has been recorded.
+YouTube:[Demo Video](https://youtu.be/wKdn8wWyUJU)
 
 ## Team
 
