@@ -28,6 +28,9 @@
     <string name="email_auth_error_email_invalid">Enter a valid email address</string>
     <string name="email_auth_error_password_too_short">Password must be at least 6 characters</string>
     <string name="email_auth_error_confirm_mismatch">Passwords do not match</string>
+    <string name="email_auth_retry">Retry</string>
+    <string name="email_auth_progress_retry">Finishing setup…</string>
+    <string name="email_auth_registration_failed">Signed in, but could not finish setting up your account. Try again.</string>
 
     <!-- Profile Screen -->
     <string name="profile_title">Profile &amp; Settings</string>

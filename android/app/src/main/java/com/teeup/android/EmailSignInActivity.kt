@@ -32,6 +32,12 @@ class EmailSignInActivity : LocaleActivity() {
 
     private var isSignUpMode = false
 
+    // Set once Firebase auth itself has succeeded (account created or signed in), so a
+    // later failure while registering with our own backend doesn't get retried as if
+    // nothing had happened yet: retrying must not call Firebase auth again, since the
+    // account already exists / the session is already live.
+    private var awaitingBackendRetry = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_email_sign_in)
@@ -49,7 +55,9 @@ class EmailSignInActivity : LocaleActivity() {
             overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
         }
 
-        isSignUpMode = intent.getBooleanExtra(EXTRA_START_IN_SIGNUP_MODE, false)
+        isSignUpMode = savedInstanceState?.getBoolean(KEY_IS_SIGN_UP_MODE)
+            ?: intent.getBooleanExtra(EXTRA_START_IN_SIGNUP_MODE, false)
+        awaitingBackendRetry = savedInstanceState?.getBoolean(KEY_AWAITING_BACKEND_RETRY) ?: false
         updateModeUi()
 
         toggleModeText.setOnClickListener {
@@ -60,7 +68,30 @@ class EmailSignInActivity : LocaleActivity() {
         submitButton.setOnClickListener { onSubmitClicked() }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(KEY_IS_SIGN_UP_MODE, isSignUpMode)
+        outState.putBoolean(KEY_AWAITING_BACKEND_RETRY, awaitingBackendRetry)
+    }
+
     private fun updateModeUi() {
+        if (awaitingBackendRetry) {
+            // Firebase auth already succeeded, only our own backend step is left. Mode
+            // no longer means anything here, so hide the choice instead of showing a
+            // stale one.
+            toggleModeText.visibility = View.GONE
+            emailInput.isEnabled = false
+            passwordInput.isEnabled = false
+            confirmPasswordInput.isEnabled = false
+            submitButton.text = getString(R.string.email_auth_retry)
+            return
+        }
+
+        toggleModeText.visibility = View.VISIBLE
+        emailInput.isEnabled = true
+        passwordInput.isEnabled = true
+        confirmPasswordInput.isEnabled = true
+
         if (isSignUpMode) {
             titleText.text = getString(R.string.email_auth_title_signup)
             confirmPasswordLabel.visibility = View.VISIBLE
@@ -77,6 +108,13 @@ class EmailSignInActivity : LocaleActivity() {
     }
 
     private fun onSubmitClicked() {
+        if (awaitingBackendRetry) {
+            submitButton.isEnabled = false
+            submitButton.text = getString(R.string.email_auth_progress_retry)
+            Thread { registerWithBackend() }.start()
+            return
+        }
+
         val email = emailInput.text.toString().trim()
         val password = passwordInput.text.toString()
 
@@ -88,38 +126,74 @@ class EmailSignInActivity : LocaleActivity() {
             TeeUpBanner.show(this, getString(R.string.email_auth_error_password_too_short), isError = true)
             return
         }
-        if (isSignUpMode && password != confirmPasswordInput.text.toString()) {
+        // Captured now, not read again from the field inside the worker thread below: the
+        // confirm-password field can only be edited while this Activity is on screen and
+        // interactive, same lifetime as this function call.
+        val signUpMode = isSignUpMode
+        if (signUpMode && password != confirmPasswordInput.text.toString()) {
             TeeUpBanner.show(this, getString(R.string.email_auth_error_confirm_mismatch), isError = true)
             return
         }
 
         submitButton.isEnabled = false
         submitButton.text = getString(
-            if (isSignUpMode) R.string.email_auth_progress_signup else R.string.email_auth_progress_signin
+            if (signUpMode) R.string.email_auth_progress_signup else R.string.email_auth_progress_signin
         )
+        // Switching mode mid-request would leave the in-flight Firebase call mismatched
+        // with what's on screen, so lock it until this attempt resolves one way or another.
+        toggleModeText.isEnabled = false
 
         Thread {
-            try {
+            val firebaseAuthSucceeded = try {
                 val auth = FirebaseAuth.getInstance()
-                if (isSignUpMode) {
+                if (signUpMode) {
                     Tasks.await(auth.createUserWithEmailAndPassword(email, password))
                 } else {
                     Tasks.await(auth.signInWithEmailAndPassword(email, password))
                 }
-                completeSignIn()
+                true
             } catch (e: Exception) {
-                Log.w(tag, "Email ${if (isSignUpMode) "sign-up" else "sign-in"} failed", e)
+                // Firebase auth itself failed: no account was created and no session
+                // started, so it's safe to let the user retry sign-in/sign-up as normal.
+                Log.w(tag, "Email ${if (signUpMode) "sign-up" else "sign-in"} failed", e)
                 runOnUiThread {
                     submitButton.isEnabled = true
+                    toggleModeText.isEnabled = true
                     updateModeUi()
                     TeeUpBanner.show(this, e.message ?: getString(R.string.email_auth_failed_generic), isError = true)
                 }
+                false
+            }
+
+            // Firebase auth succeeded past this point: the account exists and this device
+            // is signed in. Any failure below is our own backend, not Firebase, so a retry
+            // must never call createUserWithEmailAndPassword/signInWithEmailAndPassword again.
+            if (firebaseAuthSucceeded) {
+                registerWithBackend()
             }
         }.start()
     }
 
+    /** Runs off the main thread. Registers the already-signed-in Firebase user with our own
+     *  backend; safe to call repeatedly since POST /api/auth/register is idempotent. */
+    private fun registerWithBackend() {
+        try {
+            completeSignIn()
+        } catch (e: Exception) {
+            Log.w(tag, "Backend registration failed after Firebase auth succeeded", e)
+            runOnUiThread {
+                awaitingBackendRetry = true
+                submitButton.isEnabled = true
+                updateModeUi()
+                TeeUpBanner.show(this, e.message ?: getString(R.string.email_auth_registration_failed), isError = true)
+            }
+        }
+    }
+
     companion object {
         private const val EXTRA_START_IN_SIGNUP_MODE = "com.teeup.android.extra.START_IN_SIGNUP_MODE"
+        private const val KEY_IS_SIGN_UP_MODE = "isSignUpMode"
+        private const val KEY_AWAITING_BACKEND_RETRY = "awaitingBackendRetry"
         private const val MIN_PASSWORD_LENGTH = 6
 
         fun intent(context: Context, startInSignUpMode: Boolean): Intent =
