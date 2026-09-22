@@ -18,6 +18,13 @@
     <string name="profile_details_summary">%1$s · %2$s</string>
     <string name="profile_handicap_unset">No handicap set</string>
 
+    <string name="profile_photo_change">Change profile photo</string>
+    <string name="profile_photo_take">Take Photo</string>
+    <string name="profile_photo_gallery">Choose from Gallery</string>
+    <string name="profile_photo_uploading">Saving photo…</string>
+    <string name="profile_photo_upload_failed">Couldn\'t save your photo. Try again.</string>
+    <string name="profile_photo_camera_permission_denied">Camera permission is needed to take a photo</string>
+
     <string name="profile_stat_rounds">Rounds</string>
     <string name="profile_stat_handicap">Handicap</string>
     <string name="profile_stat_value_placeholder">…</string>

@@ -14,6 +14,13 @@
     <string name="profile_name_placeholder">Igama Elibonisiweyo</string>
     <string name="profile_details_placeholder">I-Handicap · Ibala Lasekhaya</string>
 
+    <string name="profile_photo_change">Tshintsha ifoto yeprofayile</string>
+    <string name="profile_photo_take">Thatha Ifoto</string>
+    <string name="profile_photo_gallery">Khetha kwiGalari</string>
+    <string name="profile_photo_uploading">Igcina ifoto…</string>
+    <string name="profile_photo_upload_failed">Ayikwazanga ukugcina ifoto yakho. Zama kwakhona.</string>
+    <string name="profile_photo_camera_permission_denied">Imvume yekhamera iyafuneka ukuthatha ifoto</string>
+
     <string name="profile_stat_rounds">Imijikelo</string>
     <string name="profile_stat_handicap">I-Handicap</string>
     <string name="profile_stat_value_placeholder">…</string>
