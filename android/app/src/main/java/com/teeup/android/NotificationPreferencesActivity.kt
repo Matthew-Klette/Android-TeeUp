@@ -15,11 +15,9 @@ import com.teeup.android.ui.LocaleActivity
 import com.teeup.android.ui.TeeUpBanner
 
 /**
- * Profile → Notification Preferences. EME-318: three of these four toggles now call
- * PATCH /api/profiles/me and persist server-side (see NotificationPreferences' doc
- * comment for exactly which category maps to which field, and why one — Sync Reminders —
- * still doesn't). Loads current values from GET /api/profiles/me on open, so a fresh
- * install/reinstall shows what's actually saved rather than this device's own cache.
+ * Profile → Notification Preferences. Three of these four toggles now persist server-side
+ * via PATCH /api/profiles/me (see NotificationPreferences for why Sync Reminders doesn't),
+ * loading current values on open so a reinstall shows the real saved state.
  */
 class NotificationPreferencesActivity : LocaleActivity() {
     private lateinit var statusText: TextView
@@ -102,9 +100,9 @@ class NotificationPreferencesActivity : LocaleActivity() {
         ) { enabled -> NotificationPreferences.setSyncPendingEnabled(this, enabled) })
     }
 
-    /** Calls the backend on toggle; on failure, reverts the switch (without re-firing this
-     *  same callback — see [buildToggleRow]) and shows a banner, so a flaky connection can't
-     *  leave the UI claiming a preference that didn't actually save. */
+    /** Reverts the switch on a failed PATCH, without re-firing this callback (see
+     *  buildToggleRow), and shows an error banner, so a flaky connection can't leave the UI
+     *  claiming a save that didn't happen. */
     private fun buildServerToggleRow(labelRes: Int, initiallyChecked: Boolean, patch: (Boolean) -> Unit): View {
         lateinit var toggle: ToggleRow
         toggle = buildToggleRow(labelRes, initiallyChecked) { enabled ->
