@@ -4,22 +4,8 @@ using TeeUp.Api.Repositories;
 namespace TeeUp.Api.Services;
 
 /// <summary>
-/// Acquires <see cref="TeeTimeJoinLock"/> for every tee time an EME-323 auto-decline touches:
-/// the tee time a guest is being accepted/hosted into, plus every other tee time where that
-/// guest currently holds a Pending join request that's about to be auto-declined as a result.
-///
-/// Reusing TeeTimeJoinLock itself — rather than layering a second, guest-keyed lock on top —
-/// is what lets this interleave safely with TeeTimeService.CancelAsync/EditAsync, which only
-/// ever take a single TeeTimeJoinLock for their own tee time: there's no second lock type whose
-/// acquisition order they'd need to know about, so a cancel/edit and an auto-decline racing on
-/// the same tee time now genuinely serialize against each other instead of just missing each
-/// other's writes.
-///
-/// All locks for one call are acquired together, in a fixed ascending-Guid order — never one at
-/// a time as each new "other" tee time is discovered — so two of these racing on different tee
-/// times for different guests can't deadlock waiting on each other's lock. The set is re-checked
-/// immediately after acquiring, in case a new Pending request appeared for this guest while the
-/// locks were being acquired; if so, everything is released and retried until the set is stable.
+/// Acquires <see cref="TeeTimeJoinLock"/> for every tee time an EME-323 auto-decline touches, reusing that same lock type so this interleaves safely with TeeTimeService.CancelAsync/EditAsync instead of missing each other's writes.
+/// Locks are acquired together in a fixed ascending-Guid order to avoid deadlocks, and the touched set is re-checked and retried until stable.
 /// </summary>
 internal static class AutoDeclineLock
 {

@@ -141,18 +141,12 @@ public class TeeTimeService(
             Status = TeeTimeStatus.Open
         };
 
-        // Held across the auto-decline loop below so it can't race a concurrent JoinRequestService
-        // call touching one of these same requests elsewhere (see AutoDeclineLock). The "primary"
-        // tee time here is this brand-new one, which nothing else can reference yet.
+        // Held across the auto-decline loop below so it can't race a concurrent JoinRequestService call (see AutoDeclineLock).
         using var __ = await AutoDeclineLock.AcquireAsync(joinRequestRepository, teeTime.Id, hostUserId);
 
         await teeTimeRepository.AddAsync(teeTime);
 
-        // EME-323: hosting your own group makes any pending request you're holding as a guest
-        // elsewhere no longer relevant — auto-decline them (status only, preserving history,
-        // same as a host's own decline) rather than leaving them pending indefinitely. No
-        // separate notification: this is a side effect of the host's own action, not something
-        // another party did to them.
+        // EME-323: hosting your own group makes any pending guest request elsewhere no longer relevant, so auto-decline it instead of leaving it pending.
         var ownPendingAsGuest = (await joinRequestRepository.GetAllAsync())
             .Where(j => j.GuestUserId == hostUserId && j.Status == JoinRequestStatus.Pending);
         foreach (var pending in ownPendingAsGuest)
@@ -182,12 +176,8 @@ public class TeeTimeService(
         if (request.WantedPace is { } wantedPace && !Enum.IsDefined(wantedPace))
             throw new DomainValidationException("Select a valid pace of play.");
 
-        // Serialized against a concurrent accept/decline/withdraw on the same tee time (EME-321,
-        // reusing EME-313's per-tee-time lock) so an edit can't act on a stale open-spots count.
-        // This also covers a race against an accept elsewhere that's auto-declining one of this
-        // tee time's own Pending requests (EME-323): AutoDeclineLock takes this same
-        // TeeTimeJoinLock as part of its set, so the two properly serialize against each other
-        // even though this method knows nothing about AutoDeclineLock itself.
+        // Serialized against a concurrent accept/decline/withdraw on the same tee time (EME-321, reusing EME-313's per-tee-time lock) so an edit can't act on a stale open-spots count.
+        // Also covers a race against an auto-decline (EME-323), since AutoDeclineLock takes this same TeeTimeJoinLock.
         using var _ = await TeeTimeJoinLock.AcquireAsync(teeTimeId);
 
         var teeTime = await teeTimeRepository.GetByIdFreshAsync(teeTimeId)
@@ -197,9 +187,7 @@ public class TeeTimeService(
             throw new ForbiddenException("Only the host can edit this group.");
         if (teeTime.Status == TeeTimeStatus.Cancelled)
             throw new DomainValidationException("A cancelled group cannot be edited.");
-        // A round tracks its hole count from this tee time's live Holes value (see
-        // RoundService.PostScorecardAsync), so changing it, or the schedule, once scoring has
-        // started would invalidate scores already posted or reject further ones. Cancel instead.
+        // A round tracks its hole count from this tee time's live Holes value (see RoundService.PostScorecardAsync), so changing holes or schedule after scoring started could invalidate posted scores. Cancel instead.
         if (await roundRepository.GetByTeeTimeIdAsync(teeTimeId) is not null)
             throw new DomainValidationException(
                 "This group already has a round in progress and cannot be edited; cancel it instead.");
@@ -231,9 +219,7 @@ public class TeeTimeService(
 
     public async Task<TeeTimeDto> CancelAsync(Guid teeTimeId, Guid hostUserId)
     {
-        // Same TeeTimeJoinLock EditAsync takes — see its comment on why that's also enough to
-        // serialize against a same-tee-time auto-decline (EME-323), not just against another
-        // accept/decline/withdraw.
+        // Same TeeTimeJoinLock EditAsync takes, which also serializes this against a same-tee-time auto-decline (EME-323).
         using var _ = await TeeTimeJoinLock.AcquireAsync(teeTimeId);
 
         var teeTime = await teeTimeRepository.GetByIdFreshAsync(teeTimeId)
@@ -284,9 +270,7 @@ public class TeeTimeService(
                 "This group has join requests against it and cannot be deleted; cancel it instead.");
         }
 
-        // A round (and any scorecard entries against it) would otherwise be silently lost —
-        // cascade-deleted with the tee time in the EF/Postgres-backed store, or left orphaned
-        // in the in-memory one. Either way a host who's posted scores must cancel, not delete.
+        // A round and its scorecard entries would otherwise be silently lost or orphaned, so a host who's posted scores must cancel instead of delete.
         if (await roundRepository.GetByTeeTimeIdAsync(teeTimeId) is not null)
         {
             throw new DomainValidationException(
