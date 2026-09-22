@@ -24,8 +24,6 @@ import com.teeup.android.ui.CourseSearchAdapter
 import com.teeup.android.ui.LocaleActivity
 import com.teeup.android.ui.TeeUpBanner
 
-private const val LAST_HOLE = 18
-
 /** Rounds tab: choose an upcoming round to start scoring, or review a past one. */
 class RoundsActivity : LocaleActivity() {
     private var showHistory = false
@@ -128,6 +126,11 @@ class RoundsActivity : LocaleActivity() {
     private fun buildRoundRow(round: ScheduledRound): View {
         val course = coursesById[round.courseId] ?: MockCatalog.courseById(round.courseId)
         val holesScored = round.round?.scorecard?.size ?: 0
+        // The tee time's own intended length, not a hardcoded 18 — a 9-hole round with all 9
+        // holes scored must count as finished, not "9 of 18, keep going" (round.holes is null
+        // only for a legacy/solo row from before the API persisted this; 18 matches the same
+        // fallback ScorecardActivity itself uses when EXTRA_HOLE_COUNT is absent).
+        val totalHoles = round.holes ?: 18
 
         val card = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -161,8 +164,8 @@ class RoundsActivity : LocaleActivity() {
             notYetStartable -> getString(R.string.rounds_not_started_yet) to null
             notStarted -> getString(R.string.rounds_start_round) to
                 { promptHoleCount { holes -> openScorecard(round.teeTimeId, holes) } }
-            holesScored < LAST_HOLE -> getString(R.string.rounds_continue_round) to
-                { openScorecard(round.teeTimeId, holes = null) }
+            holesScored < totalHoles -> getString(R.string.rounds_continue_round) to
+                { openScorecard(round.teeTimeId, holes = totalHoles) }
             else -> getString(R.string.rounds_view_summary) to { openSummary(round.teeTimeId) }
         }
 
@@ -221,7 +224,7 @@ class RoundsActivity : LocaleActivity() {
     private fun createSoloRoundAndOpen(courseId: String, holes: Int) {
         Thread {
             try {
-                val teeTime = TeeUpApiClient.createSoloTeeTime(courseId)
+                val teeTime = TeeUpApiClient.createSoloTeeTime(courseId, holes)
                 runOnUiThread { openScorecard(teeTime.id, holes) }
             } catch (e: Exception) {
                 runOnUiThread {

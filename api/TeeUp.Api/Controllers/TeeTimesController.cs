@@ -28,7 +28,7 @@ public class TeeTimesController(
     public async Task<ActionResult<TeeTimeDto>> CreateSolo(CreateTeeTimeRequest request)
     {
         var hostUserId = await ResolveCurrentUserIdAsync();
-        var teeTime = await teeTimeService.CreateSoloAsync(hostUserId, request.CourseId);
+        var teeTime = await teeTimeService.CreateSoloAsync(hostUserId, request.CourseId, request.Holes);
         return Ok(teeTime);
     }
 

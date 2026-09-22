@@ -22,8 +22,9 @@ public interface ITeeTimeService
     /// Creates a tee time for a solo round, dated right now, hosted by and reserved
     /// entirely for <paramref name="hostUserId"/> — no join-request flow needed before
     /// scores can be posted against it (see RoundService's "no posting before it starts" rule).
+    /// <paramref name="holes"/> must be 9 or 18 if provided; null defaults to 18.
     /// </summary>
-    Task<TeeTimeDto> CreateSoloAsync(Guid hostUserId, Guid courseId);
+    Task<TeeTimeDto> CreateSoloAsync(Guid hostUserId, Guid courseId, int? holes = null);
 
     /// <summary>
     /// Creates a real group looking for players (EME-311) — a scheduled tee time with a hole

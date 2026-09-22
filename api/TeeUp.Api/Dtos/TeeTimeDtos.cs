@@ -2,8 +2,15 @@ using TeeUp.Api.Models;
 
 namespace TeeUp.Api.Dtos;
 
-/// <summary>A golfer starting a solo round on their own, with no join-request flow — see RoundsActivity's "Start a Round".</summary>
-public record CreateTeeTimeRequest(Guid CourseId);
+/// <summary>
+/// A golfer starting a solo round on their own, with no join-request flow — see RoundsActivity's
+/// "Start a Round" (which already prompts for hole count before this is called). <paramref name="Holes"/>
+/// null defaults to 18 — matches ScorecardActivity's own fallback when EXTRA_HOLE_COUNT is absent.
+/// Persisting it here (rather than only ever living as a per-screen local variable, which is how
+/// it worked before) is what lets RoundsActivity later tell "finished a 9-hole round" apart from
+/// "9 of 18 holes scored, still going" instead of assuming every round is 18 holes.
+/// </summary>
+public record CreateTeeTimeRequest(Guid CourseId, int? Holes = null);
 
 /// <summary>
 /// Creates a real group looking for players (EME-311). <paramref name="OpenSpots"/> is guests

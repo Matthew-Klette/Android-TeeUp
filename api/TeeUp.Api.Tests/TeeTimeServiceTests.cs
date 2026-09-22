@@ -299,6 +299,42 @@ public class TeeTimeServiceTests
     }
 
     [Fact]
+    public async Task CreateSoloAsync_WithNoHoles_DefaultsToEighteen()
+    {
+        var (service, _, users, courses) = CreateService();
+        var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
+        var course = await AddCourse(courses);
+
+        var result = await service.CreateSoloAsync(host.Id, course.Id);
+
+        Assert.Equal(18, result.Holes);
+    }
+
+    [Theory]
+    [InlineData(9)]
+    [InlineData(18)]
+    public async Task CreateSoloAsync_WithValidHoles_PersistsThem(int holes)
+    {
+        var (service, _, users, courses) = CreateService();
+        var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
+        var course = await AddCourse(courses);
+
+        var result = await service.CreateSoloAsync(host.Id, course.Id, holes);
+
+        Assert.Equal(holes, result.Holes);
+    }
+
+    [Fact]
+    public async Task CreateSoloAsync_WithInvalidHoles_ThrowsValidationError()
+    {
+        var (service, _, users, courses) = CreateService();
+        var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
+        var course = await AddCourse(courses);
+
+        await Assert.ThrowsAsync<DomainValidationException>(() => service.CreateSoloAsync(host.Id, course.Id, 12));
+    }
+
+    [Fact]
     public async Task CreateGroupAsync_WithMinAboveMax_ThrowsValidationError()
     {
         var (service, _, users, courses) = CreateService();

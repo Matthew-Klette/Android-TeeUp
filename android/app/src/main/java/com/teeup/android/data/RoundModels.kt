@@ -13,7 +13,10 @@ private fun invalidRoundDateMessage(value: String): String =
     TeeUpApplication.appContextOrNull?.getString(R.string.invalid_round_date_format, value)
         ?: "Invalid round date: $value"
 
-data class ScheduledRound(val teeTimeId: String, val courseId: String, val dateTime: String, val round: PlayedRound?)
+/** [holes] is the tee time's intended round length (9 or 18) — null only for a legacy/solo row
+ *  created before the API persisted it. Lets RoundsActivity tell "finished a 9-hole round" apart
+ *  from "9 of 18 holes scored, still going" instead of assuming every round is 18 holes. */
+data class ScheduledRound(val teeTimeId: String, val courseId: String, val dateTime: String, val holes: Int?, val round: PlayedRound?)
 data class PlayedRound(val id: String, val teeTimeId: String, val scorecard: List<HoleScore>)
 data class HoleScore(val id: String, val holeNumber: Int, val strokes: Int, val putts: Int, val synced: Boolean)
 

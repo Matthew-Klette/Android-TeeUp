@@ -45,9 +45,10 @@ object TeeUpApiClient {
     }
 
     /** POST /api/teetimes — a tee time hosted by and reserved entirely for the caller,
-     *  dated right now, for the solo "Start a Round" flow (no join-request needed). */
-    fun createSoloTeeTime(courseId: String): TeeTime {
-        val body = JSONObject().put("courseId", courseId)
+     *  dated right now, for the solo "Start a Round" flow (no join-request needed).
+     *  [holes] must be 9 or 18; null lets the server default to 18. */
+    fun createSoloTeeTime(courseId: String, holes: Int? = null): TeeTime {
+        val body = JSONObject().put("courseId", courseId).put("holes", holes)
         return parseTeeTime(JSONObject(request("POST", "api/teetimes", body)))
     }
 
@@ -278,6 +279,7 @@ object TeeUpApiClient {
         teeTimeId = o.getString("teeTimeId"),
         courseId = o.getString("courseId"),
         dateTime = o.getString("dateTime"),
+        holes = if (o.isNull("holes")) null else o.getInt("holes"),
         round = if (o.isNull("round")) null else parsePlayedRound(o.getJSONObject("round"))
     )
 

@@ -29,7 +29,7 @@ public class RoundService(
             var round = await roundRepository.GetByTeeTimeIdAsync(teeTime.Id);
             var dto = round is null ? null : RoundDto.From(round,
                 await scorecardEntryRepository.GetByRoundIdAsync(round.Id));
-            result.Add(new ScheduledRoundDto(teeTime.Id, teeTime.CourseId, teeTime.DateTime, dto));
+            result.Add(new ScheduledRoundDto(teeTime.Id, teeTime.CourseId, teeTime.DateTime, teeTime.Holes, dto));
         }
         return result;
     }

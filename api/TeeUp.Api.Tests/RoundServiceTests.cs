@@ -64,6 +64,20 @@ public class RoundServiceTests
         new([new ScorecardEntryRequest(1, strokes, putts)]);
 
     [Fact]
+    public async Task GetScheduleForUserAsync_IncludesTheTeeTimesHoleCount()
+    {
+        var (service, teeTimes, _) = CreateService();
+        var hostId = Guid.NewGuid();
+        var teeTime = MakeTeeTime(DateTime.UtcNow.AddDays(1), hostId);
+        teeTime.Holes = 9;
+        await teeTimes.AddAsync(teeTime);
+
+        var schedule = await service.GetScheduleForUserAsync(hostId);
+
+        Assert.Equal(9, Assert.Single(schedule).Holes);
+    }
+
+    [Fact]
     public async Task PostScorecardAsync_ForStartedTeeTime_Succeeds()
     {
         var (service, teeTimes, _) = CreateService();

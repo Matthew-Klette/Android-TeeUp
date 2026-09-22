@@ -81,8 +81,11 @@ public class TeeTimeService(
         return members;
     }
 
-    public async Task<TeeTimeDto> CreateSoloAsync(Guid hostUserId, Guid courseId)
+    public async Task<TeeTimeDto> CreateSoloAsync(Guid hostUserId, Guid courseId, int? holes = null)
     {
+        if (holes is not null && holes != 9 && holes != 18)
+            throw new DomainValidationException("Holes must be 9 or 18.");
+
         _ = await courseRepository.GetByIdAsync(courseId)
             ?? throw new NotFoundException($"Course {courseId} not found.");
 
@@ -94,7 +97,8 @@ public class TeeTimeService(
             DateTime = DateTime.UtcNow,
             OpenSpots = 0,
             Price = 0,
-            Type = TeeTimeType.Booking
+            Type = TeeTimeType.Booking,
+            Holes = holes ?? 18
         };
 
         await teeTimeRepository.AddAsync(teeTime);
