@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@drawable/bg_screen_gradient">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/screen_padding">
+
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_lg"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/button_back"
+                android:layout_width="@dimen/touch_target"
+                android:layout_height="@dimen/touch_target"
+                android:background="?android:attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:contentDescription="@string/detail_back"
+                android:text="@string/detail_back_symbol"
+                android:textColor="@color/teeup_text_primary"
+                android:textSize="@dimen/text_heading" />
+
+            <TextView
+                android:id="@+id/text_screen_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/space_sm"
+                android:layout_weight="1"
+                android:text="@string/create_group_title"
+                android:textColor="@color/teeup_text_primary"
+                android:textSize="@dimen/text_heading"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/text_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_md"
+            android:background="@drawable/bg_card"
+            android:elevation="@dimen/elevation_card"
+            android:gravity="center"
+            android:padding="@dimen/screen_padding"
+            android:accessibilityLiveRegion="polite"
+            android:text="@string/create_group_loading_courses"
+            android:textColor="@color/teeup_text_secondary"
+            android:textSize="@dimen/text_body" />
+
+        <LinearLayout
+            android:id="@+id/group_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_sm"
+                android:labelFor="@id/input_course"
+                android:text="@string/register_home_course"
+                android:textColor="@color/teeup_text_primary"
+                android:textSize="@dimen/text_body" />
+
+            <AutoCompleteTextView
+                android:id="@+id/input_course"
+                style="@style/TeeUpInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_lg"
+                android:completionThreshold="1"
+                android:hint="@string/course_search_hint"
+                android:inputType="text" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_sm"
+                android:text="@string/create_group_when"
+                android:textColor="@color/teeup_text_primary"
+                android:textSize="@dimen/text_body" />
+
+            <Button
+                android:id="@+id/button_pick_date_time"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_lg"
+                android:text="@string/create_group_pick_date_time" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_sm"
+                android:text="@string/create_group_holes"
+                android:textColor="@color/teeup_text_primary"
+                android:textSize="@dimen/text_body" />
+
+            <Spinner
+                android:id="@+id/input_holes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_lg" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_sm"
+                android:text="@string/create_group_players_needed"
+                android:textColor="@color/teeup_text_primary"
+                android:textSize="@dimen/text_body" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_lg"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/button_players_minus"
+                    android:layout_width="@dimen/touch_target"
+                    android:layout_height="@dimen/touch_target"
+                    android:minWidth="0dp"
+                    android:padding="0dp"
+                    android:text="@string/create_group_minus" />
+
+                <TextView
+                    android:id="@+id/text_players_needed"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:textColor="@color/teeup_text_primary"
+                    android:textSize="@dimen/text_heading"
+                    android:textStyle="bold"
+                    tools:text="3" />
+
+                <Button
+                    android:id="@+id/button_players_plus"
+                    android:layout_width="@dimen/touch_target"
+                    android:layout_height="@dimen/touch_target"
+                    android:minWidth="0dp"
+                    android:padding="0dp"
+                    android:text="@string/create_group_plus" />
+
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_sm"
+                android:text="@string/create_group_wanted_handicap"
+                android:textColor="@color/teeup_text_primary"
+                android:textSize="@dimen/text_body" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_lg"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/input_handicap_min"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/space_sm"
+                    android:layout_weight="1"
+                    android:hint="@string/create_group_handicap_min_hint"
+                    android:inputType="numberDecimal" />
+
+                <EditText
+                    android:id="@+id/input_handicap_max"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="@string/create_group_handicap_max_hint"
+                    android:inputType="numberDecimal" />
+
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_sm"
+                android:labelFor="@id/input_pace"
+                android:text="@string/register_pace"
+                android:textColor="@color/teeup_text_primary"
+                android:textSize="@dimen/text_body" />
+
+            <Spinner
+                android:id="@+id/input_pace"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_xl" />
+
+            <Button
+                android:id="@+id/button_create"
+                style="@style/TeeUpButton.Primary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/create_group_create" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>

@@ -31,203 +31,116 @@
                 android:textStyle="bold" />
 
             <TextView
+                android:id="@+id/text_entry_notice"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_sm"
                 android:layout_marginBottom="@dimen/space_lg"
-                android:text="@string/scorecard_preview_notice"
+                android:text="@string/scorecard_entry_notice"
                 android:textColor="@color/teeup_text_secondary"
                 android:textSize="@dimen/text_body" />
 
-            <TextView
-                style="@style/TeeUpEyebrow"
-                android:layout_width="match_parent"
-                android:layout_marginBottom="@dimen/space_md"
-                android:textSize="@dimen/text_body"
-                android:text="@string/scorecard_sample_hole" />
+            <ProgressBar android:id="@+id/scorecard_progress"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_gravity="center" android:visibility="gone" />
 
-            <!-- Distance and map preview -->
             <LinearLayout
+                android:id="@+id/group_entry_content"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/space_lg"
-                android:baselineAligned="false"
-                android:orientation="horizontal">
+                android:orientation="vertical">
 
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/space_sm"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_card"
-                    android:elevation="@dimen/elevation_card"
-                    android:orientation="vertical"
-                    android:padding="@dimen/space_lg">
+                <TextView
+                    android:id="@+id/text_hole_heading"
+                    style="@style/TeeUpEyebrow"
+                    android:layout_width="match_parent"
+                    android:layout_marginBottom="@dimen/space_md"
+                    android:textSize="@dimen/text_subheading"
+                    android:text="@string/scorecard_hole_heading" />
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/scorecard_distance_label"
-                        android:textColor="@color/teeup_text_secondary"
-                        android:textSize="@dimen/text_caption" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/space_sm"
-                        android:text="@string/scorecard_sample_distance"
-                        android:textColor="@color/teeup_text_primary"
-                        android:textSize="@dimen/text_subheading"
-                        android:textStyle="bold" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_card"
-                    android:elevation="@dimen/elevation_card"
-                    android:orientation="vertical"
-                    android:padding="@dimen/space_lg">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/scorecard_map_label"
-                        android:textColor="@color/teeup_text_secondary"
-                        android:textSize="@dimen/text_caption" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/space_sm"
-                        android:text="@string/scorecard_map_placeholder"
-                        android:textColor="@color/teeup_text_primary"
-                        android:textSize="@dimen/text_body" />
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <!-- Sample scores -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/space_xl"
-                android:background="@drawable/bg_card_outline"
-                android:elevation="@dimen/elevation_card"
-                android:orientation="vertical"
-                android:padding="@dimen/space_lg">
-
+                <!-- Score entry -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/space_md"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:layout_marginBottom="@dimen/space_lg"
+                    android:background="@drawable/bg_card_outline"
+                    android:elevation="@dimen/elevation_card"
+                    android:orientation="vertical"
+                    android:padding="@dimen/space_lg">
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
+                        android:layout_marginBottom="@dimen/space_sm"
                         android:text="@string/scorecard_strokes"
                         android:textColor="@color/teeup_text_secondary"
                         android:textSize="@dimen/text_body_large" />
 
-                    <TextView
-                        android:id="@+id/text_strokes"
-                        android:layout_width="wrap_content"
+                    <EditText
+                        android:id="@+id/input_strokes"
+                        style="@style/TeeUpInput"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/scorecard_sample_strokes"
-                        android:textColor="@color/teeup_text_primary"
-                        android:textSize="@dimen/text_subheading"
-                        android:textStyle="bold" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                        android:layout_marginBottom="@dimen/space_lg"
+                        android:hint="@string/scorecard_strokes_hint"
+                        android:inputType="number"
+                        android:maxLength="2" />
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
+                        android:layout_marginBottom="@dimen/space_sm"
                         android:text="@string/scorecard_putts"
                         android:textColor="@color/teeup_text_secondary"
                         android:textSize="@dimen/text_body_large" />
 
-                    <TextView
-                        android:id="@+id/text_putts"
-                        android:layout_width="wrap_content"
+                    <EditText
+                        android:id="@+id/input_putts"
+                        style="@style/TeeUpInput"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/scorecard_sample_putts"
-                        android:textColor="@color/teeup_text_primary"
-                        android:textSize="@dimen/text_subheading"
-                        android:textStyle="bold" />
+                        android:hint="@string/scorecard_putts_hint"
+                        android:inputType="number"
+                        android:maxLength="2" />
 
                 </LinearLayout>
 
+                <TextView
+                    android:id="@+id/text_progress"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/space_md"
+                    android:gravity="center"
+                    android:textColor="@color/teeup_text_secondary"
+                    android:textSize="@dimen/text_caption" />
+
+                <!-- Only shown once at least one hole this session can be revisited; hidden on
+                     the first enterable hole since anything earlier is already permanently saved. -->
+                <Button
+                    android:id="@+id/button_previous_hole"
+                    style="@style/TeeUpButton.Compact"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/space_sm"
+                    android:text="@string/scorecard_previous_hole"
+                    android:visibility="gone" />
+
+                <Button
+                    android:id="@+id/button_next_hole"
+                    style="@style/TeeUpButton.Primary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/space_sm"
+                    android:text="@string/scorecard_next_hole" />
+
+                <Button
+                    android:id="@+id/button_finish_early"
+                    style="@style/TeeUpButton.Compact"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/scorecard_finish_early" />
+
             </LinearLayout>
-
-            <TextView
-                style="@style/TeeUpEyebrow"
-                android:layout_width="match_parent"
-                android:layout_marginBottom="@dimen/space_md"
-                android:text="@string/scorecard_group_heading" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/space_sm"
-                android:background="@drawable/bg_card"
-                android:elevation="@dimen/elevation_card"
-                android:padding="@dimen/space_lg"
-                android:text="@string/scorecard_sample_player_two"
-                android:textColor="@color/teeup_text_primary"
-                android:textSize="@dimen/text_body" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/space_sm"
-                android:background="@drawable/bg_card"
-                android:elevation="@dimen/elevation_card"
-                android:padding="@dimen/space_lg"
-                android:text="@string/scorecard_sample_player_three"
-                android:textColor="@color/teeup_text_primary"
-                android:textSize="@dimen/text_body" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/space_lg"
-                android:background="@drawable/bg_card"
-                android:elevation="@dimen/elevation_card"
-                android:padding="@dimen/space_lg"
-                android:text="@string/scorecard_sample_player_four"
-                android:textColor="@color/teeup_text_primary"
-                android:textSize="@dimen/text_body" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/space_md"
-                android:gravity="center"
-                android:padding="@dimen/space_md"
-                android:text="@string/scorecard_save_notice"
-                android:textColor="@color/teeup_text_secondary"
-                android:textSize="@dimen/text_caption" />
-
-            <Button
-                android:id="@+id/button_next_hole"
-                style="@style/TeeUpButton.Primary"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/scorecard_summary_preview" />
 
         </LinearLayout>
 

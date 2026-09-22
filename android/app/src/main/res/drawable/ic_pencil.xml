@@ -1,0 +1,17 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="#FFFFFF">
+    <!-- A rectangular body with a pointed tip, rotated 45 degrees into the usual
+         diagonal "edit pencil" pose. Plain geometry, not traced from an icon set. -->
+    <group
+        android:pivotX="12"
+        android:pivotY="12"
+        android:rotation="45">
+        <path
+            android:fillColor="#FF000000"
+            android:pathData="M10,3 L14,3 L14,17 L12,21 L10,17 Z" />
+    </group>
+</vector>

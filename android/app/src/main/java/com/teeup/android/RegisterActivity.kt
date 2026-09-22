@@ -2,14 +2,18 @@ package com.teeup.android
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Spinner
 import com.google.firebase.auth.FirebaseAuth
 import com.teeup.android.data.Course
 import com.teeup.android.data.TeeUpApiClient
+import com.teeup.android.ui.CourseSearchAdapter
 import com.teeup.android.ui.LocaleActivity
 import com.teeup.android.ui.TeeUpBanner
 
@@ -17,17 +21,25 @@ import com.teeup.android.ui.TeeUpBanner
  * Register / profile setup, shown right after a new user's first Google
  * sign-in (EME-296). Captures the fields EME-291/295 didn't ask for yet —
  * handicap, home course, pace of play — then marks the profile complete.
+ *
+ * Home course is a search-as-you-type field (CourseSearchAdapter, GET
+ * /api/courses?search=) rather than a fixed dropdown — with a growing course
+ * catalog, a Spinner meant scrolling through every course to find one, and
+ * previously the picker only ever showed whatever the initial unfiltered
+ * fetch happened to return.
  */
 class RegisterActivity : LocaleActivity() {
     private val tag = "RegisterActivity"
 
     private lateinit var nameInput: EditText
     private lateinit var handicapInput: EditText
-    private lateinit var courseSpinner: Spinner
+    private lateinit var courseInput: AutoCompleteTextView
     private lateinit var paceSpinner: Spinner
     private lateinit var continueButton: Button
 
-    private var courses: List<Course> = emptyList()
+    /** Set when a suggestion is tapped; cleared as soon as the typed text no longer matches
+     *  it (see the TextWatcher below) — an empty/edited field means "no home course". */
+    private var selectedCourse: Course? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,7 +47,7 @@ class RegisterActivity : LocaleActivity() {
 
         nameInput = findViewById(R.id.input_display_name)
         handicapInput = findViewById(R.id.input_handicap)
-        courseSpinner = findViewById(R.id.input_home_course)
+        courseInput = findViewById(R.id.input_home_course)
         paceSpinner = findViewById(R.id.input_pace)
         continueButton = findViewById(R.id.button_continue)
 
@@ -43,44 +55,35 @@ class RegisterActivity : LocaleActivity() {
 
         paceSpinner.adapter = ArrayAdapter(
             this,
-            android.R.layout.simple_spinner_item,
+            R.layout.spinner_item,
             resources.getStringArray(R.array.pace_of_play_options)
-        ).apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
+        ).apply { setDropDownViewResource(R.layout.spinner_dropdown_item) }
         paceSpinner.setSelection(PACE_STANDARD_INDEX)
 
-        populateCourseSpinner(emptyList())
-        loadCourses()
+        wireCourseSearch()
 
         continueButton.setOnClickListener { onContinueClicked() }
     }
 
-    private fun loadCourses() {
-        Thread {
-            try {
-                val fetched = TeeUpApiClient.fetchCourses()
-                runOnUiThread {
-                    courses = fetched
-                    populateCourseSpinner(fetched)
-                }
-            } catch (e: Exception) {
-                // Home course is optional — a failed fetch just leaves the "No home
-                // course yet" option, it shouldn't block registration.
-                Log.w(tag, "Couldn't load courses for home course picker", e)
-            }
-        }.start()
-    }
-
-    private fun populateCourseSpinner(courseList: List<Course>) {
-        val labels = listOf(getString(R.string.register_home_course_none)) + courseList.map { it.name }
-        courseSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, labels).apply {
-            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+    private fun wireCourseSearch() {
+        val adapter = CourseSearchAdapter(this)
+        courseInput.setAdapter(adapter)
+        courseInput.setOnItemClickListener { _, _, position, _ ->
+            selectedCourse = adapter.getItem(position)
         }
+        courseInput.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                if (s?.toString() != selectedCourse?.name) selectedCourse = null
+            }
+        })
     }
 
     private fun onContinueClicked() {
         val displayName = nameInput.text.toString().trim()
         if (displayName.isEmpty()) {
-            TeeUpBanner.show(this, "Enter a display name", isError = true)
+            TeeUpBanner.show(this, getString(R.string.register_error_name_required), isError = true)
             return
         }
 
@@ -89,15 +92,12 @@ class RegisterActivity : LocaleActivity() {
             handicapText.isEmpty() -> null
             else -> handicapText.toDoubleOrNull()?.takeIf { it in 0.0..54.0 }
                 ?: run {
-                    TeeUpBanner.show(this, "Enter a valid handicap between 0 and 54, or leave it blank", isError = true)
+                    TeeUpBanner.show(this, getString(R.string.register_error_handicap_invalid), isError = true)
                     return
                 }
         }
 
-        // Index 0 is "No home course yet" (courseSpinner.selectedItemPosition - 1 into courses).
-        val homeCourseId = (courseSpinner.selectedItemPosition - 1)
-            .takeIf { it in courses.indices }
-            ?.let { courses[it].id }
+        val homeCourseId = selectedCourse?.id
 
         continueButton.isEnabled = false
         continueButton.setText(R.string.register_saving)
@@ -121,7 +121,7 @@ class RegisterActivity : LocaleActivity() {
                 runOnUiThread {
                     continueButton.isEnabled = true
                     continueButton.setText(R.string.register_continue)
-                    TeeUpBanner.show(this, e.message ?: "Couldn't save your profile — try again", isError = true)
+                    TeeUpBanner.show(this, e.message ?: getString(R.string.register_error_save_failed), isError = true)
                 }
             }
         }.start()

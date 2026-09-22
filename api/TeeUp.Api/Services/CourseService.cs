@@ -5,9 +5,9 @@ namespace TeeUp.Api.Services;
 
 public class CourseService(ICourseRepository courseRepository) : ICourseService
 {
-    public async Task<IReadOnlyList<CourseDto>> GetAllAsync()
+    public async Task<IReadOnlyList<CourseDto>> GetAllAsync(string? search = null)
     {
-        var courses = await courseRepository.GetAllAsync();
+        var courses = await courseRepository.SearchAsync(search);
         return courses.Select(CourseDto.From).ToList();
     }
 }

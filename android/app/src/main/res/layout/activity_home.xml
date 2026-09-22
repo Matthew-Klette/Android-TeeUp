@@ -27,6 +27,8 @@
                 <ImageView
                     android:layout_width="36dp"
                     android:layout_height="36dp"
+                    android:background="@drawable/bg_logo_mask_small"
+                    android:clipToOutline="true"
                     android:src="@drawable/ic_logo"
                     android:scaleType="centerCrop"
                     android:importantForAccessibility="no" />
@@ -116,12 +118,46 @@
 
             </LinearLayout>
 
+            <!-- EME-312: course/holes filters, alongside the existing date/players/skill ones -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_sm"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/button_filter_course"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/space_sm"
+                    android:layout_weight="1"
+                    android:text="@string/home_filter_course" />
+
+                <Button
+                    android:id="@+id/button_filter_holes"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/home_filter_holes" />
+
+            </LinearLayout>
+
             <Button
                 android:id="@+id/button_filter_skill"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/space_xl"
+                android:layout_marginBottom="@dimen/space_md"
                 android:text="@string/home_filter_skill" />
+
+            <!-- EME-311: persistent entry point, reachable whether or not groups already exist -->
+            <Button
+                android:id="@+id/button_create_group"
+                style="@style/TeeUpButton.Primary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_xl"
+                android:text="@string/home_create_group" />
 
             <!-- Results -->
             <TextView
@@ -142,7 +178,14 @@
                 android:text="@string/home_loading"
                 android:textColor="@color/teeup_text_secondary"
                 android:textSize="@dimen/text_body" />
-<Button android:id="@+id/qa_retry" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/profile_retry" android:visibility="gone" />
+
+            <Button
+                android:id="@+id/button_retry"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_md"
+                android:text="@string/profile_retry"
+                android:visibility="gone" />
 
             <LinearLayout
                 android:id="@+id/tee_times_container"

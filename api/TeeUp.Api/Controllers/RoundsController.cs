@@ -26,7 +26,8 @@ public class RoundsController(
     [HttpPost("{id:guid}/scorecard")]
     public async Task<ActionResult<RoundDto>> PostScorecard(Guid id, PostScorecardRequest request)
     {
-        var round = await roundService.PostScorecardAsync(id, request);
+        var callerId = await ResolveCurrentUserIdAsync();
+        var round = await roundService.PostScorecardAsync(id, request, callerId);
         return Ok(round);
     }
 
@@ -36,6 +37,15 @@ public class RoundsController(
     {
         var userId = await ResolveCurrentUserIdAsync();
         return Ok(await roundService.GetRoundsForUserAsync(userId));
+    }
+
+    [Authorize]
+    [HttpDelete("{roundId:guid}/scorecard/{holeNumber:int}")]
+    public async Task<IActionResult> DeleteScorecardEntry(Guid roundId, int holeNumber)
+    {
+        var callerId = await ResolveCurrentUserIdAsync();
+        await roundService.DeleteScorecardEntryAsync(roundId, holeNumber, callerId);
+        return NoContent();
     }
 
     private async Task<Guid> ResolveCurrentUserIdAsync()

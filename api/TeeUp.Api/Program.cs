@@ -15,24 +15,46 @@ builder.Services.AddOpenApi();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, HttpContextCurrentUserService>();
 
-// Firebase ID tokens are OIDC-compliant JWTs issued by securetoken.google.com.
-// Setting Authority lets the handler discover Google's public signing keys
-// (and future key rotations) from its OIDC metadata automatically.
+// Firebase tokens are JWTs, so Google's OIDC metadata gives us the signing keys automatically.
 var firebaseProjectId = builder.Configuration["Firebase:ProjectId"];
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+// Dev-only login bypass so the app works without a real Firebase project set up locally.
+// Needs Development environment AND DevAuth:Enabled, so it can't reach a real deployment.
+var devAuthEnabled = builder.Environment.IsDevelopment() &&
+    builder.Configuration.GetValue<bool>("DevAuth:Enabled");
+
+var authBuilder = builder.Services.AddAuthentication(
+    devAuthEnabled ? "JwtOrDevBypass" : JwtBearerDefaults.AuthenticationScheme);
+
+// Configure JWT bearer authentication (damienbod, 2025)
+authBuilder.AddJwtBearer(options =>
+{
+    options.Authority = $"https://securetoken.google.com/{firebaseProjectId}";
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        options.Authority = $"https://securetoken.google.com/{firebaseProjectId}";
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidIssuer = $"https://securetoken.google.com/{firebaseProjectId}",
-            ValidateAudience = true,
-            ValidAudience = firebaseProjectId,
-            ValidateLifetime = true
-        };
+        ValidateIssuer = true,
+        ValidIssuer = $"https://securetoken.google.com/{firebaseProjectId}",
+        ValidateAudience = true,
+        ValidAudience = firebaseProjectId,
+        ValidateLifetime = true
+    };
+});
+
+if (devAuthEnabled)
+{
+    authBuilder.AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, DevBypassAuthHandler>(
+        DevBypassAuthHandler.SchemeName, _ => { });
+
+    // A real bearer token always wins if present. Only requests with no
+    // Authorization header fall back to the dev bypass.
+    authBuilder.AddPolicyScheme("JwtOrDevBypass", "JWT bearer or dev bypass", options =>
+    {
+        options.ForwardDefaultSelector = context =>
+            context.Request.Headers.ContainsKey("Authorization")
+                ? JwtBearerDefaults.AuthenticationScheme
+                : DevBypassAuthHandler.SchemeName;
     });
+}
 
 builder.Services.AddAuthorization();
 
@@ -78,3 +100,9 @@ app.Run();
 public partial class Program
 {
 }
+
+/* References:
+
+damienbod (2025). Configure JWT bearer authentication in ASP.NET Core. [online] Microsoft.com. Available at: <https://learn.microsoft.com/en-us/aspnet/core/security/authentication/configure-jwt-bearer-authentication?view=aspnetcore-10.0> [Accessed 19 Sep. 2026].
+
+*/

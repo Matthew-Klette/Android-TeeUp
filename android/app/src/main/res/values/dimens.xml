@@ -21,6 +21,10 @@
     <dimen name="card_radius">10dp</dimen>
     <dimen name="button_radius">8dp</dimen>
     <dimen name="pill_radius">999dp</dimen>
+    <!-- ic_logo.png is a flat opaque square with no alpha channel, so clipping it to this
+         via clipToOutline (see bg_logo_mask) is what actually rounds it, not the asset. -->
+    <dimen name="logo_radius">14dp</dimen>
+    <dimen name="logo_radius_small">8dp</dimen>
 
     <!-- Elevation: soft lift so surfaces read as layered, not flat -->
     <dimen name="elevation_card">3dp</dimen>

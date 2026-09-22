@@ -44,15 +44,6 @@
 
         </LinearLayout>
 
-        <!-- Existing image placeholder -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="140dp"
-            android:layout_marginBottom="@dimen/space_lg"
-            android:background="@drawable/bg_card"
-            android:elevation="@dimen/elevation_card"
-            android:importantForAccessibility="no" />
-
         <!-- Loading and error messages -->
         <TextView
             android:id="@+id/text_status"
@@ -147,13 +138,83 @@
 
             </LinearLayout>
 
+            <!-- EME-312: every current member with their handicap/pace, not just counts -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_lg"
+                android:background="@drawable/bg_card"
+                android:elevation="@dimen/elevation_card"
+                android:orientation="vertical"
+                android:padding="@dimen/space_lg">
+
+                <TextView
+                    style="@style/TeeUpEyebrow"
+                    android:layout_width="match_parent"
+                    android:layout_marginBottom="@dimen/space_sm"
+                    android:text="@string/detail_members" />
+
+                <LinearLayout
+                    android:id="@+id/members_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+            </LinearLayout>
+
             <Button
                 android:id="@+id/button_request_to_join"
                 style="@style/TeeUpButton.Primary"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/space_lg"
+                android:layout_marginBottom="@dimen/space_sm"
                 android:text="@string/detail_request_to_join" />
+
+            <!-- EME-323: shown to a guest with a still-pending join request of their own -->
+            <Button
+                android:id="@+id/button_withdraw_request"
+                style="@style/TeeUpButton.Compact"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_lg"
+                android:text="@string/teetime_withdraw_request"
+                android:visibility="gone" />
+
+            <!-- EME-321: host-only edit/cancel/delete actions for their own group -->
+            <LinearLayout
+                android:id="@+id/host_actions_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_lg"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <Button
+                    android:id="@+id/button_edit_group"
+                    style="@style/TeeUpButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/space_sm"
+                    android:text="@string/teetime_edit_group" />
+
+                <Button
+                    android:id="@+id/button_cancel_group"
+                    style="@style/TeeUpButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/space_sm"
+                    android:text="@string/teetime_cancel_group" />
+
+                <Button
+                    android:id="@+id/button_delete_group"
+                    style="@style/TeeUpButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_button_danger_outline"
+                    android:textColor="@color/teeup_danger"
+                    android:text="@string/teetime_delete_group" />
+
+            </LinearLayout>
 
             <!-- Pending requests -->
             <LinearLayout
@@ -178,36 +239,6 @@
 
                 <TextView
                     android:id="@+id/text_pending_requests_subtitle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/space_xs"
-                    android:textColor="@color/teeup_text_secondary"
-                    android:textSize="@dimen/text_body" />
-
-            </LinearLayout>
-
-            <!-- Group chat -->
-            <LinearLayout
-                android:id="@+id/row_group_chat"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:minHeight="@dimen/touch_target"
-                android:background="@drawable/bg_card_interactive"
-                android:elevation="@dimen/elevation_card"
-                android:clickable="true"
-                android:focusable="true"
-                android:orientation="vertical"
-                android:padding="@dimen/space_lg">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/detail_group_chat"
-                    android:textColor="@color/teeup_text_primary"
-                    android:textSize="@dimen/text_body_large" />
-
-                <TextView
-                    android:id="@+id/text_group_chat_subtitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/space_xs"

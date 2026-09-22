@@ -15,8 +15,8 @@ object MockCatalog {
         Course(id = "mock-course-fancourt", name = "Fancourt Links", latitude = -33.9608, longitude = 22.4478, rating = 4.8),
         Course(id = "mock-course-humewood", name = "Humewood Golf Club", latitude = -33.9711, longitude = 25.656, rating = 4.5),
         Course(id = "mock-course-wanderers", name = "Wanderers Golf Club", latitude = -26.1448, longitude = 28.0473, rating = 4.6),
-        // Port Elizabeth (Gqeberha) area courses — were missing entirely, so searches like
-        // "PEGC" or "Walmer" returned nothing even though there were real courses to match.
+        // Port Elizabeth area courses. Added because searches like "PEGC" or
+        // "Walmer" used to return nothing.
         Course(id = "mock-course-pegc", name = "Port Elizabeth Golf Club", latitude = -33.9364, longitude = 25.5850, rating = 4.4),
         Course(id = "mock-course-little-walmer", name = "Little Walmer Golf Course", latitude = -33.9924, longitude = 25.6104, rating = 4.1),
         Course(id = "mock-course-wedgewood", name = "Wedgewood Golf & Country Estate", latitude = -33.8683, longitude = 25.5217, rating = 4.3)
@@ -29,8 +29,15 @@ object MockCatalog {
             courseId = "mock-course-fancourt",
             dateTime = isoAt(daysFromToday = 0, hour = 7),
             openSpots = 3,
+            spotsRemaining = 3,
             price = 450.0,
-            type = 0
+            type = 0,
+            holes = null,
+            wantedHandicapMin = null,
+            wantedHandicapMax = null,
+            wantedPace = null,
+            status = 0,
+            members = emptyList()
         ),
         TeeTime(
             id = "mock-teetime-humewood-open",
@@ -38,8 +45,15 @@ object MockCatalog {
             courseId = "mock-course-humewood",
             dateTime = isoAt(daysFromToday = 0, hour = 13),
             openSpots = 2,
+            spotsRemaining = 2,
             price = 0.0,
-            type = 1
+            type = 1,
+            holes = null,
+            wantedHandicapMin = null,
+            wantedHandicapMax = null,
+            wantedPace = null,
+            status = 0,
+            members = emptyList()
         ),
         TeeTime(
             id = "mock-teetime-wanderers-am",
@@ -47,8 +61,15 @@ object MockCatalog {
             courseId = "mock-course-wanderers",
             dateTime = isoAt(daysFromToday = 1, hour = 9),
             openSpots = 4,
+            spotsRemaining = 4,
             price = 380.0,
-            type = 0
+            type = 0,
+            holes = null,
+            wantedHandicapMin = null,
+            wantedHandicapMax = null,
+            wantedPace = null,
+            status = 0,
+            members = emptyList()
         ),
         TeeTime(
             id = "mock-teetime-pegc-am",
@@ -56,8 +77,15 @@ object MockCatalog {
             courseId = "mock-course-pegc",
             dateTime = isoAt(daysFromToday = 0, hour = 8),
             openSpots = 2,
+            spotsRemaining = 2,
             price = 320.0,
-            type = 0
+            type = 0,
+            holes = null,
+            wantedHandicapMin = null,
+            wantedHandicapMax = null,
+            wantedPace = null,
+            status = 0,
+            members = emptyList()
         ),
         TeeTime(
             id = "mock-teetime-little-walmer-open",
@@ -65,8 +93,15 @@ object MockCatalog {
             courseId = "mock-course-little-walmer",
             dateTime = isoAt(daysFromToday = 1, hour = 10),
             openSpots = 3,
+            spotsRemaining = 3,
             price = 0.0,
-            type = 1
+            type = 1,
+            holes = null,
+            wantedHandicapMin = null,
+            wantedHandicapMax = null,
+            wantedPace = null,
+            status = 0,
+            members = emptyList()
         ),
         TeeTime(
             id = "mock-teetime-wedgewood-am",
@@ -74,8 +109,15 @@ object MockCatalog {
             courseId = "mock-course-wedgewood",
             dateTime = isoAt(daysFromToday = 0, hour = 11),
             openSpots = 4,
+            spotsRemaining = 4,
             price = 410.0,
-            type = 0
+            type = 0,
+            holes = null,
+            wantedHandicapMin = null,
+            wantedHandicapMax = null,
+            wantedPace = null,
+            status = 0,
+            members = emptyList()
         )
     )
 

@@ -20,6 +20,13 @@ public enum TeeTimeType
     OpenRound
 }
 
+public enum TeeTimeStatus
+{
+    Open,
+    Full,
+    Cancelled
+}
+
 public enum JoinRequestStatus
 {
     Pending,
@@ -34,5 +41,7 @@ public enum NotificationType
     RequestDeclined,
     TeeTimeReminder,
     SyncPending,
-    WeatherAlert
+    WeatherAlert,
+    /// <summary>A group's host cancelled it (EME-321) while this user had a pending/accepted join request against it.</summary>
+    TeeTimeCancelled
 }

@@ -24,6 +24,9 @@ public class InMemoryRepository<T> : IRepository<T> where T : class
         return Task.FromResult(entity);
     }
 
+    // No per-request tracking cache here, so there's nothing to bypass.
+    public Task<T?> GetByIdFreshAsync(Guid id) => GetByIdAsync(id);
+
     public Task<IReadOnlyList<T>> GetAllAsync()
     {
         return Task.FromResult((IReadOnlyList<T>)_store.Values.ToList());
@@ -38,6 +41,12 @@ public class InMemoryRepository<T> : IRepository<T> where T : class
     public Task UpdateAsync(T entity)
     {
         _store[_idSelector(entity)] = entity;
+        return Task.CompletedTask;
+    }
+
+    public Task DeleteAsync(Guid id)
+    {
+        _store.TryRemove(id, out _);
         return Task.CompletedTask;
     }
 }

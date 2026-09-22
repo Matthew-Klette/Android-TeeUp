@@ -38,6 +38,11 @@ namespace TeeUp.Api.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("Par")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(72);
+
                     b.Property<decimal?>("Rating")
                         .HasPrecision(3, 1)
                         .HasColumnType("numeric(3,1)");
@@ -197,6 +202,9 @@ namespace TeeUp.Api.Data.Migrations
                     b.Property<DateTime>("DateTime")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int?>("Holes")
+                        .HasColumnType("integer");
+
                     b.Property<Guid?>("HostUserId")
                         .HasColumnType("uuid");
 
@@ -207,8 +215,25 @@ namespace TeeUp.Api.Data.Migrations
                         .HasPrecision(8, 2)
                         .HasColumnType("numeric(8,2)");
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("Open");
+
                     b.Property<string>("Type")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal?>("WantedHandicapMax")
+                        .HasPrecision(4, 1)
+                        .HasColumnType("numeric(4,1)");
+
+                    b.Property<decimal?>("WantedHandicapMin")
+                        .HasPrecision(4, 1)
+                        .HasColumnType("numeric(4,1)");
+
+                    b.Property<string>("WantedPace")
                         .HasColumnType("text");
 
                     b.HasKey("Id");

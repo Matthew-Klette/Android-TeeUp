@@ -47,6 +47,14 @@
                     android:background="@drawable/bg_nav_item" android:textColor="@color/nav_text"
                     android:text="@string/rounds_history" />
             </LinearLayout>
+
+            <Button android:id="@+id/button_start_a_round"
+                style="@style/TeeUpButton.Primary"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_lg"
+                android:text="@string/rounds_start_a_round"
+                android:visibility="gone" />
+
             <ProgressBar android:id="@+id/rounds_progress"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:layout_gravity="center" android:visibility="gone" />

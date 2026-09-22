@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@drawable/bg_screen_gradient">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/screen_padding">
+
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_xl"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/button_back"
+                android:layout_width="@dimen/touch_target"
+                android:layout_height="@dimen/touch_target"
+                android:background="?android:attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:contentDescription="@string/detail_back"
+                android:text="@string/detail_back_symbol"
+                android:textColor="@color/teeup_text_primary"
+                android:textSize="@dimen/text_heading" />
+
+            <TextView
+                android:id="@+id/text_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/space_sm"
+                android:layout_weight="1"
+                android:text="@string/email_auth_title_signin"
+                android:textColor="@color/teeup_text_primary"
+                android:textSize="@dimen/text_heading"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <!-- Email -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_sm"
+            android:labelFor="@id/input_email"
+            android:text="@string/email_auth_email_label"
+            android:textColor="@color/teeup_text_primary"
+            android:textSize="@dimen/text_body" />
+
+        <EditText
+            android:id="@+id/input_email"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_lg"
+            android:hint="@string/email_auth_email_hint"
+            android:inputType="textEmailAddress" />
+
+        <!-- Password -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_sm"
+            android:labelFor="@id/input_password"
+            android:text="@string/email_auth_password_label"
+            android:textColor="@color/teeup_text_primary"
+            android:textSize="@dimen/text_body" />
+
+        <EditText
+            android:id="@+id/input_password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_lg"
+            android:hint="@string/email_auth_password_hint"
+            android:inputType="textPassword" />
+
+        <!-- Confirm password: sign-up mode only -->
+        <TextView
+            android:id="@+id/label_confirm_password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_sm"
+            android:labelFor="@id/input_confirm_password"
+            android:text="@string/email_auth_confirm_password_label"
+            android:textColor="@color/teeup_text_primary"
+            android:textSize="@dimen/text_body"
+            android:visibility="gone" />
+
+        <EditText
+            android:id="@+id/input_confirm_password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_lg"
+            android:inputType="textPassword"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/button_submit"
+            style="@style/TeeUpButton.Primary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_lg"
+            android:text="@string/email_auth_submit_signin" />
+
+        <TextView
+            android:id="@+id/text_toggle_mode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/touch_target"
+            android:background="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:padding="@dimen/space_md"
+            android:text="@string/email_auth_toggle_to_signup"
+            android:textColor="@color/teeup_accent_secondary"
+            android:textSize="@dimen/text_body" />
+
+    </LinearLayout>
+
+</ScrollView>
