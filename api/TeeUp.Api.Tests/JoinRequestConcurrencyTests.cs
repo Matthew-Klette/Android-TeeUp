@@ -8,15 +8,12 @@ using TeeUp.Api.Services;
 namespace TeeUp.Api.Tests;
 
 /// <summary>
-/// Exercises the EME-313 concurrency fix against real EF Core + PostgreSQL repositories, each
-/// racer on its own <see cref="TeeUpDbContext"/>. Per the second review round, a
-/// <c>TaskCompletionSource</c> "gate" opened right before two <c>Task.Run</c> calls doesn't prove
-/// anything: nothing stops the scheduler from running the first call to completion before the
-/// second one is even dispatched, so that shape would pass even with the lock removed. These
-/// tests instead instrument the repository call each racer makes immediately after acquiring
-/// <see cref="TeeTimeJoinLock"/> (<see cref="SteppingTeeTimeRepository"/>) to prove, directly,
-/// that the second racer cannot reach that call while the first still holds the lock — not just
-/// that it happened not to.
+/// Tests the concurrency fix against real EF Core and PostgreSQL repositories, each
+/// racer on its own <see cref="TeeUpDbContext"/>. A simple gate before two Task.Run
+/// calls doesn't prove much, since the scheduler could just run them one after the
+/// other anyway. Instead these tests hook the repository call each racer makes right
+/// after acquiring <see cref="TeeTimeJoinLock"/> to prove the second racer really is
+/// blocked while the first still holds the lock.
 /// </summary>
 public class JoinRequestConcurrencyTests
 {
@@ -24,12 +21,10 @@ public class JoinRequestConcurrencyTests
         new(new DbContextOptionsBuilder<TeeUpDbContext>().UseNpgsql(connectionString).Options);
 
     /// <summary>
-    /// Wraps a real <see cref="ITeeTimeRepository"/> so a test can hook the exact moment a racer
-    /// calls <c>GetByIdFreshAsync</c> — the first repository call <c>JoinRequestService</c> makes
-    /// on this repository after acquiring <see cref="TeeTimeJoinLock"/>, and one made
-    /// unconditionally by both the accept and the decline path before either can early-exit. That
-    /// makes it a reliable choke point for proving whether a racer has actually gotten past the
-    /// lock, regardless of which status change it's making or how its check eventually resolves.
+    /// Wraps a real <see cref="ITeeTimeRepository"/> so a test can hook the exact moment a
+    /// racer calls GetByIdFreshAsync, the first repository call made after acquiring
+    /// <see cref="TeeTimeJoinLock"/>. Both accept and decline call it unconditionally,
+    /// so it's a reliable point to check whether a racer got past the lock.
     /// </summary>
     private sealed class SteppingTeeTimeRepository(ITeeTimeRepository inner) : ITeeTimeRepository
     {

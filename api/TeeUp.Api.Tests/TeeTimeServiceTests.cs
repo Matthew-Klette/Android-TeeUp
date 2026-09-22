@@ -168,9 +168,8 @@ public class TeeTimeServiceTests
         var (service, teeTimes, users, _) = CreateService(joinRequests);
         var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
 
-        // Status alone says Open (e.g. a row that predates Status being kept in sync, or a
-        // migration default), but its single spot has already been accepted — must still
-        // be excluded, since Status can't be trusted as the sole signal of "still joinable".
+        // Status alone says Open, but its single spot has already been accepted.
+        // Must still be excluded, since Status alone can't be trusted here.
         var fullButStillOpen = MakeTeeTime(host.Id, openSpots: 1);
         await teeTimes.AddAsync(fullButStillOpen);
         await joinRequests.AddAsync(new JoinRequest
@@ -243,8 +242,8 @@ public class TeeTimeServiceTests
         var (service, _, users, _) = CreateService();
         var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
 
-        // CourseId is a request-body field, not a URL resource — an unknown value is a bad
-        // request (400), not a missing resource (404). See DomainException.cs's mapping.
+        // CourseId is a request-body field, not a URL resource, so an unknown
+        // value is a bad request (400), not a missing resource (404).
         var ex = await Assert.ThrowsAsync<DomainValidationException>(() =>
             service.CreateGroupAsync(host.Id, MakeGroupRequest(Guid.NewGuid())));
         Assert.Contains("does not exist", ex.Message);

@@ -51,14 +51,14 @@ class HomeActivity : LocaleActivity() {
     private var dateFilter: DateFilter = DateFilter.ALL
     private var minOpenSpots: Int = 0
 
-    /** EME-312: course/holes filters — both fields already sit on TeeTimeDto, so these are
-     *  applied client-side against [allTeeTimes] same as date/players, no new API params needed. */
+    /** Course/holes filters. Both fields already sit on TeeTimeDto, so these are
+     *  applied client-side against [allTeeTimes], same as date/players. */
     private var courseFilterId: String? = null
     private var holesFilter: Int? = null
 
-    /** EME-299: discover a group filtered by the host's handicap/pace of play. Null = no filter.
-     *  Unlike the other filters, this isn't applied client-side — the tee time payload has no
-     *  host handicap/pace on it, so it re-queries the API instead (see loadNearbyTeeTimes). */
+    /** Filters groups by the host's handicap/pace of play. Null means no filter.
+     *  Unlike the other filters, this isn't applied client-side since the tee
+     *  time payload has no host handicap/pace on it, so it re-queries the API. */
     private var filterMaxHandicap: Double? = null
     private var filterPace: Int? = null
     private var hasLoadedOnce = false
@@ -124,16 +124,16 @@ class HomeActivity : LocaleActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Picks up a group just created by CreateGroupActivity without a stale list —
-        // same pattern as RoundsActivity's onResume. Skip the very first call since
+        // Refreshes the list after CreateGroupActivity adds a new group, same
+        // pattern as RoundsActivity's onResume. Skips the first call since
         // onCreate's loadNearbyTeeTimes() already covers it.
         if (hasLoadedOnce) loadNearbyTeeTimes()
         hasLoadedOnce = true
     }
 
-    /** EME-312: only real API data now — no more silent MockCatalog substitution on an error
-     *  or an empty result. A failure shows a distinct, visible error state with a retry button
-     *  instead of quietly swapping in fake groups the user has no way of knowing aren't real. */
+    /** Only real API data now, no more silent MockCatalog substitution on an
+     *  error or empty result. A failure shows a visible error state with a
+     *  retry button instead of quietly swapping in fake groups. */
     private fun loadNearbyTeeTimes() {
         statusText.visibility = View.GONE
         retryButton.visibility = View.GONE
@@ -274,8 +274,8 @@ class HomeActivity : LocaleActivity() {
         }
     }
 
-    /** Course/holes are already on every loaded [TeeTime], so both filter client-side against
-     *  [allTeeTimes]/[coursesById] like date/players — no new query params needed (EME-312). */
+    /** Course/holes are already on every loaded [TeeTime], so both filter client-side
+     *  against [allTeeTimes]/[coursesById], same as date/players. */
     private fun showCourseFilterDialog() {
         val sortedCourses = coursesById.values.sortedBy { it.name }
         val options = listOf(getString(R.string.home_filter_course_any)) + sortedCourses.map { it.name }
@@ -359,10 +359,9 @@ class HomeActivity : LocaleActivity() {
         retryButton.visibility = View.VISIBLE
     }
 
-    /** EME-312: a group looking for players — course/date/holes/spots, the host, every current
-     *  member with their handicap+pace, and the wanted range. Home only ever loads OpenRound
-     *  groups now (joinableOnly=true, see loadNearbyTeeTimes), so there's no Booking-card path
-     *  to branch on any more. */
+    /** A group looking for players: course/date/holes/spots, the host, every
+     *  current member with handicap and pace, and the wanted range. Home only
+     *  loads OpenRound groups now, so there's no Booking-card path any more. */
     private fun buildTeeTimeCard(
         teeTime: TeeTime,
         course: Course?

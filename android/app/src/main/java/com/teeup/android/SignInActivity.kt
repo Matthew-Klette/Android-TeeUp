@@ -17,15 +17,15 @@ import com.teeup.android.ui.LocaleActivity
 import com.teeup.android.ui.TeeUpBanner
 
 /**
- * Screen 1 · Sign In. "Continue with Google" is the real Firebase Google SSO
- * flow (EME-295). Email/biometric have no credential UI of their own yet, so
- * both route to that same Google flow rather than a dead end — swap in real
- * credential flows once they have tickets.
+ * Screen 1: Sign In. "Continue with Google" is the real Firebase Google SSO flow.
+ * Email and biometric buttons have no credential UI yet, so they route to the
+ * same Google flow for now instead of a dead end.
  */
 class SignInActivity : LocaleActivity() {
     private val tag = "SignInActivity"
     private lateinit var googleButton: Button
 
+    // Firebase Google Sign-In setup (Google, n.d.)
     private val googleSignInClient by lazy {
         val options = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id))
@@ -41,13 +41,13 @@ class SignInActivity : LocaleActivity() {
         googleButton = findViewById(R.id.button_continue_google)
         googleButton.setOnClickListener { onGoogleSignInClicked() }
 
-        // Neither has its own credential UI yet — both route to the same real
-        // Google SSO flow as the primary button rather than a dead end.
+        // Neither has its own credential UI yet, so both route to Google
+        // SSO like the main button instead of a dead end.
         findViewById<Button>(R.id.button_continue_email).setOnClickListener { onGoogleSignInClicked() }
         findViewById<Button>(R.id.button_use_biometric).setOnClickListener { onGoogleSignInClicked() }
 
-        // No separate sign-up credential flow — Google SSO doubles as registration
-        // for a first-time user, so this link starts the same flow as the button.
+        // No separate sign-up flow. Google SSO doubles as registration for a
+        // first-time user, so this link starts the same flow as the button.
         findViewById<View>(R.id.text_register).setOnClickListener { onGoogleSignInClicked() }
     }
 
@@ -114,3 +114,9 @@ class SignInActivity : LocaleActivity() {
         private const val RC_GOOGLE_SIGN_IN = 9001
     }
 }
+
+/*
+References:
+
+Google. Firebase (n.d.). Authenticate with Google on Android. [online] Available at: <https://firebase.google.com/docs/auth/android/google-signin> [Accessed 19 Sep. 2026].
+*/

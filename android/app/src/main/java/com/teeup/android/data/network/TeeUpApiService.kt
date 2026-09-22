@@ -13,7 +13,7 @@ import com.teeup.android.data.ProfileUpdateRequest
 import com.teeup.android.data.UserProfile
 import retrofit2.http.Header
 
-/** Retrofit mirror of the endpoints TeeUpApiClient calls by hand — see RetrofitClient for wiring. */
+/** Retrofit mirror of the endpoints TeeUpApiClient calls by hand. See RetrofitClient for wiring. */
 interface TeeUpApiService {
     @GET("api/rounds/me/schedule")
     suspend fun getRoundSchedule(@Header("Authorization") authorization: String): List<com.teeup.android.data.ScheduledRound>
