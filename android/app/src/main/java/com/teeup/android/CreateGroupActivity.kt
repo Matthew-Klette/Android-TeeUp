@@ -268,7 +268,7 @@ class CreateGroupActivity : LocaleActivity() {
             addView(minutePicker)
         }
 
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(this, R.style.TeeUpDialogTheme)
             .setTitle(R.string.create_group_pick_time_title)
             .setView(container)
             .setPositiveButton(R.string.filter_apply) { _, _ -> onPicked(hourPicker.value, minutePicker.value) }

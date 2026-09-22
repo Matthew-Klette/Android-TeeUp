@@ -2,9 +2,13 @@ package com.teeup.android
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.View
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.Button
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.TextView
 import com.teeup.android.data.Course
 import com.teeup.android.data.HoleScoreInput
@@ -33,6 +37,9 @@ class ScorecardActivity : LocaleActivity() {
         const val EXTRA_HOLE_COUNT = "com.teeup.android.extra.HOLE_COUNT"
     }
 
+    /** True only for the landing screen (no [EXTRA_TEE_TIME_ID]) — controls whether
+     *  [onResume] reloads the scorecard list. */
+    private var isLandingMode = false
     private var teeTimeId: String? = null
     private var totalHoles = 18
     private var currentHole = 1
@@ -52,11 +59,13 @@ class ScorecardActivity : LocaleActivity() {
 
         val id = intent.getStringExtra(EXTRA_TEE_TIME_ID)
         if (id == null) {
+            isLandingMode = true
             setContentView(R.layout.activity_scorecard_landing)
             BottomNav.wire(this, BottomNavTab.SCORECARD)
             findViewById<Button>(R.id.button_choose_round).setOnClickListener {
                 startActivity(Intent(this, RoundsActivity::class.java))
             }
+            loadScorecardsLanding()
             return
         }
 
@@ -72,6 +81,116 @@ class ScorecardActivity : LocaleActivity() {
 
         loadRound(id)
     }
+
+    override fun onResume() {
+        super.onResume()
+        // Picks up a round just finished/continued elsewhere (RoundsActivity, RoundSummaryActivity)
+        // without a stale list, same pattern as RoundsActivity's own onResume.
+        if (isLandingMode) loadScorecardsLanding()
+    }
+
+    /** Landing screen (no tee time id): lists every round that already has scoring started —
+     *  in progress or complete — instead of leaving the tab blank until you go pick one from
+     *  My Rounds. Most-recently-dated round first. */
+    private fun loadScorecardsLanding() {
+        val progress = findViewById<View>(R.id.scorecard_landing_progress)
+        val heading = findViewById<View>(R.id.text_scorecard_landing_heading)
+        val container = findViewById<LinearLayout>(R.id.scorecard_landing_container)
+        val emptyText = findViewById<TextView>(R.id.text_scorecard_landing_empty)
+
+        progress.visibility = View.VISIBLE
+        heading.visibility = View.GONE
+        container.visibility = View.GONE
+        container.removeAllViews()
+        emptyText.visibility = View.GONE
+
+        Thread {
+            try {
+                val schedule = TeeUpApiClient.fetchSchedule()
+                val courses = try {
+                    TeeUpApiClient.fetchCourses().associateBy { it.id }
+                } catch (e: Exception) {
+                    emptyMap()
+                }
+
+                val started = schedule
+                    .filter { it.round != null }
+                    .sortedByDescending { it.dateTime }
+
+                runOnUiThread {
+                    progress.visibility = View.GONE
+                    if (started.isEmpty()) {
+                        emptyText.visibility = View.VISIBLE
+                    } else {
+                        heading.visibility = View.VISIBLE
+                        container.visibility = View.VISIBLE
+                        started.forEach { round -> container.addView(buildScorecardRow(round, courses[round.courseId])) }
+                    }
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    progress.visibility = View.GONE
+                    emptyText.visibility = View.VISIBLE
+                    emptyText.text = e.message ?: getString(R.string.scorecard_landing_load_failed)
+                }
+            }
+        }.start()
+    }
+
+    private fun buildScorecardRow(round: ScheduledRound, course: Course?): View {
+        val holesScored = round.round?.scorecard?.size ?: 0
+        val totalHoles = round.holes ?: 18
+        val isComplete = holesScored >= totalHoles
+
+        val card = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundResource(R.drawable.bg_card_interactive)
+            elevation = resources.getDimension(R.dimen.elevation_card)
+            setPadding(dp(16), dp(16), dp(16), dp(16))
+            layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { bottomMargin = dp(12) }
+            isClickable = true
+            isFocusable = true
+        }
+
+        card.addView(TextView(this).apply {
+            text = course?.name ?: getString(R.string.rounds_unknown_course)
+            setTextColor(colorOf(R.color.teeup_text_primary))
+            setTextSize(TypedValue.COMPLEX_UNIT_PX, resources.getDimension(R.dimen.text_body_large))
+            setTypeface(typeface, android.graphics.Typeface.BOLD)
+        })
+
+        card.addView(TextView(this).apply {
+            text = getString(R.string.scorecard_progress_format, holesScored, totalHoles)
+            setTextColor(colorOf(R.color.teeup_text_secondary))
+            setTextSize(TypedValue.COMPLEX_UNIT_PX, resources.getDimension(R.dimen.text_body))
+            layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply { topMargin = dp(4) }
+        })
+
+        card.setOnClickListener {
+            if (isComplete) openSummary(round.teeTimeId) else openScorecard(round.teeTimeId, totalHoles)
+        }
+
+        return card
+    }
+
+    private fun openScorecard(teeTimeId: String, holes: Int) {
+        startActivity(Intent(this, ScorecardActivity::class.java).apply {
+            putExtra(EXTRA_TEE_TIME_ID, teeTimeId)
+            putExtra(EXTRA_HOLE_COUNT, holes)
+        })
+    }
+
+    private fun openSummary(teeTimeId: String) {
+        startActivity(Intent(this, RoundSummaryActivity::class.java).apply {
+            putExtra(RoundSummaryActivity.EXTRA_TEE_TIME_ID, teeTimeId)
+        })
+    }
+
+    private fun dp(value: Int): Int = TypedValue.applyDimension(
+        TypedValue.COMPLEX_UNIT_DIP, value.toFloat(), resources.displayMetrics
+    ).toInt()
+
+    private fun colorOf(colorRes: Int): Int = resources.getColor(colorRes, theme)
 
     private fun loadRound(id: String) {
         setLoading(true)

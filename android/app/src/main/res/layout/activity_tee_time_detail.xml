@@ -44,15 +44,6 @@
 
         </LinearLayout>
 
-        <!-- Existing image placeholder -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="140dp"
-            android:layout_marginBottom="@dimen/space_lg"
-            android:background="@drawable/bg_card"
-            android:elevation="@dimen/elevation_card"
-            android:importantForAccessibility="no" />
-
         <!-- Loading and error messages -->
         <TextView
             android:id="@+id/text_status"

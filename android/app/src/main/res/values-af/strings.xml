@@ -344,7 +344,11 @@
     <string name="rounds_eighteen_holes">18 putjies</string>
     <string name="rounds_no_courses">Bane is nog nie beskikbaar nie — kontroleer jou verbinding en probeer weer.</string>
     <string name="rounds_start_solo_failed">Kon nie \'n rondte begin nie</string>
-    <string name="scorecard_landing">Kies \'n komende rondte vanaf My Rondtes om tellings putjie-vir-putjie in te voer.</string>
+    <string name="scorecard_landing">Jou begonne rondtes is hier. Kies \'n komende rondte vanaf My Rondtes om tellings putjie-vir-putjie in te voer.</string>
+    <string name="scorecard_landing_heading">JOU TELKAARTE</string>
+    <string name="scorecard_landing_empty">Nog geen telkaarte nie. Begin \'n rondte vanaf My Rondtes om jou telling te volg.</string>
+    <string name="scorecard_landing_load_failed">Kon nie jou telkaarte laai nie. Kontroleer jou verbinding en probeer weer.</string>
+    <string name="teetime_mock_fallback_notice">Voorbeelddata word gewys. Kontroleer jou verbinding en probeer weer.</string>
     <string name="summary_title">Rondte-opsomming</string>
     <string name="summary_preview">Finale totale vir hierdie rondte.</string>
     <string name="summary_total_strokes">Totale houe</string>

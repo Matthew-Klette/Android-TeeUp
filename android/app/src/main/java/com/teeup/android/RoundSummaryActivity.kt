@@ -153,7 +153,7 @@ class RoundSummaryActivity : LocaleActivity() {
     }
 
     private fun confirmDeleteHole(roundId: String, holeNumber: Int) {
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(this, R.style.TeeUpDialogTheme)
             .setTitle(R.string.summary_delete_confirm_title)
             .setMessage(R.string.summary_delete_confirm_message)
             .setPositiveButton(R.string.dialog_yes) { _, _ -> deleteHole(roundId, holeNumber) }

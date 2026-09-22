@@ -195,7 +195,7 @@ class ProfileActivity : LocaleComponentActivity() {
 
     private fun showPhotoPickerDialog() {
         // Take Photo / Choose from Gallery picker (Google, n.d.b)
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(this, R.style.TeeUpDialogTheme)
             .setTitle(R.string.profile_photo_change)
             .setItems(
                 arrayOf(getString(R.string.profile_photo_take), getString(R.string.profile_photo_gallery))
@@ -310,7 +310,7 @@ class ProfileActivity : LocaleComponentActivity() {
             })
         }
 
-        dialog = AlertDialog.Builder(this)
+        dialog = AlertDialog.Builder(this, R.style.TeeUpDialogTheme)
             .setTitle(getString(R.string.profile_language_dialog_title))
             .setView(container)
             .setNegativeButton(getString(R.string.detail_back), null)

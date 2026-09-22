@@ -205,7 +205,7 @@ class RoundsActivity : LocaleActivity() {
             setPadding(dp(20), dp(8), dp(20), dp(0))
             addView(searchInput)
         }
-        dialog = AlertDialog.Builder(this)
+        dialog = AlertDialog.Builder(this, R.style.TeeUpDialogTheme)
             .setTitle(getString(R.string.rounds_pick_course))
             .setView(container)
             .setNegativeButton(getString(R.string.wireflow_back), null)
@@ -214,7 +214,7 @@ class RoundsActivity : LocaleActivity() {
 
     private fun promptHoleCount(onChosen: (Int) -> Unit) {
         val options = arrayOf(getString(R.string.rounds_nine_holes), getString(R.string.rounds_eighteen_holes))
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(this, R.style.TeeUpDialogTheme)
             .setTitle(getString(R.string.rounds_choose_holes))
             .setItems(options) { _, index -> onChosen(if (index == 0) 9 else 18) }
             .setNegativeButton(getString(R.string.wireflow_back), null)
