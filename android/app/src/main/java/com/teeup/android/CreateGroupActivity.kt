@@ -31,8 +31,25 @@ import java.util.TimeZone
  * wanted handicap range, wanted pace. Posts to POST /api/teetimes/groups. Reachable from Home
  * (see HomeActivity's "Create a Group" button); the groups-list UI itself is EME-312's job, kept
  * deliberately separate from this screen.
+ *
+ * EME-321: also doubles as the edit screen for an existing group — TeeTimeDetailActivity's Edit
+ * button starts this Activity with [EXTRA_EDIT_TEE_TIME_ID] set and the group's current values
+ * as the other EXTRA_EDIT_* extras, which switches the form to pre-filled/edit mode and PATCHes
+ * instead of POSTing on save. The course isn't editable in that mode (see EditAsync's doc
+ * comment), so the course spinner is locked to the group's existing course.
  */
 class CreateGroupActivity : LocaleActivity() {
+    companion object {
+        const val EXTRA_EDIT_TEE_TIME_ID = "com.teeup.android.extra.EDIT_TEE_TIME_ID"
+        const val EXTRA_EDIT_COURSE_ID = "com.teeup.android.extra.EDIT_COURSE_ID"
+        const val EXTRA_EDIT_DATE_TIME_ISO = "com.teeup.android.extra.EDIT_DATE_TIME_ISO"
+        const val EXTRA_EDIT_HOLES = "com.teeup.android.extra.EDIT_HOLES"
+        const val EXTRA_EDIT_OPEN_SPOTS = "com.teeup.android.extra.EDIT_OPEN_SPOTS"
+        const val EXTRA_EDIT_HANDICAP_MIN = "com.teeup.android.extra.EDIT_HANDICAP_MIN"
+        const val EXTRA_EDIT_HANDICAP_MAX = "com.teeup.android.extra.EDIT_HANDICAP_MAX"
+        const val EXTRA_EDIT_PACE = "com.teeup.android.extra.EDIT_PACE"
+    }
+
     private lateinit var statusText: TextView
     private lateinit var contentGroup: View
     private lateinit var courseSpinner: Spinner
@@ -47,6 +64,8 @@ class CreateGroupActivity : LocaleActivity() {
     private var courses: List<Course> = emptyList()
     private var pickedDateTimeIso: String? = null
     private var playersNeeded = 1
+    private var editTeeTimeId: String? = null
+    private var editCourseId: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -84,8 +103,48 @@ class CreateGroupActivity : LocaleActivity() {
         createButton.setOnClickListener { onCreateClicked() }
 
         updatePlayersNeededDisplay()
+        applyEditModeIfRequested()
         loadCourses()
     }
+
+    /** Pre-fills every field an edit carries except the course (applied once courses load, in
+     *  [render], since the course spinner's adapter isn't ready yet here). */
+    private fun applyEditModeIfRequested() {
+        val id = intent.getStringExtra(EXTRA_EDIT_TEE_TIME_ID) ?: return
+        editTeeTimeId = id
+        editCourseId = intent.getStringExtra(EXTRA_EDIT_COURSE_ID)
+
+        findViewById<TextView>(R.id.text_screen_title).text = getString(R.string.edit_group_title)
+        createButton.text = getString(R.string.edit_group_save)
+
+        intent.getStringExtra(EXTRA_EDIT_DATE_TIME_ISO)?.let { iso ->
+            try {
+                val local = Calendar.getInstance().apply { timeInMillis = roundTimestamp(iso) }
+                pickedDateTimeIso = iso
+                pickDateTimeButton.text = formatLocalDateTime(local)
+            } catch (e: IllegalArgumentException) {
+                // Leave unset — the existing "pick a date/time first" validation on save covers it.
+            }
+        }
+
+        holesSpinner.setSelection(if (intent.getIntExtra(EXTRA_EDIT_HOLES, 18) == 9) 0 else 1)
+
+        playersNeeded = intent.getIntExtra(EXTRA_EDIT_OPEN_SPOTS, 1).coerceIn(1, 20)
+        updatePlayersNeededDisplay()
+
+        if (intent.hasExtra(EXTRA_EDIT_HANDICAP_MIN)) {
+            handicapMinInput.setText(formatHandicapForInput(intent.getDoubleExtra(EXTRA_EDIT_HANDICAP_MIN, 0.0)))
+        }
+        if (intent.hasExtra(EXTRA_EDIT_HANDICAP_MAX)) {
+            handicapMaxInput.setText(formatHandicapForInput(intent.getDoubleExtra(EXTRA_EDIT_HANDICAP_MAX, 0.0)))
+        }
+        if (intent.hasExtra(EXTRA_EDIT_PACE)) {
+            paceSpinner.setSelection(intent.getIntExtra(EXTRA_EDIT_PACE, 0) + 1)
+        }
+    }
+
+    private fun formatHandicapForInput(value: Double): String =
+        if (value == value.toInt().toDouble()) value.toInt().toString() else value.toString()
 
     private fun loadCourses() {
         Thread {
@@ -111,6 +170,13 @@ class CreateGroupActivity : LocaleActivity() {
         courseSpinner.adapter = ArrayAdapter(
             this, R.layout.spinner_item, fetchedCourses.map { it.name }
         ).apply { setDropDownViewResource(R.layout.spinner_dropdown_item) }
+
+        val lockedCourseId = editCourseId
+        if (lockedCourseId != null) {
+            val index = fetchedCourses.indexOfFirst { it.id == lockedCourseId }
+            if (index >= 0) courseSpinner.setSelection(index)
+            courseSpinner.isEnabled = false
+        }
     }
 
     /**
@@ -255,30 +321,44 @@ class CreateGroupActivity : LocaleActivity() {
         val holes = if (holesSpinner.selectedItemPosition == 0) 9 else 18
         val pace = (paceSpinner.selectedItemPosition - 1).takeIf { it in 0..2 }
 
+        val editId = editTeeTimeId
         createButton.isEnabled = false
-        createButton.text = getString(R.string.create_group_creating)
+        createButton.text = getString(if (editId != null) R.string.edit_group_saving else R.string.create_group_creating)
 
         Thread {
             try {
-                TeeUpApiClient.createGroup(
-                    courseId = course.id,
-                    dateTimeIso = dateTimeIso,
-                    holes = holes,
-                    openSpots = playersNeeded,
-                    wantedHandicapMin = handicapMin,
-                    wantedHandicapMax = handicapMax,
-                    wantedPace = pace
-                )
+                if (editId != null) {
+                    TeeUpApiClient.editGroup(
+                        teeTimeId = editId,
+                        dateTimeIso = dateTimeIso,
+                        holes = holes,
+                        openSpots = playersNeeded,
+                        wantedHandicapMin = handicapMin,
+                        wantedHandicapMax = handicapMax,
+                        wantedPace = pace
+                    )
+                } else {
+                    TeeUpApiClient.createGroup(
+                        courseId = course.id,
+                        dateTimeIso = dateTimeIso,
+                        holes = holes,
+                        openSpots = playersNeeded,
+                        wantedHandicapMin = handicapMin,
+                        wantedHandicapMax = handicapMax,
+                        wantedPace = pace
+                    )
+                }
                 runOnUiThread {
-                    TeeUpBanner.show(this, getString(R.string.create_group_created))
+                    TeeUpBanner.show(this, getString(if (editId != null) R.string.edit_group_saved else R.string.create_group_created))
                     finish()
                     overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
                 }
             } catch (e: Exception) {
                 runOnUiThread {
                     createButton.isEnabled = true
-                    createButton.text = getString(R.string.create_group_create)
-                    TeeUpBanner.show(this, e.message ?: getString(R.string.create_group_failed_fallback), isError = true)
+                    createButton.text = getString(if (editId != null) R.string.edit_group_save else R.string.create_group_create)
+                    val fallback = if (editId != null) R.string.edit_group_failed_fallback else R.string.create_group_failed_fallback
+                    TeeUpBanner.show(this, e.message ?: getString(fallback), isError = true)
                 }
             }
         }.start()

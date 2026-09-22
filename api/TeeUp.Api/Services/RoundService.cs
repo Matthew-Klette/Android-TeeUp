@@ -79,6 +79,29 @@ public class RoundService(
         return RoundDto.From(round, scorecard);
     }
 
+    public async Task DeleteScorecardEntryAsync(Guid roundId, int holeNumber, Guid callerId)
+    {
+        var round = await roundRepository.GetByIdAsync(roundId)
+            ?? throw new NotFoundException($"Round {roundId} not found.");
+
+        var teeTime = await teeTimeRepository.GetByIdAsync(round.TeeTimeId)
+            ?? throw new NotFoundException($"Tee time {round.TeeTimeId} not found.");
+
+        var isAcceptedGuest = (await joinRequestRepository.GetByTeeTimeIdAsync(teeTime.Id))
+            .Any(j => j.GuestUserId == callerId && j.Status == JoinRequestStatus.Accepted);
+
+        if (teeTime.HostUserId != callerId && !isAcceptedGuest)
+        {
+            throw new ForbiddenException("Only this round's host or an accepted guest can delete a scorecard entry.");
+        }
+
+        var entry = (await scorecardEntryRepository.GetByRoundIdAsync(roundId))
+            .FirstOrDefault(e => e.HoleNumber == holeNumber)
+            ?? throw new NotFoundException($"No scorecard entry for hole {holeNumber} on round {roundId}.");
+
+        await scorecardEntryRepository.DeleteAsync(entry.Id);
+    }
+
     public async Task<IReadOnlyList<RoundDto>> GetRoundsForUserAsync(Guid userId)
     {
         var teeTimes = await teeTimeRepository.GetAllAsync();

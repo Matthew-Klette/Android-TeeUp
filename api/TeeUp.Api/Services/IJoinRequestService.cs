@@ -26,4 +26,15 @@ public interface IJoinRequestService
     Task<JoinRequestDto> UpdateStatusAsync(Guid joinRequestId, JoinRequestStatus status, Guid callerId);
 
     Task<IReadOnlyList<JoinRequestDto>> GetForTeeTimeAsync(Guid teeTimeId);
+
+    /// <summary>
+    /// Withdraws a guest's own pending join request (EME-323). <paramref name="guestUserId"/>
+    /// must be the request's own guest (<see cref="TeeUp.Api.Common.ForbiddenException"/>
+    /// otherwise), and the request must still be Pending
+    /// (<see cref="TeeUp.Api.Common.DomainValidationException"/> otherwise). Hard-deletes rather
+    /// than soft-declining, since a withdrawn request has no host decision to keep history of —
+    /// unlike a decline, which records the host's choice. Serialized against a concurrent
+    /// accept/decline on the same tee time via <see cref="TeeTimeJoinLock"/>.
+    /// </summary>
+    Task WithdrawAsync(Guid joinRequestId, Guid guestUserId);
 }

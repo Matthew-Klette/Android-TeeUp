@@ -122,6 +122,21 @@ public class JoinRequestService(
                 teeTime.Status = TeeTimeStatus.Full;
                 await teeTimeRepository.UpdateAsync(teeTime);
             }
+
+            // EME-323: once this guest is placed in a group, any other pending requests they're
+            // holding elsewhere no longer make sense — auto-decline them (status only, preserving
+            // history, matching how a host's own decline already works) rather than leaving them
+            // pending indefinitely. No separate notification: this is a side effect of the
+            // acceptance above, not a decision the other hosts made.
+            var guestOtherPending = (await joinRequestRepository.GetAllAsync())
+                .Where(j => j.GuestUserId == joinRequest.GuestUserId
+                    && j.Status == JoinRequestStatus.Pending
+                    && j.TeeTimeId != teeTime.Id);
+            foreach (var other in guestOtherPending)
+            {
+                other.Status = JoinRequestStatus.Declined;
+                await joinRequestRepository.UpdateAsync(other);
+            }
         }
         else
         {
@@ -149,5 +164,32 @@ public class JoinRequestService(
     {
         var joinRequests = await joinRequestRepository.GetByTeeTimeIdAsync(teeTimeId);
         return joinRequests.Select(JoinRequestDto.From).ToList();
+    }
+
+    public async Task WithdrawAsync(Guid joinRequestId, Guid guestUserId)
+    {
+        var lookup = await joinRequestRepository.GetByIdFreshAsync(joinRequestId)
+            ?? throw new NotFoundException($"Join request {joinRequestId} not found.");
+
+        // Held for the whole read-check-delete below, same rationale as UpdateStatusAsync: a
+        // withdraw racing a host's concurrent accept/decline on the same request must not act on
+        // a stale "still Pending" read.
+        using var _ = await TeeTimeJoinLock.AcquireAsync(lookup.TeeTimeId);
+
+        var joinRequest = await joinRequestRepository.GetByIdFreshAsync(joinRequestId)
+            ?? throw new NotFoundException($"Join request {joinRequestId} not found.");
+
+        if (joinRequest.GuestUserId != guestUserId)
+        {
+            throw new ForbiddenException("Only the requesting guest can withdraw this join request.");
+        }
+
+        if (joinRequest.Status != JoinRequestStatus.Pending)
+        {
+            throw new DomainValidationException(
+                $"Join request {joinRequestId} is already {joinRequest.Status} and cannot be withdrawn.");
+        }
+
+        await joinRequestRepository.DeleteAsync(joinRequestId);
     }
 }

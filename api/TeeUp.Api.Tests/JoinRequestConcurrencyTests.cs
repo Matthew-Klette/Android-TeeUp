@@ -50,6 +50,7 @@ public class JoinRequestConcurrencyTests
         public Task<IReadOnlyList<TeeTime>> GetAllAsync() => inner.GetAllAsync();
         public Task<TeeTime> AddAsync(TeeTime entity) => inner.AddAsync(entity);
         public Task UpdateAsync(TeeTime entity) => inner.UpdateAsync(entity);
+        public Task DeleteAsync(Guid id) => inner.DeleteAsync(id);
     }
 
     private static JoinRequestService NewSteppingService(TeeUpDbContext context, out SteppingTeeTimeRepository teeTimes)

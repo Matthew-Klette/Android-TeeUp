@@ -73,6 +73,44 @@ object TeeUpApiClient {
         return parseTeeTime(JSONObject(request("POST", "api/teetimes/groups", body)))
     }
 
+    /** PATCH /api/teetimes/{id} (EME-321) — edits an existing group's date/time, holes, open
+     *  spots and wanted handicap/pace range. Host-only; the course isn't editable. */
+    fun editGroup(
+        teeTimeId: String,
+        dateTimeIso: String,
+        holes: Int,
+        openSpots: Int,
+        wantedHandicapMin: Double?,
+        wantedHandicapMax: Double?,
+        wantedPace: Int?
+    ): TeeTime {
+        val body = JSONObject()
+            .put("dateTime", dateTimeIso)
+            .put("holes", holes)
+            .put("openSpots", openSpots)
+            .put("wantedHandicapMin", wantedHandicapMin)
+            .put("wantedHandicapMax", wantedHandicapMax)
+            .put("wantedPace", wantedPace)
+        return parseTeeTime(JSONObject(request("PATCH", "api/teetimes/$teeTimeId", body)))
+    }
+
+    /** PATCH /api/teetimes/{id}/cancel (EME-321) — host-only; notifies guests with a
+     *  pending/accepted join request against the group. */
+    fun cancelGroup(teeTimeId: String): TeeTime =
+        parseTeeTime(JSONObject(request("PATCH", "api/teetimes/$teeTimeId/cancel")))
+
+    /** DELETE /api/teetimes/{id} (EME-321) — host-only, and only while the group has zero join
+     *  requests against it; the server rejects otherwise and directs the caller to cancel instead. */
+    fun deleteGroup(teeTimeId: String) {
+        request("DELETE", "api/teetimes/$teeTimeId")
+    }
+
+    /** DELETE /api/join-requests/{id} (EME-323) — withdraws the caller's own still-pending
+     *  join request. */
+    fun withdrawJoinRequest(joinRequestId: String) {
+        request("DELETE", "api/join-requests/$joinRequestId")
+    }
+
     fun fetchNotifications(): List<AppNotification> {
         val array = JSONArray(request("GET", "api/notifications"))
         return (0 until array.length()).map { i -> parseNotification(array.getJSONObject(i)) }
@@ -160,6 +198,13 @@ object TeeUpApiClient {
         }
         val body = JSONObject().put("entries", entriesArray)
         return parsePlayedRound(JSONObject(request("POST", "api/rounds/$teeTimeId/scorecard", body)))
+    }
+
+    /** DELETE /api/rounds/{roundId}/scorecard/{holeNumber} (EME-322) — deletes one hole's entry
+     *  so it can be corrected by re-entering it. Only the round's host or an accepted guest may
+     *  call this. */
+    fun deleteScorecardEntry(roundId: String, holeNumber: Int) {
+        request("DELETE", "api/rounds/$roundId/scorecard/$holeNumber")
     }
 
     private fun parseRegisteredUser(o: JSONObject) = RegisteredUser(

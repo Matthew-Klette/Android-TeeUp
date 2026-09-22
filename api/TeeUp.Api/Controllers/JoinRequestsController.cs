@@ -23,6 +23,15 @@ public class JoinRequestsController(
         return Ok(joinRequest);
     }
 
+    [Authorize]
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Withdraw(Guid id)
+    {
+        var guestUserId = await ResolveCurrentUserIdAsync();
+        await joinRequestService.WithdrawAsync(id, guestUserId);
+        return NoContent();
+    }
+
     private async Task<Guid> ResolveCurrentUserIdAsync()
     {
         if (currentUser.FirebaseUid is null)

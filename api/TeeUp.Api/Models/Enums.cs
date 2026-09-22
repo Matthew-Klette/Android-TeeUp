@@ -41,5 +41,7 @@ public enum NotificationType
     RequestDeclined,
     TeeTimeReminder,
     SyncPending,
-    WeatherAlert
+    WeatherAlert,
+    /// <summary>A group's host cancelled it (EME-321) while this user had a pending/accepted join request against it.</summary>
+    TeeTimeCancelled
 }

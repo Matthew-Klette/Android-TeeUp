@@ -56,6 +56,31 @@ public class TeeTimesController(
         return Ok(await joinRequestService.GetForTeeTimeAsync(id));
     }
 
+    [Authorize]
+    [HttpPatch("{id:guid}")]
+    public async Task<ActionResult<TeeTimeDto>> EditGroup(Guid id, UpdateGroupRequest request)
+    {
+        var hostUserId = await ResolveCurrentUserIdAsync();
+        return Ok(await teeTimeService.EditAsync(id, hostUserId, request));
+    }
+
+    [Authorize]
+    [HttpPatch("{id:guid}/cancel")]
+    public async Task<ActionResult<TeeTimeDto>> CancelGroup(Guid id)
+    {
+        var hostUserId = await ResolveCurrentUserIdAsync();
+        return Ok(await teeTimeService.CancelAsync(id, hostUserId));
+    }
+
+    [Authorize]
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> DeleteGroup(Guid id)
+    {
+        var hostUserId = await ResolveCurrentUserIdAsync();
+        await teeTimeService.DeleteAsync(id, hostUserId);
+        return NoContent();
+    }
+
     private async Task<Guid> ResolveCurrentUserIdAsync()
     {
         if (currentUser.FirebaseUid is null)

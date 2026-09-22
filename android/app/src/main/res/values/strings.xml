@@ -234,6 +234,7 @@
     <string name="notification_category_reminder">Tee time reminders</string>
     <string name="notification_category_sync">Sync reminders</string>
     <string name="notification_category_weather">Weather alerts</string>
+    <string name="notification_category_cancelled">Group cancelled</string>
 
     <!-- Biometric Login Screen -->
     <string name="biometric_title">Biometric Login</string>
@@ -317,6 +318,13 @@
     <string name="create_group_created">Group created.</string>
     <string name="create_group_failed_fallback">Couldn\'t create the group — try again.</string>
     <string name="home_create_group">Create a Group</string>
+
+    <!-- Edit Group (EME-321) — CreateGroupActivity's edit mode -->
+    <string name="edit_group_title">Edit Group</string>
+    <string name="edit_group_save">Save Changes</string>
+    <string name="edit_group_saving">Saving…</string>
+    <string name="edit_group_saved">Group updated.</string>
+    <string name="edit_group_failed_fallback">Couldn\'t update the group — try again.</string>
 
     <string-array name="create_group_holes_options">
         <item>9 holes</item>

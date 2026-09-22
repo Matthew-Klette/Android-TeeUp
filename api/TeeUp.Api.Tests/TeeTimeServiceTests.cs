@@ -11,10 +11,18 @@ public class TeeTimeServiceTests
     private static (TeeTimeService Service, InMemoryTeeTimeRepository TeeTimes, InMemoryUserRepository Users, InMemoryCourseRepository Courses)
         CreateService(InMemoryJoinRequestRepository? joinRequests = null)
     {
+        return CreateServiceWithJoinRequests(joinRequests ?? new InMemoryJoinRequestRepository());
+    }
+
+    private static (TeeTimeService Service, InMemoryTeeTimeRepository TeeTimes, InMemoryUserRepository Users, InMemoryCourseRepository Courses)
+        CreateServiceWithJoinRequests(InMemoryJoinRequestRepository joinRequests, InMemoryNotificationRepository? notifications = null)
+    {
         var teeTimes = new InMemoryTeeTimeRepository();
         var users = new InMemoryUserRepository();
         var courses = new InMemoryCourseRepository();
-        return (new TeeTimeService(teeTimes, users, courses, joinRequests ?? new InMemoryJoinRequestRepository()), teeTimes, users, courses);
+        return (
+            new TeeTimeService(teeTimes, users, courses, joinRequests, notifications ?? new InMemoryNotificationRepository()),
+            teeTimes, users, courses);
     }
 
     private static async Task<User> AddHost(InMemoryUserRepository users, decimal? handicap, PaceOfPlay pace)
@@ -299,5 +307,176 @@ public class TeeTimeServiceTests
 
         await Assert.ThrowsAsync<DomainValidationException>(() =>
             service.CreateGroupAsync(host.Id, MakeGroupRequest(course.Id, min: 20m, max: 10m)));
+    }
+
+    [Fact]
+    public async Task CreateGroupAsync_AutoDeclinesHostsOwnPendingGuestRequestsElsewhere()
+    {
+        var joinRequests = new InMemoryJoinRequestRepository();
+        var (service, _, users, courses) = CreateServiceWithJoinRequests(joinRequests);
+        var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
+        var course = await AddCourse(courses);
+
+        var ownPending = new JoinRequest
+        {
+            Id = Guid.NewGuid(), TeeTimeId = Guid.NewGuid(), GuestUserId = host.Id, Status = JoinRequestStatus.Pending
+        };
+        await joinRequests.AddAsync(ownPending);
+
+        await service.CreateGroupAsync(host.Id, MakeGroupRequest(course.Id));
+
+        Assert.Equal(JoinRequestStatus.Declined, (await joinRequests.GetByIdAsync(ownPending.Id))!.Status);
+    }
+
+    private static UpdateGroupRequest MakeEditRequest(int holes = 18, int openSpots = 3,
+        decimal? min = null, decimal? max = null, PaceOfPlay? pace = null) =>
+        new(DateTime.UtcNow.AddDays(2), holes, openSpots, min, max, pace);
+
+    [Fact]
+    public async Task EditAsync_ByHost_UpdatesDetails()
+    {
+        var (service, teeTimes, users, courses) = CreateService();
+        var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
+        var course = await AddCourse(courses);
+        var created = await service.CreateGroupAsync(host.Id, MakeGroupRequest(course.Id, openSpots: 2));
+
+        var result = await service.EditAsync(created.Id, host.Id, MakeEditRequest(holes: 9, openSpots: 5));
+
+        Assert.Equal(9, result.Holes);
+        Assert.Equal(5, result.OpenSpots);
+    }
+
+    [Fact]
+    public async Task EditAsync_ByNonHost_ThrowsForbidden()
+    {
+        var (service, _, users, courses) = CreateService();
+        var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
+        var course = await AddCourse(courses);
+        var created = await service.CreateGroupAsync(host.Id, MakeGroupRequest(course.Id));
+
+        await Assert.ThrowsAsync<ForbiddenException>(() =>
+            service.EditAsync(created.Id, Guid.NewGuid(), MakeEditRequest()));
+    }
+
+    [Fact]
+    public async Task EditAsync_ShrinkingBelowAcceptedGuestCount_ThrowsValidationError()
+    {
+        var joinRequests = new InMemoryJoinRequestRepository();
+        var (service, teeTimes, users, courses) = CreateServiceWithJoinRequests(joinRequests);
+        var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
+        var course = await AddCourse(courses);
+        var created = await service.CreateGroupAsync(host.Id, MakeGroupRequest(course.Id, openSpots: 3));
+        await joinRequests.AddAsync(new JoinRequest
+        {
+            Id = Guid.NewGuid(), TeeTimeId = created.Id, GuestUserId = Guid.NewGuid(), Status = JoinRequestStatus.Accepted
+        });
+        await joinRequests.AddAsync(new JoinRequest
+        {
+            Id = Guid.NewGuid(), TeeTimeId = created.Id, GuestUserId = Guid.NewGuid(), Status = JoinRequestStatus.Accepted
+        });
+
+        // 2 guests already accepted — shrinking to 1 open spot must be rejected, not silently
+        // drop an accepted guest.
+        await Assert.ThrowsAsync<DomainValidationException>(() =>
+            service.EditAsync(created.Id, host.Id, MakeEditRequest(openSpots: 1)));
+    }
+
+    [Fact]
+    public async Task EditAsync_OnCancelledGroup_ThrowsValidationError()
+    {
+        var (service, _, users, courses) = CreateService();
+        var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
+        var course = await AddCourse(courses);
+        var created = await service.CreateGroupAsync(host.Id, MakeGroupRequest(course.Id));
+        await service.CancelAsync(created.Id, host.Id);
+
+        await Assert.ThrowsAsync<DomainValidationException>(() =>
+            service.EditAsync(created.Id, host.Id, MakeEditRequest()));
+    }
+
+    [Fact]
+    public async Task CancelAsync_ByHost_SetsCancelledAndNotifiesAffectedGuests()
+    {
+        var joinRequests = new InMemoryJoinRequestRepository();
+        var notifications = new InMemoryNotificationRepository();
+        var (service, teeTimes, users, courses) = CreateServiceWithJoinRequests(joinRequests, notifications);
+        var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
+        var course = await AddCourse(courses);
+        var created = await service.CreateGroupAsync(host.Id, MakeGroupRequest(course.Id, openSpots: 2));
+        var pendingGuestId = Guid.NewGuid();
+        await joinRequests.AddAsync(new JoinRequest
+        {
+            Id = Guid.NewGuid(), TeeTimeId = created.Id, GuestUserId = pendingGuestId, Status = JoinRequestStatus.Pending
+        });
+
+        var result = await service.CancelAsync(created.Id, host.Id);
+
+        Assert.Equal(TeeTimeStatus.Cancelled, result.Status);
+        var notification = Assert.Single(await notifications.GetByUserIdAsync(pendingGuestId));
+        Assert.Equal(NotificationType.TeeTimeCancelled, notification.Type);
+    }
+
+    [Fact]
+    public async Task CancelAsync_ByNonHost_ThrowsForbidden()
+    {
+        var (service, _, users, courses) = CreateService();
+        var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
+        var course = await AddCourse(courses);
+        var created = await service.CreateGroupAsync(host.Id, MakeGroupRequest(course.Id));
+
+        await Assert.ThrowsAsync<ForbiddenException>(() => service.CancelAsync(created.Id, Guid.NewGuid()));
+    }
+
+    [Fact]
+    public async Task CancelAsync_AlreadyCancelled_ThrowsValidationError()
+    {
+        var (service, _, users, courses) = CreateService();
+        var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
+        var course = await AddCourse(courses);
+        var created = await service.CreateGroupAsync(host.Id, MakeGroupRequest(course.Id));
+        await service.CancelAsync(created.Id, host.Id);
+
+        await Assert.ThrowsAsync<DomainValidationException>(() => service.CancelAsync(created.Id, host.Id));
+    }
+
+    [Fact]
+    public async Task DeleteAsync_ByHostWithNoJoinRequests_RemovesTheGroup()
+    {
+        var (service, teeTimes, users, courses) = CreateService();
+        var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
+        var course = await AddCourse(courses);
+        var created = await service.CreateGroupAsync(host.Id, MakeGroupRequest(course.Id));
+
+        await service.DeleteAsync(created.Id, host.Id);
+
+        Assert.Null(await teeTimes.GetByIdAsync(created.Id));
+    }
+
+    [Fact]
+    public async Task DeleteAsync_ByNonHost_ThrowsForbidden()
+    {
+        var (service, _, users, courses) = CreateService();
+        var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
+        var course = await AddCourse(courses);
+        var created = await service.CreateGroupAsync(host.Id, MakeGroupRequest(course.Id));
+
+        await Assert.ThrowsAsync<ForbiddenException>(() => service.DeleteAsync(created.Id, Guid.NewGuid()));
+    }
+
+    [Fact]
+    public async Task DeleteAsync_WithExistingJoinRequests_ThrowsValidationError()
+    {
+        var joinRequests = new InMemoryJoinRequestRepository();
+        var (service, teeTimes, users, courses) = CreateServiceWithJoinRequests(joinRequests);
+        var host = await AddHost(users, handicap: null, PaceOfPlay.Standard);
+        var course = await AddCourse(courses);
+        var created = await service.CreateGroupAsync(host.Id, MakeGroupRequest(course.Id));
+        await joinRequests.AddAsync(new JoinRequest
+        {
+            Id = Guid.NewGuid(), TeeTimeId = created.Id, GuestUserId = Guid.NewGuid(), Status = JoinRequestStatus.Declined
+        });
+
+        await Assert.ThrowsAsync<DomainValidationException>(() => service.DeleteAsync(created.Id, host.Id));
+        Assert.NotNull(await teeTimes.GetByIdAsync(created.Id));
     }
 }

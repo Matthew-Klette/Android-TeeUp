@@ -19,6 +19,18 @@ public record CreateGroupRequest(
     decimal? WantedHandicapMax,
     PaceOfPlay? WantedPace);
 
+/// <summary>
+/// Edits an existing group's details (EME-321). Course isn't editable — only date/time, holes,
+/// open spots and the wanted handicap/pace range, mirroring what CreateGroupRequest validates.
+/// </summary>
+public record UpdateGroupRequest(
+    DateTime DateTime,
+    int Holes,
+    int OpenSpots,
+    decimal? WantedHandicapMin,
+    decimal? WantedHandicapMax,
+    PaceOfPlay? WantedPace);
+
 public record GroupMemberDto(Guid UserId, string DisplayName, decimal? HandicapIndex, PaceOfPlay PaceOfPlay, bool IsHost);
 
 public record TeeTimeDto(

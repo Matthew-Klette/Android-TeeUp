@@ -80,6 +80,32 @@
     <string name="teetime_update_failed_fallback">Couldn\'t update the request</string>
     <string name="teetime_course_unavailable">Course details aren\'t available yet</string>
 
+    <!-- Tee Time Detail Screen — host edit/cancel/delete (EME-321), guest withdraw (EME-323) -->
+    <string name="teetime_edit_group">Edit Group</string>
+    <string name="teetime_cancel_group">Cancel Group</string>
+    <string name="teetime_delete_group">Delete Group</string>
+    <string name="teetime_withdraw_request">Withdraw Request</string>
+    <string name="dialog_yes">Yes</string>
+    <string name="teetime_cancel_confirm_title">Cancel this group?</string>
+    <string name="teetime_cancel_confirm_message">Guests with a pending or accepted request will be notified.</string>
+    <string name="teetime_delete_confirm_title">Delete this group?</string>
+    <string name="teetime_delete_confirm_message">This can\'t be undone.</string>
+    <string name="teetime_withdraw_confirm_title">Withdraw your request?</string>
+    <string name="teetime_withdraw_confirm_message">You can request to join again later.</string>
+    <string name="teetime_group_cancelled">Group cancelled.</string>
+    <string name="teetime_group_deleted">Group deleted.</string>
+    <string name="teetime_request_withdrawn">Request withdrawn.</string>
+    <string name="teetime_cancel_failed_fallback">Couldn\'t cancel the group — try again.</string>
+    <string name="teetime_delete_failed_fallback">Couldn\'t delete the group — try again.</string>
+    <string name="teetime_withdraw_failed_fallback">Couldn\'t withdraw the request — try again.</string>
+
+    <!-- Round Summary Screen — delete a hole entry (EME-322) -->
+    <string name="summary_delete_hole">Delete</string>
+    <string name="summary_delete_confirm_title">Delete this hole\'s entry?</string>
+    <string name="summary_delete_confirm_message">You can add it again from the scorecard.</string>
+    <string name="summary_hole_deleted">Hole entry deleted.</string>
+    <string name="summary_delete_failed_fallback">Couldn\'t delete this entry — try again.</string>
+
     <!-- Register / Sign In error fallbacks -->
     <string name="register_error_name_required">Enter a display name</string>
     <string name="register_error_handicap_invalid">Enter a valid handicap between 0 and 54, or leave it blank</string>

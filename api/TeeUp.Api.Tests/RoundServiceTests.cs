@@ -111,6 +111,65 @@ public class RoundServiceTests
     }
 
     [Fact]
+    public async Task DeleteScorecardEntryAsync_ByHost_RemovesTheEntry()
+    {
+        var (service, teeTimes, _) = CreateService();
+        var hostId = Guid.NewGuid();
+        var teeTime = MakeTeeTime(DateTime.UtcNow.AddHours(-1), hostId);
+        await teeTimes.AddAsync(teeTime);
+        var posted = await service.PostScorecardAsync(teeTime.Id, OneHole());
+
+        await service.DeleteScorecardEntryAsync(posted.Id, 1, hostId);
+
+        var refreshed = await service.GetRoundsForUserAsync(hostId);
+        Assert.Empty(Assert.Single(refreshed).Scorecard);
+    }
+
+    [Fact]
+    public async Task DeleteScorecardEntryAsync_ByAcceptedGuest_RemovesTheEntry()
+    {
+        var (service, teeTimes, joinRequests) = CreateService();
+        var teeTime = MakeTeeTime(DateTime.UtcNow.AddHours(-1));
+        await teeTimes.AddAsync(teeTime);
+        var guestId = Guid.NewGuid();
+        await joinRequests.AddAsync(new JoinRequest
+        {
+            Id = Guid.NewGuid(), TeeTimeId = teeTime.Id, GuestUserId = guestId, Status = JoinRequestStatus.Accepted
+        });
+        var posted = await service.PostScorecardAsync(teeTime.Id, OneHole());
+
+        await service.DeleteScorecardEntryAsync(posted.Id, 1, guestId);
+
+        var refreshed = await service.GetRoundsForUserAsync(guestId);
+        Assert.Empty(Assert.Single(refreshed).Scorecard);
+    }
+
+    [Fact]
+    public async Task DeleteScorecardEntryAsync_ByUnrelatedUser_ThrowsForbidden()
+    {
+        var (service, teeTimes, _) = CreateService();
+        var teeTime = MakeTeeTime(DateTime.UtcNow.AddHours(-1), Guid.NewGuid());
+        await teeTimes.AddAsync(teeTime);
+        var posted = await service.PostScorecardAsync(teeTime.Id, OneHole());
+
+        await Assert.ThrowsAsync<ForbiddenException>(
+            () => service.DeleteScorecardEntryAsync(posted.Id, 1, Guid.NewGuid()));
+    }
+
+    [Fact]
+    public async Task DeleteScorecardEntryAsync_ForUnknownHole_ThrowsNotFound()
+    {
+        var (service, teeTimes, _) = CreateService();
+        var hostId = Guid.NewGuid();
+        var teeTime = MakeTeeTime(DateTime.UtcNow.AddHours(-1), hostId);
+        await teeTimes.AddAsync(teeTime);
+        var posted = await service.PostScorecardAsync(teeTime.Id, OneHole());
+
+        await Assert.ThrowsAsync<NotFoundException>(
+            () => service.DeleteScorecardEntryAsync(posted.Id, 5, hostId));
+    }
+
+    [Fact]
     public async Task GetRoundsForUserAsync_IncludesHostedAndAcceptedRounds()
     {
         var (service, teeTimes, joinRequests) = CreateService();

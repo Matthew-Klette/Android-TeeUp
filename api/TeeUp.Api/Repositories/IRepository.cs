@@ -19,4 +19,8 @@ public interface IRepository<T>
     Task<IReadOnlyList<T>> GetAllAsync();
     Task<T> AddAsync(T entity);
     Task UpdateAsync(T entity);
+
+    /// <summary>Removes the entity if it exists; a no-op if it doesn't (matches the idempotent
+    /// intent of an HTTP DELETE — see TeeTimesController/JoinRequestsController).</summary>
+    Task DeleteAsync(Guid id);
 }

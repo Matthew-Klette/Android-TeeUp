@@ -35,4 +35,16 @@ public class EfRepository<T>(TeeUpDbContext context) : IRepository<T> where T : 
         Set.Update(entity);
         await context.SaveChangesAsync();
     }
+
+    public async Task DeleteAsync(Guid id)
+    {
+        var entity = await Set.FindAsync(id);
+        if (entity is null)
+        {
+            return;
+        }
+
+        Set.Remove(entity);
+        await context.SaveChangesAsync();
+    }
 }

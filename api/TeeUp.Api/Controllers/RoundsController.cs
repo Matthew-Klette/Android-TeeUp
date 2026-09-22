@@ -38,6 +38,15 @@ public class RoundsController(
         return Ok(await roundService.GetRoundsForUserAsync(userId));
     }
 
+    [Authorize]
+    [HttpDelete("{roundId:guid}/scorecard/{holeNumber:int}")]
+    public async Task<IActionResult> DeleteScorecardEntry(Guid roundId, int holeNumber)
+    {
+        var callerId = await ResolveCurrentUserIdAsync();
+        await roundService.DeleteScorecardEntryAsync(roundId, holeNumber, callerId);
+        return NoContent();
+    }
+
     private async Task<Guid> ResolveCurrentUserIdAsync()
     {
         if (currentUser.FirebaseUid is null)
