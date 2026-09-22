@@ -31,7 +31,7 @@ public class RoundServiceTests
         // A host who also has an accepted request must appear only once.
         await requests.AddAsync(new JoinRequest { Id = Guid.NewGuid(), TeeTimeId = hosted.Id,
             GuestUserId = user, Status = JoinRequestStatus.Accepted });
-        await service.PostScorecardAsync(past.Id, OneHole());
+        await service.PostScorecardAsync(past.Id, OneHole(), user);
         var schedule = await service.GetScheduleForUserAsync(user);
         Assert.Equal(new[] { past.Id, accepted.Id, hosted.Id }, schedule.Select(r => r.TeeTimeId));
         Assert.Single(schedule[0].Round!.Scorecard);
@@ -85,7 +85,7 @@ public class RoundServiceTests
         var teeTime = MakeTeeTime(DateTime.UtcNow.AddHours(-1));
         await teeTimes.AddAsync(teeTime);
 
-        var result = await service.PostScorecardAsync(teeTime.Id, OneHole());
+        var result = await service.PostScorecardAsync(teeTime.Id, OneHole(), Guid.NewGuid());
 
         Assert.Single(result.Scorecard);
         Assert.Equal(4, result.Scorecard[0].Strokes);
@@ -100,7 +100,7 @@ public class RoundServiceTests
         await teeTimes.AddAsync(teeTime);
 
         await Assert.ThrowsAsync<DomainValidationException>(
-            () => service.PostScorecardAsync(teeTime.Id, new PostScorecardRequest([new ScorecardEntryRequest(10, 4, 2)])));
+            () => service.PostScorecardAsync(teeTime.Id, new PostScorecardRequest([new ScorecardEntryRequest(10, 4, 2)]), Guid.NewGuid()));
     }
 
     [Fact]
@@ -110,7 +110,7 @@ public class RoundServiceTests
         var teeTime = MakeTeeTime(DateTime.UtcNow.AddHours(-1));
         await teeTimes.AddAsync(teeTime);
 
-        var result = await service.PostScorecardAsync(teeTime.Id, new PostScorecardRequest([new ScorecardEntryRequest(18, 4, 2)]));
+        var result = await service.PostScorecardAsync(teeTime.Id, new PostScorecardRequest([new ScorecardEntryRequest(18, 4, 2)]), Guid.NewGuid());
 
         Assert.Single(result.Scorecard);
     }
@@ -123,7 +123,7 @@ public class RoundServiceTests
         await teeTimes.AddAsync(teeTime);
 
         await Assert.ThrowsAsync<DomainValidationException>(
-            () => service.PostScorecardAsync(teeTime.Id, OneHole()));
+            () => service.PostScorecardAsync(teeTime.Id, OneHole(), Guid.NewGuid()));
     }
 
     [Fact]
@@ -132,7 +132,7 @@ public class RoundServiceTests
         var (service, _, _) = CreateService();
 
         await Assert.ThrowsAsync<NotFoundException>(
-            () => service.PostScorecardAsync(Guid.NewGuid(), OneHole()));
+            () => service.PostScorecardAsync(Guid.NewGuid(), OneHole(), Guid.NewGuid()));
     }
 
     [Fact]
@@ -142,8 +142,8 @@ public class RoundServiceTests
         var teeTime = MakeTeeTime(DateTime.UtcNow.AddHours(-1));
         await teeTimes.AddAsync(teeTime);
 
-        var first = await service.PostScorecardAsync(teeTime.Id, new PostScorecardRequest([new ScorecardEntryRequest(1, 4, 2)]));
-        var second = await service.PostScorecardAsync(teeTime.Id, new PostScorecardRequest([new ScorecardEntryRequest(2, 5, 2)]));
+        var first = await service.PostScorecardAsync(teeTime.Id, new PostScorecardRequest([new ScorecardEntryRequest(1, 4, 2)]), Guid.NewGuid());
+        var second = await service.PostScorecardAsync(teeTime.Id, new PostScorecardRequest([new ScorecardEntryRequest(2, 5, 2)]), Guid.NewGuid());
 
         Assert.Equal(first.Id, second.Id);
         Assert.Equal(2, second.Scorecard.Count);
@@ -155,11 +155,11 @@ public class RoundServiceTests
         var (service, teeTimes, _) = CreateService();
         var teeTime = MakeTeeTime(DateTime.UtcNow.AddHours(-1));
         await teeTimes.AddAsync(teeTime);
-        var first = await service.PostScorecardAsync(teeTime.Id, OneHole(strokes: 4, putts: 2));
+        var first = await service.PostScorecardAsync(teeTime.Id, OneHole(strokes: 4, putts: 2), Guid.NewGuid());
 
         // Two overlapping requests for the same hole (two devices, a retry) must not create a
         // second row that double-counts strokes/putts — the later one replaces the earlier.
-        var second = await service.PostScorecardAsync(teeTime.Id, OneHole(strokes: 5, putts: 3));
+        var second = await service.PostScorecardAsync(teeTime.Id, OneHole(strokes: 5, putts: 3), Guid.NewGuid());
 
         Assert.Equal(first.Id, second.Id);
         var onlyEntry = Assert.Single(second.Scorecard);
@@ -174,10 +174,10 @@ public class RoundServiceTests
         var hostId = Guid.NewGuid();
         var teeTime = MakeTeeTime(DateTime.UtcNow.AddHours(-1), hostId);
         await teeTimes.AddAsync(teeTime);
-        var posted = await service.PostScorecardAsync(teeTime.Id, OneHole(strokes: 4, putts: 2));
+        var posted = await service.PostScorecardAsync(teeTime.Id, OneHole(strokes: 4, putts: 2), hostId);
         await service.DeleteScorecardEntryAsync(posted.Id, 1, hostId);
 
-        var reposted = await service.PostScorecardAsync(teeTime.Id, OneHole(strokes: 6, putts: 3));
+        var reposted = await service.PostScorecardAsync(teeTime.Id, OneHole(strokes: 6, putts: 3), hostId);
 
         var onlyEntry = Assert.Single(reposted.Scorecard);
         Assert.Equal(6, onlyEntry.Strokes);
@@ -191,7 +191,7 @@ public class RoundServiceTests
         var hostId = Guid.NewGuid();
         var teeTime = MakeTeeTime(DateTime.UtcNow.AddHours(-1), hostId);
         await teeTimes.AddAsync(teeTime);
-        var posted = await service.PostScorecardAsync(teeTime.Id, OneHole());
+        var posted = await service.PostScorecardAsync(teeTime.Id, OneHole(), hostId);
 
         await service.DeleteScorecardEntryAsync(posted.Id, 1, hostId);
 
@@ -210,7 +210,7 @@ public class RoundServiceTests
         {
             Id = Guid.NewGuid(), TeeTimeId = teeTime.Id, GuestUserId = guestId, Status = JoinRequestStatus.Accepted
         });
-        var posted = await service.PostScorecardAsync(teeTime.Id, OneHole());
+        var posted = await service.PostScorecardAsync(teeTime.Id, OneHole(), guestId);
 
         await service.DeleteScorecardEntryAsync(posted.Id, 1, guestId);
 
@@ -224,7 +224,7 @@ public class RoundServiceTests
         var (service, teeTimes, _) = CreateService();
         var teeTime = MakeTeeTime(DateTime.UtcNow.AddHours(-1), Guid.NewGuid());
         await teeTimes.AddAsync(teeTime);
-        var posted = await service.PostScorecardAsync(teeTime.Id, OneHole());
+        var posted = await service.PostScorecardAsync(teeTime.Id, OneHole(), Guid.NewGuid());
 
         await Assert.ThrowsAsync<ForbiddenException>(
             () => service.DeleteScorecardEntryAsync(posted.Id, 1, Guid.NewGuid()));
@@ -237,7 +237,7 @@ public class RoundServiceTests
         var hostId = Guid.NewGuid();
         var teeTime = MakeTeeTime(DateTime.UtcNow.AddHours(-1), hostId);
         await teeTimes.AddAsync(teeTime);
-        var posted = await service.PostScorecardAsync(teeTime.Id, OneHole());
+        var posted = await service.PostScorecardAsync(teeTime.Id, OneHole(), hostId);
 
         await Assert.ThrowsAsync<NotFoundException>(
             () => service.DeleteScorecardEntryAsync(posted.Id, 5, hostId));
@@ -265,9 +265,9 @@ public class RoundServiceTests
             Status = JoinRequestStatus.Accepted
         });
 
-        await service.PostScorecardAsync(hostedTeeTime.Id, OneHole());
-        await service.PostScorecardAsync(joinedTeeTime.Id, OneHole());
-        await service.PostScorecardAsync(unrelatedTeeTime.Id, OneHole());
+        await service.PostScorecardAsync(hostedTeeTime.Id, OneHole(), hostId);
+        await service.PostScorecardAsync(joinedTeeTime.Id, OneHole(), guestId);
+        await service.PostScorecardAsync(unrelatedTeeTime.Id, OneHole(), Guid.NewGuid());
 
         var rounds = await service.GetRoundsForUserAsync(guestId);
         Assert.Single(rounds);
@@ -299,7 +299,7 @@ public class RoundServiceTests
             new ScorecardEntryRequest(1, 5, 2),
             new ScorecardEntryRequest(2, 4, 1),
             new ScorecardEntryRequest(3, 6, 3),
-        ]));
+        ]), hostId);
 
         var round = Assert.Single(await service.GetRoundsForUserAsync(hostId));
 
@@ -321,11 +321,34 @@ public class RoundServiceTests
         var teeTime = MakeTeeTime(DateTime.UtcNow.AddHours(-1), hostId);
         await teeTimes.AddAsync(teeTime);
 
-        await service.PostScorecardAsync(teeTime.Id, OneHole(strokes: 5, putts: 2));
+        await service.PostScorecardAsync(teeTime.Id, OneHole(strokes: 5, putts: 2), hostId);
 
         var round = Assert.Single(await service.GetRoundsForUserAsync(hostId));
 
         Assert.Equal(5, round.TotalStrokes);
+        Assert.Null(round.NetScore);
+        Assert.Null(round.StablefordScore);
+    }
+
+    // EME-304 review fix: a round can have its scorecard fully cleared (each hole deleted
+    // one at a time via DeleteScorecardEntryAsync) while the Round row itself stays. NetScore
+    // must go null here too, the same as StablefordScore already does, instead of coming back
+    // as 0 minus the handicap.
+    [Fact]
+    public async Task GetRoundsForUserAsync_WithAllHolesDeleted_LeavesNetScoreNullNotNegativeHandicap()
+    {
+        var users = new InMemoryUserRepository();
+        var (service, teeTimes, _) = CreateService(users: users);
+        var hostId = Guid.NewGuid();
+        await users.AddAsync(new User { Id = hostId, FirebaseUid = "uid", DisplayName = "Host", HandicapIndex = 9.4m });
+        var teeTime = MakeTeeTime(DateTime.UtcNow.AddHours(-1), hostId);
+        await teeTimes.AddAsync(teeTime);
+        var posted = await service.PostScorecardAsync(teeTime.Id, OneHole(), hostId);
+
+        await service.DeleteScorecardEntryAsync(posted.Id, 1, hostId);
+
+        var round = Assert.Single(await service.GetRoundsForUserAsync(hostId));
+        Assert.Empty(round.Scorecard);
         Assert.Null(round.NetScore);
         Assert.Null(round.StablefordScore);
     }

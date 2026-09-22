@@ -20,7 +20,7 @@ public class RoundService(
     public async Task<IReadOnlyList<ScheduledRoundDto>> GetScheduleForUserAsync(Guid userId)
     {
         // Net score/Stableford (EME-304) are always relative to the viewer's own handicap,
-        // not whoever hosts/guests a given tee time — "my rounds" is a personal stats view.
+        // not whoever hosts/guests a given tee time: "my rounds" is a personal stats view.
         var handicapIndex = (await userRepository.GetByIdAsync(userId))?.HandicapIndex;
 
         var accepted = (await joinRequestRepository.GetAllAsync())
@@ -44,7 +44,7 @@ public class RoundService(
         return result;
     }
 
-    public async Task<RoundDto> PostScorecardAsync(Guid teeTimeId, PostScorecardRequest request)
+    public async Task<RoundDto> PostScorecardAsync(Guid teeTimeId, PostScorecardRequest request, Guid callerId)
     {
         // Validate the whole payload before creating a round or writing any holes.
         if (request.Entries is null || request.Entries.Count is < 1 or > 18 ||
@@ -111,13 +111,9 @@ public class RoundService(
 
         var scorecard = await scorecardEntryRepository.GetByRoundIdAsync(round.Id);
         var coursePar = (await courseRepository.GetByIdAsync(teeTime.CourseId))?.Par ?? 72;
-        // No caller id flows into this endpoint (see IRoundService's doc comment on
-        // DeleteScorecardEntryAsync re: the lack of a post-time authorization check), so net
-        // score/Stableford here use the tee time host's handicap — the closest stand-in for
-        // "whoever is scoring this round" without one.
-        var handicapIndex = teeTime.HostUserId is Guid hostId
-            ? (await userRepository.GetByIdAsync(hostId))?.HandicapIndex
-            : null;
+        // Net score/Stableford in this immediate response are scored against whoever just
+        // posted, not the tee time host (see IRoundService's doc comment on this method).
+        var handicapIndex = (await userRepository.GetByIdAsync(callerId))?.HandicapIndex;
         return RoundDto.From(round, scorecard, coursePar, handicapIndex);
     }
 

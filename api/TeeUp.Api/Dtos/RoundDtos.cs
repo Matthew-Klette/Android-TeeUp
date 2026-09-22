@@ -19,9 +19,9 @@ public record ScorecardEntryDto(Guid Id, int HoleNumber, int Strokes, int Putts,
 
 /// <summary>
 /// <paramref name="AveragePutts"/> is putts per hole played (AVG). <paramref name="NetScore"/> is
-/// total strokes minus the scoring player's handicap index — null if that player has none set.
-/// <paramref name="StablefordScore"/> is null under the same condition, since Stableford points
-/// are computed net of handicap. EME-304.
+/// total strokes minus the scoring player's handicap index; null if that player has none set, or
+/// if no holes have been scored yet. <paramref name="StablefordScore"/> is null under the same
+/// conditions, since Stableford points are computed net of handicap. EME-304.
 /// </summary>
 public record RoundDto(
     Guid Id,
@@ -39,7 +39,7 @@ public record RoundDto(
         var totalStrokes = entries.Sum(e => e.Strokes);
         var totalPutts = entries.Sum(e => e.Putts);
         var averagePutts = entries.Count == 0 ? 0 : entries.Average(e => e.Putts);
-        var netScore = handicapIndex is decimal h ? totalStrokes - h : (decimal?)null;
+        var netScore = handicapIndex is decimal h && entries.Count > 0 ? totalStrokes - h : (decimal?)null;
         var stableford = handicapIndex is null || entries.Count == 0
             ? (int?)null
             : ComputeStableford(entries, coursePar, handicapIndex.Value);
@@ -53,7 +53,7 @@ public record RoundDto(
     /// Simplified Stableford: this schema has no per-hole par or stroke-index data, so par is
     /// spread evenly across played holes (<paramref name="coursePar"/> / 18, the course's full
     /// par) and handicap strokes are allocated one per hole in hole-number order, starting from
-    /// hole 1, until the rounded handicap index is used up — not the real stroke-index
+    /// hole 1, until the rounded handicap index is used up; not the real stroke-index
     /// allocation a scorecard would use, but a reasonable stand-in without that data. Points
     /// per hole follow standard Stableford: 2 at net par, +1/-1 per stroke away, floored at 0.
     /// </summary>

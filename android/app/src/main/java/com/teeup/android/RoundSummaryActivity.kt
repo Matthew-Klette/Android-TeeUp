@@ -92,7 +92,7 @@ class RoundSummaryActivity : LocaleActivity() {
         val holes = playedRound?.scorecard?.sortedBy { it.holeNumber } ?: emptyList()
         val unavailable = getString(R.string.summary_stat_unavailable)
 
-        // Totals/averages/net/Stableford all come from the server (RoundDto, EME-304) — SUM/AVG
+        // Totals/averages/net/Stableford all come from the server (RoundDto, EME-304): SUM/AVG
         // aggregated over the scorecard rows there, not recomputed on-device.
         findViewById<TextView>(R.id.text_holes_played).text = holes.size.toString()
         findViewById<TextView>(R.id.text_total_strokes).text = (playedRound?.totalStrokes ?: 0).toString()

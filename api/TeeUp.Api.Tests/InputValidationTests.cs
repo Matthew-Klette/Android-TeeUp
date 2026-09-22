@@ -38,7 +38,7 @@ public class InputValidationTests
         var service = new RoundService(rounds, scores, new InMemoryTeeTimeRepository(), new InMemoryJoinRequestRepository(),
             new InMemoryCourseRepository(), new InMemoryUserRepository());
         await Assert.ThrowsAsync<DomainValidationException>(() => service.PostScorecardAsync(Guid.NewGuid(),
-            new PostScorecardRequest([new ScorecardEntryRequest(hole, strokes, putts)])));
+            new PostScorecardRequest([new ScorecardEntryRequest(hole, strokes, putts)]), Guid.NewGuid()));
         Assert.Empty(await rounds.GetAllAsync());
         Assert.Empty(await scores.GetAllAsync());
     }
@@ -52,7 +52,7 @@ public class InputValidationTests
             new InMemoryCourseRepository(), new InMemoryUserRepository());
         foreach (var entries in new IReadOnlyList<ScorecardEntryRequest>[] {
             Array.Empty<ScorecardEntryRequest>(), [new(1, 4, 2), new(1, 5, 2)] })
-            await Assert.ThrowsAsync<DomainValidationException>(() => service.PostScorecardAsync(Guid.NewGuid(), new(entries)));
+            await Assert.ThrowsAsync<DomainValidationException>(() => service.PostScorecardAsync(Guid.NewGuid(), new(entries), Guid.NewGuid()));
         Assert.Empty(await rounds.GetAllAsync());
     }
 

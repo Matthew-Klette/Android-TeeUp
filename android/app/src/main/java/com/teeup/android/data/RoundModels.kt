@@ -19,7 +19,7 @@ private fun invalidRoundDateMessage(value: String): String =
 data class ScheduledRound(val teeTimeId: String, val courseId: String, val dateTime: String, val holes: Int?, val round: PlayedRound?)
 
 /** [averagePutts] is putts per hole played (AVG). [netScore]/[stablefordScore] are null when
- *  the scoring player has no handicap index set — both are computed net of handicap server-side
+ *  the scoring player has no handicap index set; both are computed net of handicap server-side
  *  (RoundDto, EME-304), not recomputed here. */
 data class PlayedRound(
     val id: String,

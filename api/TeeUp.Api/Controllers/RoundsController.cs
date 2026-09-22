@@ -26,7 +26,8 @@ public class RoundsController(
     [HttpPost("{id:guid}/scorecard")]
     public async Task<ActionResult<RoundDto>> PostScorecard(Guid id, PostScorecardRequest request)
     {
-        var round = await roundService.PostScorecardAsync(id, request);
+        var callerId = await ResolveCurrentUserIdAsync();
+        var round = await roundService.PostScorecardAsync(id, request, callerId);
         return Ok(round);
     }
 
