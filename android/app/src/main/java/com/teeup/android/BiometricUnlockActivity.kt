@@ -2,52 +2,46 @@ package com.teeup.android
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.View
-import android.widget.Button
-import android.widget.TextView
+import androidx.activity.compose.setContent
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import com.google.firebase.auth.FirebaseAuth
+import com.teeup.android.auth.BiometricUnlockScreen
+import com.teeup.android.auth.BiometricUnlockUiState
 import com.teeup.android.data.LocalIdentity
+import com.teeup.android.design.TeeUpTheme
 import com.teeup.android.ui.LocaleFragmentActivity
+import com.teeup.android.ui.enableTeeUpEdgeToEdge
 
 /**
  * The real enforcement side of Profile → Biometric Login: SplashActivity routes here
  * instead of straight to HomeActivity whenever BiometricPreference.isEnabled() is true.
  * A passed prompt is required before Home opens; there's no way around it from here
- * short of signing out.
+ * short of signing out. The UI is [BiometricUnlockScreen].
  */
 class BiometricUnlockActivity : LocaleFragmentActivity() {
-    private lateinit var statusText: TextView
-    private lateinit var tryAgainButton: Button
-    private lateinit var signOutInstead: View
+    private lateinit var ui: BiometricUnlockUiState
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableTeeUpEdgeToEdge()
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_biometric_unlock)
-
-        statusText = findViewById(R.id.text_unlock_status)
-        tryAgainButton = findViewById(R.id.button_try_again)
-        signOutInstead = findViewById(R.id.text_sign_out_instead)
-
-        statusText.text = getString(R.string.biometric_unlock_prompt_subtitle)
-        tryAgainButton.setOnClickListener { promptForUnlock() }
-        signOutInstead.setOnClickListener {
-            FirebaseAuth.getInstance().signOut()
-            LocalIdentity.clearCache(this)
-            val intent = Intent(this, SignInActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            }
-            startActivity(intent)
-        }
-
+        ui = BiometricUnlockUiState(getString(R.string.biometric_unlock_prompt_subtitle))
+        setContent { TeeUpTheme { BiometricUnlockScreen(ui, onTryAgain = ::promptForUnlock, onSignOut = ::signOutInstead) } }
         promptForUnlock()
     }
 
+    private fun signOutInstead() {
+        FirebaseAuth.getInstance().signOut()
+        LocalIdentity.clearCache(this)
+        val intent = Intent(this, SignInActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        startActivity(intent)
+    }
+
     private fun promptForUnlock() {
-        tryAgainButton.visibility = View.GONE
-        signOutInstead.visibility = View.GONE
-        statusText.text = getString(R.string.biometric_unlock_prompt_subtitle)
+        ui.showOptions = false
+        ui.status = getString(R.string.biometric_unlock_prompt_subtitle)
 
         val promptInfo = BiometricPrompt.PromptInfo.Builder()
             .setTitle(getString(R.string.biometric_unlock_prompt_title))
@@ -62,9 +56,8 @@ class BiometricUnlockActivity : LocaleFragmentActivity() {
             }
 
             override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                statusText.text = errString.toString()
-                tryAgainButton.visibility = View.VISIBLE
-                signOutInstead.visibility = View.VISIBLE
+                ui.status = errString.toString()
+                ui.showOptions = true
             }
 
             override fun onAuthenticationFailed() {

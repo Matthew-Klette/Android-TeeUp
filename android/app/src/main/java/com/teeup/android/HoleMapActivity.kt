@@ -1,19 +1,26 @@
 package com.teeup.android
 
+import android.graphics.Color
 import android.os.Bundle
-import android.view.View
-import android.widget.Button
-import android.widget.TextView
+import androidx.activity.SystemBarStyle
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import com.teeup.android.design.TeeUpTheme
+import com.teeup.android.scorecard.HoleMapActions
+import com.teeup.android.scorecard.HoleMapHost
+import com.teeup.android.scorecard.HoleMapScreen
+import com.teeup.android.scorecard.HoleMapUiState
+import com.teeup.android.scorecard.HoleStep
 import com.teeup.android.ui.HoleMapController
-import com.teeup.android.ui.LocaleActivity
+import com.teeup.android.ui.LocaleComponentActivity
 
 /**
  * Live Hole Map opened from a course preview (Part 1 custom feature: real-time GPS scorecard).
  * The map itself — satellite hole view, GPS and live distances — is [HoleMapController], shared
- * with the in-round ScorecardActivity; this screen adds plain Previous / Follow GPS / Next
- * controls over the course's mapped holes.
+ * with the in-round ScorecardActivity; this screen adds ‹ › through the course's mapped holes and
+ * Follow GPS. The UI is [HoleMapScreen].
  */
-class HoleMapActivity : LocaleActivity(), HoleMapController.Listener {
+class HoleMapActivity : LocaleComponentActivity(), HoleMapController.Listener {
     companion object {
         const val EXTRA_COURSE_ID = "com.teeup.android.extra.COURSE_ID"
         const val EXTRA_COURSE_NAME = "com.teeup.android.extra.COURSE_NAME"
@@ -21,79 +28,76 @@ class HoleMapActivity : LocaleActivity(), HoleMapController.Listener {
         const val EXTRA_START_HOLE = "com.teeup.android.extra.START_HOLE"
     }
 
-    private lateinit var map: HoleMapController
-    private lateinit var holeTitleText: TextView
-    private lateinit var previousButton: Button
-    private lateinit var nextButton: Button
-    private lateinit var followButton: Button
+    private lateinit var host: HoleMapHost
+    private lateinit var ui: HoleMapUiState
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
+        )
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_hole_map)
-
         val courseId = intent.getStringExtra(EXTRA_COURSE_ID)
         val courseName = intent.getStringExtra(EXTRA_COURSE_NAME).orEmpty()
-        holeTitleText = findViewById(R.id.text_hole_title)
-        previousButton = findViewById(R.id.button_previous_hole)
-        nextButton = findViewById(R.id.button_next_hole)
-        followButton = findViewById(R.id.button_follow_gps)
-        findViewById<TextView>(R.id.text_course_name).text = courseName
-        findViewById<View>(R.id.button_back).setOnClickListener {
-            finish()
-            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
-        }
-        previousButton.setOnClickListener { stepHole(-1) }
-        nextButton.setOnClickListener { stepHole(+1) }
-        followButton.setOnClickListener { map.resumeFollowingGps() }
-        listOf(previousButton, nextButton, followButton).forEach { it.isEnabled = false }
-
-        map = HoleMapController(this, this)
-        if (courseId == null) {
-            map.showUnavailable()
-        } else {
-            map.start(courseId, courseName, intent.getIntExtra(EXTRA_START_HOLE, 0))
+        ui = HoleMapUiState(courseName)
+        host = HoleMapHost(this, this)
+        val actions = HoleMapActions(
+            back = {
+                finish()
+                overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
+            },
+            previous = { stepHole(-1) },
+            next = { stepHole(+1) },
+            followGps = { host.withController { it.resumeFollowingGps() } },
+            resetMarkers = { host.withController { it.resetMarkers() } }
+        )
+        setContent { TeeUpTheme { HoleMapScreen(ui, host, actions) } }
+        host.withController { map ->
+            if (courseId == null) map.showUnavailable() else map.start(courseId, courseName, intent.getIntExtra(EXTRA_START_HOLE, 0))
         }
     }
 
     override fun onResume() {
         super.onResume()
-        map.onResume()
+        host.onResume()
     }
 
     override fun onPause() {
         super.onPause()
-        map.onPause()
+        host.onPause()
     }
 
     override fun onDestroy() {
-        map.onDestroy()
+        host.onDestroy()
         super.onDestroy()
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    @Deprecated("Deprecated in Java")
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        map.onRequestPermissionsResult(requestCode)
+        host.onRequestPermissionsResult(requestCode)
     }
 
     override fun onHoleShown(hole: Int) {
-        val mapped = map.mappedHoles
-        val index = mapped.indexOf(hole)
-        if (index < 0) return
-        holeTitleText.text = getString(R.string.hole_map_hole_format, hole)
-        previousButton.isEnabled = index > 0
-        nextButton.isEnabled = index < mapped.lastIndex
-        followButton.isEnabled = !map.isFollowingGps
+        val map = host.controller ?: return
+        if (hole !in map.mappedHoles) return
+        val (canPrevious, canNext) = HoleStep.canStep(map.mappedHoles, hole)
+        ui.hole = hole
+        ui.canPrevious = canPrevious
+        ui.canNext = canNext
+        ui.showFollowGps = !map.isFollowingGps
+    }
+
+    override fun onMarkersMovedChanged(moved: Boolean) {
+        ui.showResetMarkers = moved
     }
 
     override fun onFollowGpsChanged(following: Boolean) {
-        followButton.isEnabled = !following && map.mappedHoles.isNotEmpty()
+        ui.showFollowGps = !following && host.controller?.mappedHoles?.isNotEmpty() == true
     }
 
     private fun stepHole(delta: Int) {
-        val mapped = map.mappedHoles
-        val index = mapped.indexOf(map.shownHoleNumber)
-        if (index < 0) return
-        val next = (index + delta).coerceIn(0, mapped.lastIndex)
-        if (next != index) map.showHole(mapped[next])
+        val map = host.controller ?: return
+        HoleStep.next(map.mappedHoles, map.shownHoleNumber, delta)?.let { map.showHole(it) }
     }
 }

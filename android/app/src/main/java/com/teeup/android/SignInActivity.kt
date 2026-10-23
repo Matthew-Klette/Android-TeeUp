@@ -3,8 +3,8 @@ package com.teeup.android
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.view.View
-import android.widget.Button
+import androidx.activity.compose.setContent
+import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes
@@ -12,17 +12,26 @@ import com.google.android.gms.common.api.ApiException as GoogleSignInException
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
-import com.teeup.android.ui.LocaleActivity
+import com.teeup.android.auth.SignInActions
+import com.teeup.android.auth.SignInScreen
+import com.teeup.android.auth.SignInUiState
+import com.teeup.android.design.TeeUpTheme
+import com.teeup.android.ui.LocaleComponentActivity
 import com.teeup.android.ui.TeeUpBanner
+import com.teeup.android.ui.enableTeeUpEdgeToEdge
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Screen 1: Sign In. "Continue with Google" is the real Firebase Google SSO flow;
  * "Continue with Email" and "Register" open EmailSignInActivity's real email/password
  * flow. Biometric has no credential UI of its own yet, so it still routes to Google.
+ * The UI is [SignInScreen].
  */
-class SignInActivity : LocaleActivity() {
+class SignInActivity : LocaleComponentActivity() {
     private val tag = "SignInActivity"
-    private lateinit var googleButton: Button
+    private val ui = SignInUiState()
 
     // Firebase Google Sign-In setup (Google, n.d.)
     private val googleSignInClient by lazy {
@@ -34,28 +43,23 @@ class SignInActivity : LocaleActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableTeeUpEdgeToEdge()
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_sign_in)
-
-        googleButton = findViewById(R.id.button_continue_google)
-        googleButton.setOnClickListener { onGoogleSignInClicked() }
-
-        findViewById<Button>(R.id.button_continue_email).setOnClickListener {
-            startActivity(EmailSignInActivity.intent(this, startInSignUpMode = false))
-        }
-
-        // Biometric has no credential UI of its own yet, so it still routes to
-        // Google rather than a dead end.
-        findViewById<Button>(R.id.button_use_biometric).setOnClickListener { onGoogleSignInClicked() }
-
-        findViewById<View>(R.id.text_register).setOnClickListener {
-            startActivity(EmailSignInActivity.intent(this, startInSignUpMode = true))
-        }
+        val actions = SignInActions(
+            google = ::onGoogleSignInClicked,
+            email = { startActivity(EmailSignInActivity.intent(this, startInSignUpMode = false)) },
+            // Biometric has no credential UI of its own yet, so it still routes to
+            // Google rather than a dead end.
+            biometric = ::onGoogleSignInClicked,
+            register = { startActivity(EmailSignInActivity.intent(this, startInSignUpMode = true)) }
+        )
+        setContent { TeeUpTheme { SignInScreen(ui, actions) } }
     }
 
+    @Suppress("DEPRECATION")
     private fun onGoogleSignInClicked() {
-        googleButton.isEnabled = false
-        googleButton.setText(R.string.sign_in_google_progress)
+        if (ui.googleBusy) return
+        ui.googleBusy = true
         startActivityForResult(googleSignInClient.signInIntent, RC_GOOGLE_SIGN_IN)
     }
 
@@ -81,24 +85,25 @@ class SignInActivity : LocaleActivity() {
     }
 
     private fun authenticateWithFirebase(googleIdToken: String) {
-        Thread {
+        lifecycleScope.launch {
             try {
-                val credential = GoogleAuthProvider.getCredential(googleIdToken, null)
-                Tasks.await(FirebaseAuth.getInstance().signInWithCredential(credential))
-                completeSignIn()
+                withContext(Dispatchers.IO) {
+                    val credential = GoogleAuthProvider.getCredential(googleIdToken, null)
+                    Tasks.await(FirebaseAuth.getInstance().signInWithCredential(credential))
+                    completeSignIn()
+                }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Log.w(tag, "Firebase sign-in failed", e)
-                runOnUiThread {
-                    resetGoogleButton()
-                    TeeUpBanner.show(this, getString(R.string.signin_failed_generic), isError = true)
-                }
+                resetGoogleButton()
+                TeeUpBanner.show(this@SignInActivity, getString(R.string.signin_failed_generic), isError = true)
             }
-        }.start()
+        }
     }
 
     private fun resetGoogleButton() {
-        googleButton.isEnabled = true
-        googleButton.setText(R.string.sign_in_google)
+        ui.googleBusy = false
     }
 
     companion object {

@@ -2,7 +2,6 @@ package com.teeup.android.nav
 
 import android.app.Activity
 import android.content.Intent
-import android.view.View
 import com.teeup.android.HomeActivity
 import com.teeup.android.ProfileActivity
 import com.teeup.android.R
@@ -18,41 +17,15 @@ enum class BottomNavTab {
 
 object BottomNav {
 
-    fun wire(activity: Activity, current: BottomNavTab) {
-        val home = activity.findViewById<View>(R.id.nav_home)
-        val rounds = activity.findViewById<View>(R.id.nav_rounds)
-        val scorecard = activity.findViewById<View>(R.id.nav_scorecard)
-        val profile = activity.findViewById<View>(R.id.nav_profile)
-
-        // Mark exactly one tab as selected.
-        home.isSelected = current == BottomNavTab.HOME
-        rounds.isSelected = current == BottomNavTab.ROUNDS
-        scorecard.isSelected = current == BottomNavTab.SCORECARD
-        profile.isSelected = current == BottomNavTab.PROFILE
-
-        home.setOnClickListener {
-            if (current != BottomNavTab.HOME) {
-                navigateTo(activity, HomeActivity::class.java)
-            }
+    /** Switches to [tab]'s screen from the GlassTabBar, reusing it if it's already open. */
+    fun open(activity: Activity, tab: BottomNavTab) {
+        val destination = when (tab) {
+            BottomNavTab.HOME -> HomeActivity::class.java
+            BottomNavTab.ROUNDS -> RoundsActivity::class.java
+            BottomNavTab.SCORECARD -> ScorecardActivity::class.java
+            BottomNavTab.PROFILE -> ProfileActivity::class.java
         }
-
-        rounds.setOnClickListener {
-            if (current != BottomNavTab.ROUNDS) {
-                navigateTo(activity, RoundsActivity::class.java)
-            }
-        }
-
-        scorecard.setOnClickListener {
-            if (current != BottomNavTab.SCORECARD) {
-                navigateTo(activity, ScorecardActivity::class.java)
-            }
-        }
-
-        profile.setOnClickListener {
-            if (current != BottomNavTab.PROFILE) {
-                navigateTo(activity, ProfileActivity::class.java)
-            }
-        }
+        navigateTo(activity, destination)
     }
 
     private fun navigateTo(

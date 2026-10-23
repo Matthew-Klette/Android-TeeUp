@@ -38,7 +38,8 @@ import kotlin.math.roundToInt
  * The live hole map shared by HoleMapActivity (course preview) and ScorecardActivity (in a
  * round): satellite imagery of one hole, rotated so it plays up the screen, with live distances
  * to the front, middle and back of the green and a draggable layup target, modelled on the
- * Wedge golf app's hole view.
+ * Wedge golf app's hole view. The golfer's dot and the flag drag too: drop the dot to measure
+ * from somewhere GPS can't place you, and the flag to set where today's pin is.
  *
  * Owns state, GPS and every calculation ([HoleTracker] picks the hole, [HoleGuidance] works out
  * the distances); assets/hole_map.html only draws what it's told through `window.teeupMap` and
@@ -56,6 +57,8 @@ class HoleMapController(private val activity: Activity, private val listener: Li
         fun onFollowGpsChanged(following: Boolean) {}
         /** The golfer dragged the layup target on [hole]. */
         fun onTargetMoved(hole: Int, target: GeoPoint) {}
+        /** Whether the shown hole has a dragged golfer or flag, so the host can offer [resetMarkers]. */
+        fun onMarkersMovedChanged(moved: Boolean) {}
     }
 
     companion object {
@@ -80,6 +83,8 @@ class HoleMapController(private val activity: Activity, private val listener: Li
     private val distanceSourceText: TextView = activity.findViewById(R.id.text_distance_source)
     private val frontText: TextView = activity.findViewById(R.id.text_distance_front)
     private val middleText: TextView = activity.findViewById(R.id.text_distance_middle)
+    private val middleLabelText: TextView = activity.findViewById(R.id.text_distance_middle_label)
+    private val markerHintText: TextView = activity.findViewById(R.id.text_marker_hint)
     private val backText: TextView = activity.findViewById(R.id.text_distance_back)
     private val gpsStatusText: TextView = activity.findViewById(R.id.text_gps_status)
 
@@ -91,6 +96,10 @@ class HoleMapController(private val activity: Activity, private val listener: Li
     /** A target the host restored for [shownHoleNumber], applied once the holes arrive. */
     private var restoredTarget: GeoPoint? = null
     private var target: GeoPoint? = null
+    /** Per hole: where the golfer dropped their dot, which wins over GPS until reset. */
+    private val placedPlayers = mutableMapOf<Int, GeoPoint>()
+    /** Per hole: where the golfer put today's flag. Kept when moving between holes. */
+    private val pins = mutableMapOf<Int, GeoPoint>()
     private var userPosition: GeoPoint? = null
     private var userAccuracyMeters: Float? = null
     private var lastFix: HoleFix? = null
@@ -161,6 +170,15 @@ class HoleMapController(private val activity: Activity, private val listener: Li
         shownHoleNumber = hole
         restoredTarget = null
         selectHole()
+    }
+
+    /** Puts the golfer's dot back on GPS (or the tee) and the flag back in the middle of the green. */
+    fun resetMarkers() {
+        placedPlayers.remove(shownHoleNumber)
+        pins.remove(shownHoleNumber)
+        shownHole?.let { callMap("setFlag", pointJson(it.greenMiddle)) }
+        Log.d(TAG, "Markers reset on hole $shownHoleNumber")
+        refreshGuidance()
     }
 
     fun resumeFollowingGps() {
@@ -257,6 +275,7 @@ class HoleMapController(private val activity: Activity, private val listener: Li
             val payload = JSONObject()
                 .put("tee", pointJson(hole.tee))
                 .put("pin", pointJson(hole.greenMiddle))
+                .put("flag", pointJson(pins[hole.hole] ?: hole.greenMiddle))
                 .put("doglegs", JSONArray(hole.doglegs.map(::pointJson)))
                 .put("bearing", GeoMath.bearingDegrees(hole.tee, hole.greenMiddle))
             callMap("showHole", payload)
@@ -273,22 +292,38 @@ class HoleMapController(private val activity: Activity, private val listener: Li
             holeLengthText.text = ""
             distanceSourceText.setText(R.string.hole_map_from_tee)
             listOf(frontText, middleText, backText).forEach { it.setText(R.string.hole_map_no_distance) }
+            middleLabelText.setText(R.string.hole_map_middle)
+            markerHintText.visibility = View.GONE
+            listener.onMarkersMovedChanged(false)
             return
         }
         val fix = lastFix
         val onThisHole = fix != null && fix.onCourse && fix.hole == hole.hole
-        val guidance = HoleGuidance.compute(hole, userPosition, onThisHole, target)
+        val flag = pins[hole.hole]
+        val guidance = HoleGuidance.compute(hole, userPosition, onThisHole, target, placedPlayers[hole.hole], flag)
 
         holeLengthText.text = activity.getString(R.string.hole_map_distance_format, guidance.holeLengthMeters)
-        distanceSourceText.setText(if (guidance.fromGps) R.string.hole_map_from_you else R.string.hole_map_from_tee)
+        distanceSourceText.setText(
+            when (guidance.source) {
+                HoleGuidance.Source.PLACED -> R.string.hole_map_from_marker
+                HoleGuidance.Source.GPS -> R.string.hole_map_from_you
+                HoleGuidance.Source.TEE -> R.string.hole_map_from_tee
+            }
+        )
         frontText.text = formatDistance(guidance.toFront)
-        middleText.text = formatDistance(guidance.toMiddle)
+        middleText.text = formatDistance(guidance.toPin)
+        middleLabelText.setText(if (guidance.pinMoved) R.string.hole_map_pin else R.string.hole_map_middle)
         backText.text = formatDistance(guidance.toBack)
+        val markersMoved = guidance.source == HoleGuidance.Source.PLACED || guidance.pinMoved
+        // Teaches the drags until they've been used on this hole; Reset takes over from there.
+        markerHintText.visibility = if (markersMoved) View.GONE else View.VISIBLE
+        listener.onMarkersMovedChanged(markersMoved)
 
         if (!mapReady) return
-        val points = listOfNotNull(guidance.origin, target, hole.greenMiddle)
+        callMap("setPlayer", pointJson(guidance.origin))
+        val points = listOfNotNull(guidance.origin, target, flag ?: hole.greenMiddle)
         val labels = listOfNotNull(guidance.originToTarget, guidance.targetToPin)
-            .ifEmpty { listOf(guidance.toMiddle) }
+            .ifEmpty { listOf(guidance.toPin) }
             .map { activity.getString(R.string.hole_map_distance_format, it) }
         val payload = JSONObject()
             .put("points", JSONArray(points.map(::pointJson)))
@@ -367,7 +402,6 @@ class HoleMapController(private val activity: Activity, private val listener: Li
         val position = GeoPoint(location.latitude, location.longitude)
         userPosition = position
         userAccuracyMeters = accuracy
-        callMap("setUser", pointJson(position))
         updateFix(position)
         refreshGuidance()
     }
@@ -403,6 +437,7 @@ class HoleMapController(private val activity: Activity, private val listener: Li
         val fix = lastFix
         val accuracy = userAccuracyMeters
         gpsStatusText.text = when {
+            placedPlayers.containsKey(shownHoleNumber) -> activity.getString(R.string.hole_map_gps_placed)
             locationDenied -> activity.getString(R.string.hole_map_gps_denied)
             noLocationProvider -> activity.getString(R.string.hole_map_gps_disabled)
             userPosition == null || accuracy == null -> activity.getString(R.string.hole_map_gps_waiting)
@@ -448,7 +483,6 @@ class HoleMapController(private val activity: Activity, private val listener: Li
             if (!isAlive()) return@runOnUiThread
             mapReady = true
             Log.d(TAG, "Map page ready")
-            userPosition?.let { callMap("setUser", pointJson(it)) }
             renderHole()
         }
 
@@ -459,6 +493,24 @@ class HoleMapController(private val activity: Activity, private val listener: Li
             target = moved
             refreshGuidance()
             listener.onTargetMoved(shownHoleNumber, moved)
+        }
+
+        @JavascriptInterface
+        fun onPlayerMoved(latitude: Double, longitude: Double) = activity.runOnUiThread {
+            if (!isAlive() || shownHole == null) return@runOnUiThread
+            placedPlayers[shownHoleNumber] = GeoPoint(latitude, longitude)
+            refreshGuidance()
+        }
+
+        @JavascriptInterface
+        fun onPinMoved(latitude: Double, longitude: Double, finished: Boolean) = activity.runOnUiThread {
+            val hole = shownHole
+            if (!isAlive() || hole == null) return@runOnUiThread
+            val flag = HoleGuidance.clampPin(hole, GeoPoint(latitude, longitude))
+            pins[shownHoleNumber] = flag
+            // Snaps the flag back onto the green once it's let go.
+            if (finished) callMap("setFlag", pointJson(flag))
+            refreshGuidance()
         }
 
         /** MapLibre couldn't start (e.g. no WebGL). Distances below the map still work without it. */

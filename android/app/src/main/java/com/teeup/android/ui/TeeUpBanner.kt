@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.view.WindowInsetsCompat
 import com.teeup.android.R
 
 /**
@@ -57,7 +58,7 @@ object TeeUpBanner {
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 Gravity.TOP
             ).apply {
-                topMargin = dp(16)
+                topMargin = dp(16) + statusBarOverlap(root)
                 marginStart = dp(16)
                 marginEnd = dp(16)
             }
@@ -90,5 +91,14 @@ object TeeUpBanner {
         Handler(Looper.getMainLooper()).postDelayed({
             if (container.parent != null) dismiss()
         }, durationMs)
+    }
+
+    /** How far the content root reaches up under the status bar: the whole bar on an
+     *  edge-to-edge screen, nothing on one that already starts below it. */
+    private fun statusBarOverlap(root: View): Int {
+        val insets = root.rootWindowInsets ?: return 0
+        val statusBar = WindowInsetsCompat.toWindowInsetsCompat(insets, root).getInsets(WindowInsetsCompat.Type.statusBars()).top
+        val location = IntArray(2).also { root.getLocationInWindow(it) }
+        return (statusBar - location[1]).coerceAtLeast(0)
     }
 }

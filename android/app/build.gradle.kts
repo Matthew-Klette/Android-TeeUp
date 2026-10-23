@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.gms.google-services")
 }
 
@@ -14,7 +15,8 @@ if (!googleServicesFile.exists()) {
 
 android {
     namespace = "com.teeup.android"
-    compileSdk = 34
+    // 36 for the Compose 1.9 libraries; runtime behaviour still follows targetSdk below.
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.teeup.android"
@@ -28,12 +30,23 @@ android {
         release {
             isMinifyEnabled = false
         }
+        // Release, but signed with the local debug key so it installs over a dev build and
+        // keeps its sign-in. For measuring performance the way users get it: not debuggable,
+        // and compiled ahead of time from the baseline profile (src/main/baseline-prof.txt).
+        create("benchmark") {
+            initWith(getByName("release"))
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += listOf("release")
+            isDebuggable = false
+        }
     }
 
     // Needed for BuildConfig.DEBUG, which gates the dev-only auth bypass
     // (DevIdentity/TeeUpApiClient) to debug builds only.
     buildFeatures {
         buildConfig = true
+        // iOS-style redesign (mklet/ios-redesign): screens move to Jetpack Compose one at a time.
+        compose = true
     }
 
     lint {
@@ -107,9 +120,28 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.6")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.6")
 
+    // iOS-style redesign: Compose UI, springs and gestures. BOM 2025.10.00 = Compose 1.9.3.
+    // No Material: the design system in com.teeup.android.design draws every component itself.
+    val composeBom = platform("androidx.compose:compose-bom:2025.10.00")
+    implementation(composeBom)
+    implementation("androidx.compose.foundation:foundation")
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    debugImplementation("androidx.compose.ui:ui-tooling")
+    implementation("androidx.activity:activity-compose:1.10.1")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.6")
+    // Real backdrop blur for the Liquid Glass bars (RenderEffect on Android 12+, a frosted
+    // tint below).
+    implementation("dev.chrisbanes.haze:haze:1.6.10")
+    // Installs baseline-prof.txt on sideloaded/non-Play installs too, so first launches are fast.
+    implementation("androidx.profileinstaller:profileinstaller:1.4.1")
+
     // Biometric Login (Profile & Settings) — BiometricPrompt requires a FragmentActivity
     // host, which is the one reason androidx.fragment enters this project at all.
     implementation("androidx.biometric:biometric:1.1.0")
 
     testImplementation("junit:junit:4.13.2")
+    // The real org.json, so unit tests can parse the bundled hole maps (android.jar only has stubs).
+    testImplementation("org.json:json:20240303")
 }

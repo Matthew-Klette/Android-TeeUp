@@ -3,10 +3,14 @@ package com.teeup.android
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
+import com.teeup.android.auth.SplashScreen
 import com.teeup.android.data.BiometricPreference
+import com.teeup.android.design.TeeUpTheme
 import com.teeup.android.ui.LocaleComponentActivity
+import com.teeup.android.ui.enableTeeUpEdgeToEdge
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 
@@ -19,9 +23,10 @@ class SplashActivity : LocaleComponentActivity() {
     private val tag = "SplashActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableTeeUpEdgeToEdge()
         super.onCreate(savedInstanceState)
         Log.d(tag, "onCreate")
-        setContentView(R.layout.activity_splash)
+        setContent { TeeUpTheme { SplashScreen() } }
 
         lifecycleScope.launch {
             viewModel.destination.filterNotNull().collect { destination ->
