@@ -11,16 +11,36 @@ import java.util.TimeZone
  * without a network round trip.
  */
 object MockCatalog {
+    /**
+     * Real South African courses only, the same list as infra/courses/seed-courses.sql. Each pin
+     * is the course's middle in OpenStreetMap (or the imagery/listing that seed file names), so
+     * Course Preview opens on the actual course. No ratings: there's no verified source for them.
+     */
     val courses: List<Course> = listOf(
-        // Centre of The Links at Fancourt (OpenStreetMap way 47154775), matching its hole map.
-        Course(id = "mock-course-fancourt", name = "Fancourt Links", latitude = -33.9678, longitude = 22.4157, rating = 4.8),
-        Course(id = "mock-course-humewood", name = "Humewood Golf Club", latitude = -33.9711, longitude = 25.656, rating = 4.5),
-        Course(id = "mock-course-wanderers", name = "Wanderers Golf Club", latitude = -26.1448, longitude = 28.0473, rating = 4.6),
-        // Port Elizabeth area courses. Added because searches like "PEGC" or
-        // "Walmer" used to return nothing.
-        Course(id = "mock-course-pegc", name = "Port Elizabeth Golf Club", latitude = -33.9364, longitude = 25.5850, rating = 4.4),
-        Course(id = "mock-course-little-walmer", name = "Little Walmer Golf Course", latitude = -33.9924, longitude = 25.6104, rating = 4.1),
-        Course(id = "mock-course-wedgewood", name = "Wedgewood Golf & Country Estate", latitude = -33.8683, longitude = 25.5217, rating = 4.3)
+        // Port Elizabeth (Gqeberha): every course in the city.
+        Course(id = "mock-course-humewood", name = "Humewood Golf Club", latitude = -33.99959, longitude = 25.67858, rating = null),
+        Course(id = "mock-course-pegc", name = "Port Elizabeth Golf Club", latitude = -33.95878, longitude = 25.58108, rating = null),
+        Course(id = "mock-course-little-walmer", name = "Little Walmer Golf Club", latitude = -33.97387, longitude = 25.5734, rating = null),
+        Course(id = "mock-course-wedgewood", name = "Wedgewood Golf Estate", latitude = -33.91149, longitude = 25.39287, rating = null),
+        Course(id = "mock-course-sardinia-bay", name = "Sardinia Bay Golf Estate", latitude = -34.0171, longitude = 25.4953, rating = null),
+        // The rest of South Africa.
+        Course(id = "mock-course-fancourt", name = "Fancourt Links", latitude = -33.96776, longitude = 22.41567, rating = null),
+        Course(id = "mock-course-wanderers", name = "Wanderers Golf Club", latitude = -26.12946, longitude = 28.05751, rating = null),
+        Course(id = "mock-course-durban-country-club", name = "Durban Country Club", latitude = -29.82133, longitude = 31.03458, rating = null),
+        Course(id = "mock-course-royal-johannesburg-kensington", name = "Royal Johannesburg and Kensington Golf Club", latitude = -26.14993, longitude = 28.11108, rating = null),
+        Course(id = "mock-course-leopard-creek", name = "Leopard Creek Country Club", latitude = -25.44434, longitude = 31.5362, rating = null),
+        Course(id = "mock-course-gary-player", name = "Gary Player Country Club", latitude = -25.33957, longitude = 27.10674, rating = null),
+        Course(id = "mock-course-erinvale", name = "Erinvale Golf Club", latitude = -34.06396, longitude = 18.8828, rating = null),
+        Course(id = "mock-course-simola", name = "Simola Golf Club", latitude = -34.00765, longitude = 23.03357, rating = null),
+        Course(id = "mock-course-zwartkop", name = "Zwartkop Country Club", latitude = -25.83258, longitude = 28.16368, rating = null),
+        Course(id = "mock-course-silver-lakes", name = "Silver Lakes Golf Estate", latitude = -25.77234, longitude = 28.37121, rating = null),
+        Course(id = "mock-course-arabella", name = "Arabella Golf Club", latitude = -34.31589, longitude = 19.13099, rating = null),
+        Course(id = "mock-course-steenberg", name = "Steenberg Golf Club", latitude = -34.06796, longitude = 18.42695, rating = null),
+        Course(id = "mock-course-selborne", name = "Selborne Golf Estate", latitude = -30.37229, longitude = 30.6777, rating = null),
+        Course(id = "mock-course-east-london", name = "East London Golf Club", latitude = -33.00012, longitude = 27.93485, rating = null),
+        Course(id = "mock-course-st-francis-links", name = "St Francis Links", latitude = -34.1608, longitude = 24.8164, rating = null),
+        Course(id = "mock-course-pinnacle-point", name = "Pinnacle Point Golf Estate", latitude = -34.2017, longitude = 22.0933, rating = null),
+        Course(id = "mock-course-pearl-valley", name = "Pearl Valley Golf Estate", latitude = -33.8222, longitude = 18.9793, rating = null)
     )
 
     val teeTimes: List<TeeTime> = listOf(

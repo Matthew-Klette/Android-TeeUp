@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- TeeUp glyph (stroke style to sit beside iOS SF Symbols); tinted in code. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:pathData="M12,4.5a3.6,3.6 0,1 1,0 7.2a3.6,3.6 0,1 1,0 -7.2zM5,19.5c0.6,-3.4 3.4,-5.6 7,-5.6s6.4,2.2 7,5.6"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="1.9"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>

@@ -42,8 +42,6 @@
 
     <!-- Profile Screen -->
     <string name="profile_title">Profile &amp; Settings</string>
-    <string name="profile_name_placeholder">Display Name</string>
-    <string name="profile_details_placeholder">Handicap · Home course</string>
     <string name="profile_details_summary">%1$s · %2$s</string>
     <string name="profile_handicap_unset">No handicap set</string>
 
@@ -153,20 +151,14 @@
 
     <!-- Home Screen -->
     <string name="home_notifications">Notifications</string>
-    <string name="home_title">Find your next round</string>
     <string name="home_area">PORT ELIZABETH &amp; NEARBY</string>
     <string name="home_search_hint">Search course or area</string>
 
     <string name="home_filter_datetime">Date / Time</string>
     <string name="home_filter_players">Players 1–4</string>
-    <string name="home_filter_skill">Skill / Pace Filter</string>
-    <string name="home_filter_mine_off">All Groups</string>
-    <string name="home_filter_mine_on">My Groups</string>
-    <string name="home_filter_active">Skill / Pace ✓</string>
     <string name="home_filter_course">Course</string>
     <string name="home_filter_course_any">Any course</string>
     <string name="home_filter_holes">Holes</string>
-    <string name="home_filter_holes_active_format">Holes: %1$d</string>
 
     <string name="filter_skill_title">Skill / Pace</string>
     <string name="filter_max_handicap_hint">Max handicap (optional)</string>
@@ -176,16 +168,10 @@
     <string name="filter_cancel">Cancel</string>
 
     <string name="home_results_heading">NEARBY</string>
-    <string name="home_loading">Loading nearby tee times…</string>
     <string name="home_load_failed">Couldn\'t load groups. Check your connection and try again.</string>
 
-    <string name="home_card_heading">%1$s · %2$s</string>
-    <string name="home_card_open_round">OPEN ROUND</string>
-    <string name="home_card_details_format">%1$d holes · %2$d of %3$d spots open</string>
     <string name="home_card_hosted_by_format">Hosted by %1$s</string>
-    <string name="home_card_members_heading">PLAYERS</string>
     <string name="group_host_member_format">%1$s (Host)</string>
-    <string name="group_member_row_format">%1$s · HCP %2$s · %3$s</string>
     <string name="group_no_handicap">—</string>
     <string name="home_card_wanted_format">Looking for: %1$s</string>
     <string name="home_card_wanted_handicap_range_format">HCP %1$s–%2$s</string>
@@ -198,11 +184,8 @@
     <!-- Tee Time Detail Screen -->
     <string name="detail_title">Tee Time Detail</string>
     <string name="detail_back">Go back</string>
-    <string name="detail_back_symbol">←</string>
-    <string name="detail_loading">Loading tee time…</string>
     <string name="detail_host">HOST</string>
     <string name="detail_members">PLAYERS</string>
-    <string name="detail_request_to_join">Request to Join</string>
     <string name="detail_pending_requests">Pending Requests</string>
     <string name="detail_preview_course">Preview Course</string>
 
@@ -216,7 +199,6 @@
     <!-- Rounds Screen -->
     <string name="rounds_title">My Rounds</string>
     <string name="rounds_subtitle">Your upcoming rounds and playing history.</string>
-    <string name="rounds_placeholder">Your rounds will appear here once this feature is available.</string>
 
     <!-- Scoreboard Screen -->
     <string name="scorecard_title">Scorecard</string>
@@ -234,9 +216,6 @@
     <string name="scorecard_score_dialog_title">Hole %1$d score</string>
     <string name="scorecard_save_score">Save score</string>
     <string name="scorecard_save_and_finish">Save and finish round</string>
-    <string name="scorecard_round_header_format" translatable="false">%1$s · %2$s</string>
-    <string name="scorecard_previous_symbol" translatable="false">‹</string>
-    <string name="scorecard_next_symbol" translatable="false">›</string>
     <string name="scorecard_progress_format">%1$d of %2$d holes saved this round</string>
     <string name="scorecard_validation_error">Enter strokes (1 or more) and putts (0 up to strokes) for this hole.</string>
     <string name="scorecard_finish_empty_error">Enter at least one hole before finishing the round.</string>
@@ -247,7 +226,6 @@
     <!-- Notification Screen -->
     <string name="notifications_title">Notifications</string>
     <string name="notifications_back">Go back</string>
-    <string name="notifications_back_symbol">←</string>
     <!-- Shared across Personal/Playing Details -->
     <string name="profile_load_signed_out">You need to be signed in to view this</string>
     <string name="profile_load_error_fallback">Couldn\'t load your profile</string>
@@ -255,7 +233,6 @@
 
     <!-- Personal Details Screen -->
     <string name="personal_details_title">Personal Details</string>
-    <string name="personal_details_loading">Loading your profile…</string>
     <string name="personal_details_display_name">Display name</string>
     <string name="personal_details_email_label">EMAIL</string>
     <string name="personal_details_email_none">No email on this account (signed in with Face/Fingerprint or Email stub)</string>
@@ -265,7 +242,6 @@
 
     <!-- Playing Details Screen -->
     <string name="playing_details_title">Playing Details</string>
-    <string name="playing_details_loading">Loading your profile…</string>
     <string name="playing_details_save">Save</string>
     <string name="playing_details_saving">Saving…</string>
     <string name="playing_details_handicap_invalid">Enter a valid handicap between 0 and 54, or leave it blank</string>
@@ -339,15 +315,12 @@
     <string name="privacy_section_controls">YOUR CONTROLS</string>
     <string name="privacy_body_controls">You can edit or clear your profile fields any time under Personal Details / Playing Details, and sign out below. In-app account deletion isn\'t available yet — request it directly from the team in the meantime.</string>
     <string name="privacy_sign_out">Sign Out</string>
-    <string name="privacy_signing_out">Signing out…</string>
 
     <!-- Create Group Screen (EME-311) -->
     <string name="create_group_title">Create a Group</string>
-    <string name="create_group_loading_courses">Loading courses…</string>
     <string name="create_group_when">Date &amp; time</string>
     <string name="create_group_pick_date_time">Pick date &amp; time</string>
     <string name="create_group_pick_time_title">Choose a time</string>
-    <string name="create_group_date_time_format">%1$s at %2$02d:%3$02d</string>
     <string name="create_group_holes">Number of holes</string>
     <string name="create_group_players_needed">How many more players do you need?</string>
     <string name="create_group_minus">−</string>
@@ -357,7 +330,6 @@
     <string name="create_group_handicap_max_hint">Max</string>
     <string name="create_group_create">Create Group</string>
     <string name="create_group_creating">Creating…</string>
-    <string name="create_group_no_courses">No courses available yet — try again shortly.</string>
     <string name="create_group_pick_date_time_error">Pick a date and time first.</string>
     <string name="create_group_date_time_in_past">Choose a date and time in the future.</string>
     <string name="create_group_handicap_range_invalid">The minimum handicap can\'t be above the maximum.</string>
@@ -393,9 +365,44 @@
     <string name="hole_map_gps_denied">Location permission is off, so distances are from the tee.</string>
     <string name="hole_map_gps_disabled">Turn on location for live distances. Showing distances from the tee.</string>
     <string name="hole_map_follow_gps">Follow GPS</string>
+    <string name="hole_map_from_marker">Distances from your marker</string>
+    <string name="hole_map_pin">Pin</string>
+    <string name="hole_map_drag_hint">Drag the blue dot to move yourself, or the flag to set today\'s pin.</string>
+    <string name="hole_map_reset_markers">Reset</string>
+    <string name="hole_map_gps_placed">Using your marker. Tap Reset to go back to GPS.</string>
+    <string name="hole_map_reset_markers_description">Put you and the pin back</string>
     <string name="hole_map_previous">Previous hole</string>
     <string name="hole_map_next">Next hole</string>
     <string name="hole_map_loading">Loading hole map…</string>
     <string name="hole_map_unavailable">There\'s no hole map for this course yet.</string>
     <string name="hole_map_load_failed">Couldn\'t load the hole map.</string>
+
+    <!-- iOS redesign: Home -->
+    <string name="home_large_title">Tee Times</string>
+    <string name="home_chip_any_day">Any day</string>
+    <string name="home_chip_today">Today</string>
+    <string name="home_chip_tomorrow">Tomorrow</string>
+    <string name="home_chip_spots">Spots</string>
+    <string name="home_chip_spots_min_format">%1$d+ spots</string>
+    <string name="home_chip_holes_format">%1$d holes</string>
+    <string name="home_chip_skill">Skill &amp; pace</string>
+    <string name="home_chip_mine">My groups</string>
+    <string name="home_clear_filters">Clear filters</string>
+    <string name="home_clear_search">Clear search</string>
+    <string name="home_card_full">Full</string>
+    <plurals name="home_card_spots_left">
+        <item quantity="one">%d spot left</item>
+        <item quantity="other">%d spots left</item>
+    </plurals>
+
+    <!-- iOS redesign: Tee Time Detail -->
+    <string name="detail_stat_spots">Spots open</string>
+    <string name="detail_stat_price">Price</string>
+
+    <!-- iOS redesign: Create a Group -->
+    <string name="create_group_previous_month">Previous month</string>
+    <string name="create_group_next_month">Next month</string>
+
+    <!-- iOS redesign: Rounds -->
+    <string name="rounds_progress_format">%1$d of %2$d holes</string>
 </resources>

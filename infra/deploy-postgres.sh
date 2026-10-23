@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Provisions the Supabase Postgres project for TeeUp (EME-309), applies EF
-# Core migrations, and seeds one Courses row.
+# Core migrations, and seeds the course catalogue (infra/courses/).
 #
 # Requires: supabase CLI (logged in via `supabase login`), psql, dotnet-ef
 # global tool.
@@ -64,8 +64,11 @@ SQL
 echo "Applying EF Core migrations..."
 (cd "$API_DIR" && dotnet ef database update --connection "$DIRECT_CONN")
 
-echo "Seeding baseline Courses row..."
-PGPASSWORD="$DB_PASSWORD" psql "host=db.$PROJECT_REF.supabase.co port=5432 dbname=postgres user=postgres sslmode=require" -f "$SCRIPT_DIR/seed-course.sql"
+echo "Seeding the course catalogue and hole maps..."
+for seed in "$SCRIPT_DIR/courses/seed-courses.sql" "$SCRIPT_DIR"/courses/holes/*.sql; do
+  PGPASSWORD="$DB_PASSWORD" psql "host=db.$PROJECT_REF.supabase.co port=5432 dbname=postgres user=postgres sslmode=require" \
+    -v ON_ERROR_STOP=1 -f "$seed"
+done
 
 # App Service and other IPv4-only clients need the Supavisor session pooler,
 # not the direct (IPv6-only on the free tier) connection above. The pooler

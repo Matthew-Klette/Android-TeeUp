@@ -1,0 +1,46 @@
+# Baseline profile: code compiled ahead of time on install, so Home starts and scrolls without
+# waiting for the JIT. Compose and Haze ship their own profiles; these rules add TeeUp's own
+# start-up and Home paths. Applies to release (and benchmark) builds, not debug ones.
+HSPLcom/teeup/android/TeeUpApplication;->**(**)**
+HSPLcom/teeup/android/SplashActivity;->**(**)**
+HSPLcom/teeup/android/SplashViewModel;->**(**)**
+HSPLcom/teeup/android/HomeActivity;->**(**)**
+HSPLcom/teeup/android/home/**;->**(**)**
+HSPLcom/teeup/android/TeeTimeDetailActivity;->**(**)**
+HSPLcom/teeup/android/teetime/**;->**(**)**
+HSPLcom/teeup/android/CoursePreviewActivity;->**(**)**
+HSPLcom/teeup/android/course/**;->**(**)**
+HSPLcom/teeup/android/CreateGroupActivity;->**(**)**
+HSPLcom/teeup/android/creategroup/**;->**(**)**
+HSPLcom/teeup/android/RoundsActivity;->**(**)**
+HSPLcom/teeup/android/rounds/**;->**(**)**
+HSPLcom/teeup/android/ScorecardActivity;->**(**)**
+HSPLcom/teeup/android/HoleMapActivity;->**(**)**
+HSPLcom/teeup/android/scorecard/**;->**(**)**
+HSPLcom/teeup/android/RoundSummaryActivity;->**(**)**
+HSPLcom/teeup/android/summary/**;->**(**)**
+HSPLcom/teeup/android/NotificationsActivity;->**(**)**
+HSPLcom/teeup/android/notifications/**;->**(**)**
+HSPLcom/teeup/android/ProfileActivity;->**(**)**
+HSPLcom/teeup/android/profile/**;->**(**)**
+HSPLcom/teeup/android/SignInActivity;->**(**)**
+HSPLcom/teeup/android/auth/**;->**(**)**
+HSPLcom/teeup/android/design/**;->**(**)**
+HSPLcom/teeup/android/nav/**;->**(**)**
+HSPLcom/teeup/android/ui/LocaleComponentActivity;->**(**)**
+HSPLcom/teeup/android/ui/LocaleManager;->**(**)**
+HSPLcom/teeup/android/data/**;->**(**)**
+HSPLdev/chrisbanes/haze/**;->**(**)**
+Lcom/teeup/android/home/**;
+Lcom/teeup/android/teetime/**;
+Lcom/teeup/android/course/**;
+Lcom/teeup/android/creategroup/**;
+Lcom/teeup/android/rounds/**;
+Lcom/teeup/android/scorecard/**;
+Lcom/teeup/android/summary/**;
+Lcom/teeup/android/notifications/**;
+Lcom/teeup/android/profile/**;
+Lcom/teeup/android/auth/**;
+Lcom/teeup/android/design/**;
+Lcom/teeup/android/data/**;
+Ldev/chrisbanes/haze/**;

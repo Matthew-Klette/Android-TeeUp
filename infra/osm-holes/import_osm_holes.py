@@ -19,9 +19,9 @@ Per hole:
                 furthest points along the line of play into the pin (poi 1, location 1/3).
                 Holes without an outline get no front/back rather than an invented one.
 
-Usage (Fancourt Links demo course):
+Usage (Fancourt Links demo course; a course mapped as a multipolygon takes --osm-relation instead):
   python3 -I infra/osm-holes/import_osm_holes.py --osm-way 47154775 --course-name "Fancourt Links" \
-      --sql infra/seed-fancourt-links-holes.sql \
+      --sql infra/courses/holes/fancourt-links.sql \
       --asset android/app/src/main/assets/holes/fancourt-links.json
 
 The public Overpass servers are often at capacity, so the fetch retries with backoff;
@@ -38,7 +38,12 @@ import time
 import urllib.parse
 import urllib.request
 
-OVERPASS_URL = "https://overpass-api.de/api/interpreter"
+# The main instance first, then public mirrors with the same data; the main one is often at capacity.
+OVERPASS_URLS = (
+    "https://overpass-api.de/api/interpreter",
+    "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+    "https://overpass.private.coffee/api/interpreter",
+)
 USER_AGENT = "TeeUp-PROG7314-student-project"
 MAX_FETCH_ATTEMPTS = 6
 FIRST_RETRY_DELAY_SECONDS = 15
@@ -58,10 +63,10 @@ EARTH_RADIUS_M = 6_371_000.0
 COORD_DECIMALS = 7
 
 
-def build_query(course_way_id):
+def build_query(course_type, course_id):
     return (
         "[out:json][timeout:90];"
-        f"way({course_way_id})->.course;"
+        f"{course_type}({course_id})->.course;"
         ".course out tags geom;"
         ".course map_to_area->.area;"
         "(way[golf](area.area);node[golf](area.area););"
@@ -73,16 +78,17 @@ def fetch_overpass(query):
     body = urllib.parse.urlencode({"data": query}).encode()
     delay = FIRST_RETRY_DELAY_SECONDS
     for attempt in range(1, MAX_FETCH_ATTEMPTS + 1):
-        request = urllib.request.Request(OVERPASS_URL, data=body, headers={"User-Agent": USER_AGENT})
-        try:
-            with urllib.request.urlopen(request, timeout=120) as response:
-                return json.load(response)
-        except (OSError, ValueError) as error:
-            print(f"Overpass attempt {attempt}/{MAX_FETCH_ATTEMPTS} failed: {error}", file=sys.stderr)
-            if attempt == MAX_FETCH_ATTEMPTS:
-                raise SystemExit("Overpass is unavailable; try again later or pass --input.")
-            time.sleep(delay)
-            delay *= 2
+        for url in OVERPASS_URLS:
+            request = urllib.request.Request(url, data=body, headers={"User-Agent": USER_AGENT})
+            try:
+                with urllib.request.urlopen(request, timeout=120) as response:
+                    return json.load(response)
+            except (OSError, ValueError) as error:
+                print(f"Overpass attempt {attempt}/{MAX_FETCH_ATTEMPTS} at {url} failed: {error}", file=sys.stderr)
+        if attempt == MAX_FETCH_ATTEMPTS:
+            raise SystemExit("Overpass is unavailable; try again later or pass --input.")
+        time.sleep(delay)
+        delay *= 2
 
 
 def to_local_xy(origin, point):
@@ -127,13 +133,23 @@ def geometry(element):
     return [(node["lat"], node["lon"]) for node in element.get("geometry", [])]
 
 
-def build_holes(elements):
+def course_centre(course):
+    """Middle of the course outline's bounding box. A multipolygon relation has no geometry of
+    its own, only its members', but Overpass gives both kinds a bounds box."""
+    b = course["bounds"]
+    return (b["minlat"] + b["maxlat"]) / 2, (b["minlon"] + b["maxlon"]) / 2
+
+
+def build_holes(elements, ref_fixes=None):
+    """[ref_fixes] maps an OSM way id to the hole number it really is, for a hole line OSM has
+    tagged with the wrong ref (see --fix-ref)."""
+    ref_fixes = ref_fixes or {}
     hole_ways = [e for e in elements if e["type"] == "way" and e["tags"].get("golf") == "hole"]
     green_outlines = [geometry(e) for e in elements if e["type"] == "way" and e["tags"].get("golf") == "green"]
 
     holes = {}
     for way in hole_ways:
-        ref = way["tags"].get("ref", "")
+        ref = str(ref_fixes.get(way["id"], way["tags"].get("ref", "")))
         line = geometry(way)
         if not ref.isdigit() or len(line) < 2:
             print(f"Skipping OSM way {way['id']}: no numeric ref or too few nodes", file=sys.stderr)
@@ -199,15 +215,15 @@ def sql_literal(text):
     return "'" + text.replace("'", "''") + "'"
 
 
-def seed_sql(course_name, course_centre, course_way_id, layouts):
+def seed_sql(course_name, centre, osm_element, layouts):
     name = sql_literal(course_name)
     values = ",\n    ".join(
         f"({hole}, {poi}, {location}, {side}, {round(p[0], COORD_DECIMALS)}, {round(p[1], COORD_DECIMALS)})"
         for hole, poi, location, side, p in coordinate_rows(layouts)
     )
-    lat, lng = (round(v, COORD_DECIMALS) for v in course_centre)
+    lat, lng = (round(v, COORD_DECIMALS) for v in centre)
     return f"""-- Hole map seed for {course_name}. GENERATED by infra/osm-holes/import_osm_holes.py from
--- OpenStreetMap way {course_way_id}; re-run the script rather than editing this file.
+-- OpenStreetMap {osm_element}; re-run the script rather than editing this file.
 -- Hole data (c) OpenStreetMap contributors, ODbL 1.0.
 --
 -- Safe to run more than once: creates the course row if it's missing, moves an existing
@@ -237,29 +253,36 @@ COMMIT;
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--osm-way", type=int, required=True, help="OSM way id of the leisure=golf_course outline")
+    outline = parser.add_mutually_exclusive_group(required=True)
+    outline.add_argument("--osm-way", type=int, help="OSM way id of the leisure=golf_course outline")
+    outline.add_argument("--osm-relation", type=int, help="OSM relation id, for a course mapped as a multipolygon")
     parser.add_argument("--course-name", required=True, help="Course name exactly as stored in the Courses table")
     parser.add_argument("--sql", required=True, help="Seed SQL output path")
     parser.add_argument("--asset", required=True, help="Android asset JSON output path")
+    parser.add_argument("--fix-ref", action="append", default=[], metavar="WAY_ID=HOLE",
+                        help="Treat that OSM hole line as this hole number, for a line tagged with the wrong ref. "
+                             "Check the tee sits by the previous green before using it; repeatable")
     parser.add_argument("--input", help="Use a saved Overpass response instead of fetching")
     parser.add_argument("--save-raw", help="Also save the Overpass response here")
     args = parser.parse_args()
+    course_type, course_id = ("way", args.osm_way) if args.osm_way else ("relation", args.osm_relation)
 
     if args.input:
         with open(args.input, encoding="utf-8") as f:
             data = json.load(f)
     else:
-        data = fetch_overpass(build_query(args.osm_way))
+        data = fetch_overpass(build_query(course_type, course_id))
         if args.save_raw:
             with open(args.save_raw, "w", encoding="utf-8") as f:
                 json.dump(data, f)
 
     elements = data.get("elements", [])
-    course = next((e for e in elements if e["type"] == "way" and e["id"] == args.osm_way), None)
-    if course is None or not geometry(course):
-        raise SystemExit(f"OSM way {args.osm_way} wasn't in the response; check the id.")
+    course = next((e for e in elements if e["type"] == course_type and e["id"] == course_id), None)
+    if course is None or "bounds" not in course:
+        raise SystemExit(f"OSM {course_type} {course_id} wasn't in the response; check the id.")
 
-    layouts = build_holes(elements)
+    ref_fixes = {int(way): int(hole) for way, hole in (fix.split("=") for fix in args.fix_ref)}
+    layouts = build_holes(elements, ref_fixes)
     if not layouts:
         raise SystemExit("No golf=hole lines inside that course; nothing to write.")
 
@@ -267,7 +290,7 @@ def main():
         json.dump(asset_json(layouts), f, indent=2)
         f.write("\n")
     with open(args.sql, "w", encoding="utf-8") as f:
-        f.write(seed_sql(args.course_name, polygon_centre(geometry(course)), args.osm_way, layouts))
+        f.write(seed_sql(args.course_name, course_centre(course), f"{course_type} {course_id}", layouts))
 
     with_edges = sum(1 for h in layouts if h["front"])
     print(f"{args.course_name}: {len(layouts)} holes, {with_edges} with green front/back -> {args.sql}, {args.asset}")

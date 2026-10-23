@@ -369,7 +369,7 @@ object TeeUpApiClient {
                 } catch (e: Exception) {
                     null
                 }
-                throw ApiException(serverDetail ?: httpFailureMessage(code))
+                throw ApiException(serverDetail ?: httpFailureMessage(code), code)
             }
             return connection.inputStream.bufferedReader().use { it.readText() }
         } catch (e: IOException) {
@@ -393,7 +393,8 @@ object TeeUpApiClient {
     }
 }
 
-class ApiException(message: String) : Exception(message)
+/** [statusCode] is the HTTP status when the server answered; null when it couldn't be reached. */
+class ApiException(message: String, val statusCode: Int? = null) : Exception(message)
 
 /*
 References:

@@ -39,13 +39,5 @@
          the dialog window chrome — so an unstyled dialog renders with the platform's
          default dark dialog surface and blue accent, clashing with the app's light
          green/white design. Pass this explicitly: AlertDialog.Builder(this, R.style.TeeUpDialogTheme). -->
-    <style name="TeeUpDialogTheme" parent="android:Theme.Material.Light.Dialog.Alert">
-        <item name="android:windowBackground">@drawable/bg_dialog</item>
-        <item name="android:colorAccent">@color/teeup_accent</item>
-        <item name="android:textColorPrimary">@color/teeup_text_primary</item>
-        <item name="android:textColorSecondary">@color/teeup_text_secondary</item>
-        <item name="android:textColorPrimaryInverse">@color/teeup_text_primary</item>
-        <item name="android:background">@color/teeup_surface</item>
-    </style>
 
 </resources>

@@ -1,22 +1,21 @@
 package com.teeup.android
 
 import android.os.Bundle
-import android.view.View
-import android.widget.Button
+import androidx.activity.compose.setContent
 import com.teeup.android.data.AuthSession
-import com.teeup.android.ui.LocaleActivity
+import com.teeup.android.design.TeeUpTheme
+import com.teeup.android.profile.PrivacyDataScreen
+import com.teeup.android.ui.LocaleComponentActivity
+import com.teeup.android.ui.enableTeeUpEdgeToEdge
+import com.teeup.android.ui.finishWithSlideBack
 
-/** Profile → Privacy & Data (POPIA). */
-class PrivacyDataActivity : LocaleActivity() {
+/** Profile → Privacy & Data (POPIA). The UI is [PrivacyDataScreen]. */
+class PrivacyDataActivity : LocaleComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableTeeUpEdgeToEdge()
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_privacy_data)
-
-        findViewById<View>(R.id.button_back).setOnClickListener {
-            finish()
-            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
+        setContent {
+            TeeUpTheme { PrivacyDataScreen(onBack = ::finishWithSlideBack, onSignOut = { AuthSession.signOut(this) }) }
         }
-
-        findViewById<Button>(R.id.button_sign_out).setOnClickListener { AuthSession.signOut(this) }
     }
 }

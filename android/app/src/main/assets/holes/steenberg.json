@@ -1,0 +1,473 @@
+[
+  {
+    "hole": 1,
+    "tee": {
+      "latitude": -34.0687695,
+      "longitude": 18.4277836
+    },
+    "greenFront": {
+      "latitude": -34.0718054,
+      "longitude": 18.4287576
+    },
+    "greenMiddle": {
+      "latitude": -34.0721022,
+      "longitude": 18.428717
+    },
+    "greenBack": {
+      "latitude": -34.0722084,
+      "longitude": 18.4287025
+    },
+    "doglegs": [
+      {
+        "latitude": -34.0699159,
+        "longitude": 18.4284166
+      },
+      {
+        "latitude": -34.0708491,
+        "longitude": 18.4288887
+      },
+      {
+        "latitude": -34.0718054,
+        "longitude": 18.4287576
+      }
+    ]
+  },
+  {
+    "hole": 2,
+    "tee": {
+      "latitude": -34.0723421,
+      "longitude": 18.4281913
+    },
+    "greenFront": {
+      "latitude": -34.0716488,
+      "longitude": 18.4270784
+    },
+    "greenMiddle": {
+      "latitude": -34.0715601,
+      "longitude": 18.426936
+    },
+    "greenBack": {
+      "latitude": -34.0714218,
+      "longitude": 18.426714
+    },
+    "doglegs": []
+  },
+  {
+    "hole": 3,
+    "tee": {
+      "latitude": -34.0718178,
+      "longitude": 18.4265605
+    },
+    "greenFront": {
+      "latitude": -34.074224,
+      "longitude": 18.4289307
+    },
+    "greenMiddle": {
+      "latitude": -34.0744839,
+      "longitude": 18.4291032
+    },
+    "greenBack": {
+      "latitude": -34.0745897,
+      "longitude": 18.4291734
+    },
+    "doglegs": [
+      {
+        "latitude": -34.0732397,
+        "longitude": 18.4282771
+      },
+      {
+        "latitude": -34.0742309,
+        "longitude": 18.4289353
+      }
+    ]
+  },
+  {
+    "hole": 4,
+    "tee": {
+      "latitude": -34.0746438,
+      "longitude": 18.4294895
+    },
+    "greenFront": {
+      "latitude": -34.071772,
+      "longitude": 18.4307634
+    },
+    "greenMiddle": {
+      "latitude": -34.07164,
+      "longitude": 18.4307984
+    },
+    "greenBack": {
+      "latitude": -34.0715046,
+      "longitude": 18.4308343
+    },
+    "doglegs": [
+      {
+        "latitude": -34.0730175,
+        "longitude": 18.4304336
+      },
+      {
+        "latitude": -34.0717554,
+        "longitude": 18.4307678
+      }
+    ]
+  },
+  {
+    "hole": 5,
+    "tee": {
+      "latitude": -34.0713556,
+      "longitude": 18.4304014
+    },
+    "greenFront": {
+      "latitude": -34.0668181,
+      "longitude": 18.4313271
+    },
+    "greenMiddle": {
+      "latitude": -34.0665742,
+      "longitude": 18.4313563
+    },
+    "greenBack": {
+      "latitude": -34.0664435,
+      "longitude": 18.4313719
+    },
+    "doglegs": [
+      {
+        "latitude": -34.069516,
+        "longitude": 18.4304551
+      },
+      {
+        "latitude": -34.0675608,
+        "longitude": 18.4312383
+      }
+    ]
+  },
+  {
+    "hole": 6,
+    "tee": {
+      "latitude": -34.0663165,
+      "longitude": 18.4317854
+    },
+    "greenFront": {
+      "latitude": -34.0634842,
+      "longitude": 18.4324776
+    },
+    "greenMiddle": {
+      "latitude": -34.0632324,
+      "longitude": 18.4326223
+    },
+    "greenBack": {
+      "latitude": -34.0631178,
+      "longitude": 18.4326881
+    },
+    "doglegs": [
+      {
+        "latitude": -34.0643345,
+        "longitude": 18.4319893
+      },
+      {
+        "latitude": -34.063385,
+        "longitude": 18.4325346
+      }
+    ]
+  },
+  {
+    "hole": 7,
+    "tee": {
+      "latitude": -34.0633746,
+      "longitude": 18.431882
+    },
+    "greenFront": {
+      "latitude": -34.0622641,
+      "longitude": 18.4312213
+    },
+    "greenMiddle": {
+      "latitude": -34.0621303,
+      "longitude": 18.4311417
+    },
+    "greenBack": {
+      "latitude": -34.0619834,
+      "longitude": 18.4310543
+    },
+    "doglegs": []
+  },
+  {
+    "hole": 8,
+    "tee": {
+      "latitude": -34.0617837,
+      "longitude": 18.4304765
+    },
+    "greenFront": {
+      "latitude": -34.0655575,
+      "longitude": 18.4295375
+    },
+    "greenMiddle": {
+      "latitude": -34.0657877,
+      "longitude": 18.4295807
+    },
+    "greenBack": {
+      "latitude": -34.0659492,
+      "longitude": 18.429611
+    },
+    "doglegs": [
+      {
+        "latitude": -34.0636946,
+        "longitude": 18.4295431
+      },
+      {
+        "latitude": -34.0650722,
+        "longitude": 18.4294466
+      },
+      {
+        "latitude": -34.0655575,
+        "longitude": 18.4295375
+      }
+    ]
+  },
+  {
+    "hole": 9,
+    "tee": {
+      "latitude": -34.0660676,
+      "longitude": 18.4302083
+    },
+    "greenFront": {
+      "latitude": -34.0685065,
+      "longitude": 18.4282565
+    },
+    "greenMiddle": {
+      "latitude": -34.0686184,
+      "longitude": 18.4281484
+    },
+    "greenBack": {
+      "latitude": -34.0687195,
+      "longitude": 18.4280508
+    },
+    "doglegs": [
+      {
+        "latitude": -34.0678185,
+        "longitude": 18.4289208
+      }
+    ]
+  },
+  {
+    "hole": 10,
+    "tee": {
+      "latitude": -34.0682629,
+      "longitude": 18.4273759
+    },
+    "greenFront": {
+      "latitude": -34.0653264,
+      "longitude": 18.4280955
+    },
+    "greenMiddle": {
+      "latitude": -34.0652144,
+      "longitude": 18.4281269
+    },
+    "greenBack": {
+      "latitude": -34.0651093,
+      "longitude": 18.4281564
+    },
+    "doglegs": [
+      {
+        "latitude": -34.0664765,
+        "longitude": 18.4277729
+      }
+    ]
+  },
+  {
+    "hole": 11,
+    "tee": {
+      "latitude": -34.0646545,
+      "longitude": 18.4281806
+    },
+    "greenFront": {
+      "latitude": -34.0621329,
+      "longitude": 18.429294
+    },
+    "greenMiddle": {
+      "latitude": -34.0619437,
+      "longitude": 18.4293822
+    },
+    "greenBack": {
+      "latitude": -34.0617955,
+      "longitude": 18.4294512
+    },
+    "doglegs": [
+      {
+        "latitude": -34.063348,
+        "longitude": 18.4287277
+      }
+    ]
+  },
+  {
+    "hole": 12,
+    "tee": {
+      "latitude": -34.0615704,
+      "longitude": 18.4290389
+    },
+    "greenFront": {
+      "latitude": -34.0622622,
+      "longitude": 18.4253278
+    },
+    "greenMiddle": {
+      "latitude": -34.0623347,
+      "longitude": 18.4251228
+    },
+    "greenBack": {
+      "latitude": -34.0623904,
+      "longitude": 18.4249654
+    },
+    "doglegs": [
+      {
+        "latitude": -34.0616326,
+        "longitude": 18.4271077
+      }
+    ]
+  },
+  {
+    "hole": 13,
+    "tee": {
+      "latitude": -34.0630102,
+      "longitude": 18.4246293
+    },
+    "greenFront": {
+      "latitude": -34.0652372,
+      "longitude": 18.4265353
+    },
+    "greenMiddle": {
+      "latitude": -34.0654099,
+      "longitude": 18.4265605
+    },
+    "greenBack": {
+      "latitude": -34.0655431,
+      "longitude": 18.4265799
+    },
+    "doglegs": [
+      {
+        "latitude": -34.0643079,
+        "longitude": 18.4263996
+      }
+    ]
+  },
+  {
+    "hole": 14,
+    "tee": {
+      "latitude": -34.0655166,
+      "longitude": 18.4257773
+    },
+    "greenFront": {
+      "latitude": -34.0649246,
+      "longitude": 18.424412
+    },
+    "greenMiddle": {
+      "latitude": -34.0648234,
+      "longitude": 18.4241787
+    },
+    "greenBack": {
+      "latitude": -34.0646826,
+      "longitude": 18.423854
+    },
+    "doglegs": []
+  },
+  {
+    "hole": 15,
+    "tee": {
+      "latitude": -34.0654811,
+      "longitude": 18.4241385
+    },
+    "greenFront": {
+      "latitude": -34.068868,
+      "longitude": 18.424136
+    },
+    "greenMiddle": {
+      "latitude": -34.0689561,
+      "longitude": 18.4241143
+    },
+    "greenBack": {
+      "latitude": -34.0690721,
+      "longitude": 18.4240857
+    },
+    "doglegs": [
+      {
+        "latitude": -34.0676496,
+        "longitude": 18.4244362
+      }
+    ]
+  },
+  {
+    "hole": 16,
+    "tee": {
+      "latitude": -34.0691649,
+      "longitude": 18.4235859
+    },
+    "greenFront": {
+      "latitude": -34.0713484,
+      "longitude": 18.4213679
+    },
+    "greenMiddle": {
+      "latitude": -34.0714623,
+      "longitude": 18.4212068
+    },
+    "greenBack": {
+      "latitude": -34.0716102,
+      "longitude": 18.4209976
+    },
+    "doglegs": [
+      {
+        "latitude": -34.0708935,
+        "longitude": 18.4220115
+      }
+    ]
+  },
+  {
+    "hole": 17,
+    "tee": {
+      "latitude": -34.0720044,
+      "longitude": 18.4211854
+    },
+    "greenFront": {
+      "latitude": -34.0714461,
+      "longitude": 18.422338
+    },
+    "greenMiddle": {
+      "latitude": -34.0713668,
+      "longitude": 18.4224192
+    },
+    "greenBack": {
+      "latitude": -34.0712592,
+      "longitude": 18.4225294
+    },
+    "doglegs": [
+      {
+        "latitude": -34.0714461,
+        "longitude": 18.422338
+      }
+    ]
+  },
+  {
+    "hole": 18,
+    "tee": {
+      "latitude": -34.0711512,
+      "longitude": 18.4227303
+    },
+    "greenFront": {
+      "latitude": -34.0681806,
+      "longitude": 18.4264509
+    },
+    "greenMiddle": {
+      "latitude": -34.0680585,
+      "longitude": 18.4266034
+    },
+    "greenBack": {
+      "latitude": -34.0679299,
+      "longitude": 18.4267639
+    },
+    "doglegs": [
+      {
+        "latitude": -34.0697648,
+        "longitude": 18.424522
+      },
+      {
+        "latitude": -34.0688317,
+        "longitude": 18.4256378
+      }
+    ]
+  }
+]

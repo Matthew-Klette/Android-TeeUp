@@ -1,42 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Shared spacing -->
-    <dimen name="space_xs">4dp</dimen>
-    <dimen name="space_sm">8dp</dimen>
     <dimen name="space_md">12dp</dimen>
     <dimen name="space_lg">16dp</dimen>
-    <dimen name="screen_padding">24dp</dimen>
-    <dimen name="space_xl">32dp</dimen>
-    <dimen name="space_xxl">48dp</dimen>
 
     <!-- Controls and navigation -->
     <dimen name="touch_target">48dp</dimen>
-    <dimen name="nav_height">72dp</dimen>
-    <dimen name="nav_icon_size">22dp</dimen>
-    <dimen name="nav_pill_width">56dp</dimen>
-    <dimen name="nav_pill_height">32dp</dimen>
 
     <!-- Rounded corners: restrained, not pill-shaped. Nav pill stays fully
          rounded since a stadium indicator is the deliberate exception. -->
     <dimen name="card_radius">10dp</dimen>
     <dimen name="button_radius">8dp</dimen>
-    <dimen name="pill_radius">999dp</dimen>
     <!-- ic_logo.png is a flat opaque square with no alpha channel, so clipping it to this
          via clipToOutline (see bg_logo_mask) is what actually rounds it, not the asset. -->
-    <dimen name="logo_radius">14dp</dimen>
-    <dimen name="logo_radius_small">8dp</dimen>
 
     <!-- Elevation: soft lift so surfaces read as layered, not flat -->
-    <dimen name="elevation_card">3dp</dimen>
-    <dimen name="elevation_button">2dp</dimen>
-    <dimen name="elevation_nav">10dp</dimen>
     <dimen name="elevation_banner">10dp</dimen>
 
     <!-- Shared text sizes -->
-    <dimen name="text_caption">12sp</dimen>
     <dimen name="text_body">14sp</dimen>
     <dimen name="text_body_large">16sp</dimen>
-    <dimen name="text_subheading">20sp</dimen>
-    <dimen name="text_heading">24sp</dimen>
-    <dimen name="text_display">32sp</dimen>
 </resources>

@@ -2,7 +2,8 @@
 <!--
   Hole map view for HoleMapActivity. This page only draws: every distance, the current hole
   and the target position are worked out in Kotlin (GeoMath/HoleTracker/HoleGuidance) and
-  pushed in through window.teeupMap. Drag events go back out through window.TeeUpBridge.
+  pushed in through window.teeupMap. Drags of the target, the golfer's dot and the flag go back
+  out through window.TeeUpBridge.
 
   Layout mirrors the Wedge golf app's hole view: satellite imagery rotated so the hole plays
   bottom-to-top, a dashed guide line from the golfer (or tee) to a draggable target and on
@@ -28,7 +29,7 @@
             width: 14px; height: 14px; border-radius: 50%;
             background: #FFFFFF; border: 3px solid #1E7A44; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
         }
-        .pin { width: 30px; height: 36px; }
+        .pin { width: 30px; height: 36px; touch-action: none; }
         .target {
             width: 44px; height: 44px; border-radius: 50%; box-sizing: border-box;
             border: 3px solid #FFFFFF; background: rgba(255, 255, 255, 0.18);
@@ -38,9 +39,10 @@
             content: ""; position: absolute; left: 50%; top: 50%; width: 8px; height: 8px;
             margin: -4px 0 0 -4px; border-radius: 50%; background: #FFFFFF;
         }
+        /* The golfer: big enough to grab with a thumb, since it can be dragged. */
         .user {
-            width: 16px; height: 16px; border-radius: 50%;
-            background: #2F80ED; border: 3px solid #FFFFFF; box-shadow: 0 0 0 6px rgba(47, 128, 237, 0.25);
+            width: 20px; height: 20px; border-radius: 50%; touch-action: none;
+            background: #2F80ED; border: 3px solid #FFFFFF; box-shadow: 0 0 0 8px rgba(47, 128, 237, 0.25);
         }
         .chip {
             padding: 3px 8px; border-radius: 999px; background: rgba(20, 23, 15, 0.82);
@@ -54,7 +56,10 @@
 <script src="maplibre/maplibre-gl.js"></script>
 <script>
     (function () {
-        var bridge = window.TeeUpBridge || { onReady: function () {}, onTargetMoved: function () {}, onMapError: function () {} };
+        var bridge = window.TeeUpBridge || {
+            onReady: function () {}, onTargetMoved: function () {}, onPlayerMoved: function () {},
+            onPinMoved: function () {}, onMapError: function () {}
+        };
         var PIN_SVG = '<svg viewBox="0 0 30 36" width="30" height="36"><line x1="6" y1="2" x2="6" y2="34" ' +
             'stroke="#FFFFFF" stroke-width="2.5"/><path d="M7 3 L27 9 L7 15 Z" fill="#E5484D"/>' +
             '<circle cx="6" cy="34" r="2" fill="#FFFFFF"/></svg>';
@@ -107,7 +112,7 @@
 
         var teeMarker = null, pinMarker = null, targetMarker = null, userMarker = null;
         var chipMarkers = [];
-        var draggingTarget = false;
+        var draggingTarget = false, draggingPlayer = false, draggingPin = false;
 
         function lngLat(p) { return [p.lng, p.lat]; }
 
@@ -157,11 +162,27 @@
             bridge.onTargetMoved(p.lat, p.lng);
         }
 
+        // A draggable marker that reports every move to [report], and remembers it's being
+        // dragged through [setDragging] so Kotlin's redraws don't snap it back mid-drag.
+        function draggableMarker(className, content, anchor, point, setDragging, report) {
+            var marker = new maplibregl.Marker({ element: element(className, content), anchor: anchor, draggable: true })
+                .setLngLat(lngLat(point))
+                .addTo(map);
+            function emit(finished) { var p = marker.getLngLat(); report(p.lat, p.lng, finished); }
+            marker.on('dragstart', function () { setDragging(true); });
+            marker.on('drag', function () { emit(false); });
+            marker.on('dragend', function () { setDragging(false); emit(true); });
+            return marker;
+        }
+
         window.teeupMap = {
-            /** hole: {tee, pin, doglegs: [...], bearing}; points are {lat, lng}. */
+            /** hole: {tee, pin, flag, doglegs: [...], bearing}; points are {lat, lng}. pin is the
+             *  middle of the green; flag is where the draggable flag stands (today's pin, if moved). */
             showHole: function (hole) {
                 teeMarker = placeMarker(teeMarker, hole.tee, 'tee');
-                pinMarker = placeMarker(pinMarker, hole.pin, 'pin', { svg: PIN_SVG }, 'bottom-left');
+                if (pinMarker) pinMarker.remove();
+                pinMarker = draggableMarker('pin', { svg: PIN_SVG }, 'bottom-left', hole.flag,
+                    function (dragging) { draggingPin = dragging; }, bridge.onPinMoved.bind(bridge));
                 setLine('route', [hole.tee].concat(hole.doglegs, [hole.pin]));
                 frameHole(hole);
             },
@@ -194,15 +215,21 @@
                 }
             },
 
-            /** point: {lat, lng}, or null to hide the golfer's dot. */
-            setUser: function (point) {
-                if (!point) {
-                    if (userMarker) userMarker.remove();
-                    userMarker = null;
-                    return;
+            /** point: {lat, lng}: where distances are measured from (GPS, the tee, or where the
+             *  golfer dropped their dot). Draggable. */
+            setPlayer: function (point) {
+                if (!userMarker) {
+                    userMarker = draggableMarker('user', null, 'center', point,
+                        function (dragging) { draggingPlayer = dragging; },
+                        function (lat, lng) { bridge.onPlayerMoved(lat, lng); });
+                } else if (!draggingPlayer) {
+                    userMarker.setLngLat(lngLat(point));
                 }
-                if (userMarker) userMarker.setLngLat(lngLat(point));
-                else userMarker = placeMarker(null, point, 'user');
+            },
+
+            /** point: {lat, lng}: puts the flag back, e.g. after a reset. */
+            setFlag: function (point) {
+                if (pinMarker && !draggingPin) pinMarker.setLngLat(lngLat(point));
             }
         };
 
