@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Label for a primary button that also shows information while disabled (the in-round
+     "Saved: 4 strokes · 2 putts"): white on the brand fill would wash out on the disabled
+     surface, so the disabled label drops to secondary text. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:state_enabled="false"
+        android:color="@color/teeup_text_secondary" />
+
+    <item android:color="@color/teeup_text_on_primary" />
+
+</selector>

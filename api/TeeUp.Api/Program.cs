@@ -65,6 +65,7 @@ builder.Services.AddDbContext<TeeUpDbContext>(options =>
 // IRepository<T> abstractions, so this swap needed no changes above.
 builder.Services.AddScoped<IUserRepository, EfUserRepository>();
 builder.Services.AddScoped<ICourseRepository, EfCourseRepository>();
+builder.Services.AddScoped<IHoleCoordinateRepository, EfHoleCoordinateRepository>();
 builder.Services.AddScoped<ITeeTimeRepository, EfTeeTimeRepository>();
 builder.Services.AddScoped<IJoinRequestRepository, EfJoinRequestRepository>();
 builder.Services.AddScoped<IRoundRepository, EfRoundRepository>();

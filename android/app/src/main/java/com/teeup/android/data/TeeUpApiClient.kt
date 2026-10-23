@@ -26,6 +26,18 @@ object TeeUpApiClient {
         return (0 until array.length()).map { i -> parseCourse(array.getJSONObject(i)) }
     }
 
+    /** GET /api/courses/{id}/holes: the course's hole-by-hole map for HoleMapActivity. Empty when
+     *  the course exists but hasn't been mapped; ApiException (404 detail) for an unknown course. */
+    fun fetchHoleLayouts(courseId: String): List<HoleLayout> =
+        parseHoleLayouts(request("GET", "api/courses/$courseId/holes"))
+
+    /** Parses the HoleLayoutDto array the API returns. Public because the bundled offline copies
+     *  in assets/holes/ use the exact same JSON shape (see HoleLayoutSource). */
+    fun parseHoleLayouts(json: String): List<HoleLayout> {
+        val array = JSONArray(json)
+        return (0 until array.length()).map { i -> parseHoleLayout(array.getJSONObject(i)) }
+    }
+
     /** maxHandicap/pace filter by the host. null means no filter.
      *  joinableOnly narrows to groups a guest can actually join right now.
      *  Default false still returns full/past/cancelled rows for detail lookups. */
@@ -238,6 +250,20 @@ object TeeUpApiClient {
         longitude = o.getDouble("longitude"),
         rating = if (o.isNull("rating")) null else o.getDouble("rating")
     )
+
+    private fun parseHoleLayout(o: JSONObject): HoleLayout {
+        val doglegs = o.getJSONArray("doglegs")
+        return HoleLayout(
+            hole = o.getInt("hole"),
+            tee = parseGeoPoint(o.getJSONObject("tee")),
+            greenFront = o.optJSONObject("greenFront")?.let(::parseGeoPoint),
+            greenMiddle = parseGeoPoint(o.getJSONObject("greenMiddle")),
+            greenBack = o.optJSONObject("greenBack")?.let(::parseGeoPoint),
+            doglegs = (0 until doglegs.length()).map { i -> parseGeoPoint(doglegs.getJSONObject(i)) }
+        )
+    }
+
+    private fun parseGeoPoint(o: JSONObject) = GeoPoint(o.getDouble("latitude"), o.getDouble("longitude"))
 
     private fun parseTeeTime(o: JSONObject) = TeeTime(
         id = o.getString("id"),

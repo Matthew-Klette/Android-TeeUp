@@ -131,7 +131,6 @@
     <string name="scorecard_strokes">Iintshaya</string>
     <string name="scorecard_putts">Ii-Putt</string>
 
-    <string name="scorecard_next_hole">Imbobo Elandelayo / Gqiba Umjikelo</string>
 
     <!-- Notification Screen -->
     <string name="notifications_title">Izaziso</string>
@@ -369,12 +368,16 @@
     <string name="wireflow_back">Emva</string>
     <string name="scorecard_summary_preview">Jonga isishwankathelo somjikelo</string>
 
-    <string name="scorecard_entry_notice">Faka inqaku lakho kwimbobo nganye, emva koko ugqibe umjikelo ukuze uyigcine kwikhadi lakho lamanqaku.</string>
-    <string name="scorecard_hole_heading">IMBOBO %1$d</string>
     <string name="scorecard_strokes_hint">umz. 4</string>
     <string name="scorecard_putts_hint">umz. 2</string>
     <string name="scorecard_finish_round">Gqiba Umjikelo</string>
     <string name="scorecard_finish_early">Gqiba umjikelo ngoku</string>
+    <string name="scorecard_add_score">Faka inqaku</string>
+    <string name="scorecard_edit_score_format">Iintshaya ezi-%1$d · ii-putt ezi-%2$d · Hlela</string>
+    <string name="scorecard_saved_score_format">Igciniwe: iintshaya ezi-%1$d · ii-putt ezi-%2$d</string>
+    <string name="scorecard_score_dialog_title">Inqaku lembobo %1$d</string>
+    <string name="scorecard_save_score">Gcina inqaku</string>
+    <string name="scorecard_save_and_finish">Gcina uze ugqibe umjikelo</string>
     <string name="scorecard_progress_format">%1$d kwi-%2$d izimbobo zigciniwe kulo mjikelo</string>
     <string name="scorecard_validation_error">Faka iintshaya (1 okanye ngaphezulu) needi-putt (0 ukuya kwiintshaya) kule mbobo.</string>
     <string name="scorecard_finish_empty_error">Faka ubuncinane imbobo enye phambi kokugqiba umjikelo.</string>
@@ -409,4 +412,24 @@
     <string name="teetime_updated">Ihlaziyiwe</string>
     <string name="teetime_update_failed_fallback">Ayikwazanga ukuhlaziya isicelo</string>
     <string name="teetime_course_unavailable">Iinkcukacha zebala azikafumaneki okwangoku</string>
+    <!-- Imephu yembobo -->
+    <string name="hole_map_title">Imephu Yembobo</string>
+    <string name="hole_map_hole_format">Imbobo %1$d</string>
+    <string name="hole_map_distance_format">%1$d m</string>
+    <string name="hole_map_front">Ngaphambili</string>
+    <string name="hole_map_middle">Phakathi</string>
+    <string name="hole_map_back">Ngasemva</string>
+    <string name="hole_map_from_tee">Imigama ukusuka kwi-tee</string>
+    <string name="hole_map_from_you">Imigama ukusuka kuwe</string>
+    <string name="hole_map_gps_waiting">Kufunwa indawo okuyo…</string>
+    <string name="hole_map_gps_accuracy_format">I-GPS ephilayo · ichanile ukuya kwi-%1$d m</string>
+    <string name="hole_map_gps_off_course_format">Ukude nge-%1$.1f km kwibala. Kuboniswa imigama ukusuka kwi-tee.</string>
+    <string name="hole_map_gps_denied">Imvume yendawo icinyiwe, ngoko imigama isuka kwi-tee.</string>
+    <string name="hole_map_gps_disabled">Vula indawo ukuze ufumane imigama ephilayo. Kuboniswa imigama ukusuka kwi-tee.</string>
+    <string name="hole_map_follow_gps">Landela i-GPS</string>
+    <string name="hole_map_previous">Imbobo edlulileyo</string>
+    <string name="hole_map_next">Imbobo elandelayo</string>
+    <string name="hole_map_loading">Ilayisha imephu yembobo…</string>
+    <string name="hole_map_unavailable">Akukabikho mephu yembobo yeli bala okwangoku.</string>
+    <string name="hole_map_load_failed">Ayikwazanga ukulayisha imephu yembobo.</string>
 </resources>

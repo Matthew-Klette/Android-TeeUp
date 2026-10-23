@@ -572,6 +572,7 @@ class HomeActivity : LocaleActivity() {
             return
         }
         val intent = Intent(this, CoursePreviewActivity::class.java).apply {
+            putExtra(CoursePreviewActivity.EXTRA_COURSE_ID, course.id)
             putExtra(CoursePreviewActivity.EXTRA_COURSE_NAME, course.name)
             putExtra(CoursePreviewActivity.EXTRA_COURSE_LAT, course.latitude)
             putExtra(CoursePreviewActivity.EXTRA_COURSE_LNG, course.longitude)

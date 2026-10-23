@@ -87,6 +87,40 @@ namespace TeeUp.Api.Data.Migrations
                     b.ToTable("Endorsements");
                 });
 
+            modelBuilder.Entity("TeeUp.Api.Models.HoleCoordinate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Hole")
+                        .HasColumnType("integer");
+
+                    b.Property<double>("Latitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<int>("Location")
+                        .HasColumnType("integer");
+
+                    b.Property<double>("Longitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<int>("Poi")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SideFw")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId", "Hole");
+
+                    b.ToTable("HoleCoordinates");
+                });
+
             modelBuilder.Entity("TeeUp.Api.Models.JoinRequest", b =>
                 {
                     b.Property<Guid>("Id")
@@ -315,6 +349,15 @@ namespace TeeUp.Api.Data.Migrations
                         .WithMany()
                         .HasForeignKey("ToUserId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TeeUp.Api.Models.HoleCoordinate", b =>
+                {
+                    b.HasOne("TeeUp.Api.Models.Course", null)
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 

@@ -9,7 +9,7 @@ public class CourseServiceTests
     private static (CourseService Service, InMemoryCourseRepository Courses) CreateService()
     {
         var courses = new InMemoryCourseRepository();
-        return (new CourseService(courses), courses);
+        return (new CourseService(courses, new InMemoryHoleCoordinateRepository()), courses);
     }
 
     private static Course MakeCourse(string name) => new()

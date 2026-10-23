@@ -19,6 +19,8 @@ import org.json.JSONObject
  */
 class CoursePreviewActivity : LocaleActivity() {
     companion object {
+        /** Optional; when set, the Hole Map button is shown. */
+        const val EXTRA_COURSE_ID = "com.teeup.android.extra.COURSE_ID"
         const val EXTRA_COURSE_NAME = "com.teeup.android.extra.COURSE_NAME"
         const val EXTRA_COURSE_LAT = "com.teeup.android.extra.COURSE_LAT"
         const val EXTRA_COURSE_LNG = "com.teeup.android.extra.COURSE_LNG"
@@ -44,6 +46,18 @@ class CoursePreviewActivity : LocaleActivity() {
             val rating = intent.getDoubleExtra(EXTRA_COURSE_RATING, 0.0)
             ratingText.text = getString(R.string.course_preview_rating_format, rating)
             ratingText.visibility = View.VISIBLE
+        }
+
+        intent.getStringExtra(EXTRA_COURSE_ID)?.let { courseId ->
+            findViewById<Button>(R.id.button_hole_map).apply {
+                visibility = View.VISIBLE
+                setOnClickListener {
+                    startActivity(Intent(this@CoursePreviewActivity, HoleMapActivity::class.java)
+                        .putExtra(HoleMapActivity.EXTRA_COURSE_ID, courseId)
+                        .putExtra(HoleMapActivity.EXTRA_COURSE_NAME, courseName))
+                    overridePendingTransition(R.anim.slide_in_right, R.anim.fade_out_slight)
+                }
+            }
         }
 
         val webView = findViewById<WebView>(R.id.webview_course_map)

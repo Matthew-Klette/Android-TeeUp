@@ -17,4 +17,14 @@ public class CoursesController(ICourseService courseService) : ControllerBase
     {
         return Ok(await courseService.GetAllAsync(search));
     }
+
+    /// <summary>
+    /// The course's hole-by-hole map (tee, green front/middle/back, doglegs) for the live hole map.
+    /// 404 if the course doesn't exist; an empty list if it exists but hasn't been mapped yet.
+    /// </summary>
+    [HttpGet("{id:guid}/holes")]
+    public async Task<ActionResult<IReadOnlyList<HoleLayoutDto>>> GetHoles(Guid id)
+    {
+        return Ok(await courseService.GetHoleLayoutsAsync(id));
+    }
 }

@@ -2,70 +2,90 @@ package com.teeup.android
 
 import android.app.AlertDialog
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.view.WindowManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
+import com.teeup.android.data.ActiveRound
 import com.teeup.android.data.Course
+import com.teeup.android.data.GeoPoint
 import com.teeup.android.data.HoleScoreInput
 import com.teeup.android.data.MockCatalog
+import com.teeup.android.data.RoundProgress
+import com.teeup.android.data.RoundProgressStore
+import com.teeup.android.data.RoundScoring
 import com.teeup.android.data.ScheduledRound
 import com.teeup.android.data.TeeUpApiClient
 import com.teeup.android.data.formatTeeTime
 import com.teeup.android.nav.BottomNav
 import com.teeup.android.nav.BottomNavTab
+import com.teeup.android.ui.HoleMapController
 import com.teeup.android.ui.LocaleActivity
 import com.teeup.android.ui.TeeUpBanner
 
 /**
- * Screen 5 · Live Scorecard. With [EXTRA_TEE_TIME_ID] set, this is the real
- * hole-by-hole score entry screen for that round (choose the round on
- * RoundsActivity first, which also prompts for [EXTRA_HOLE_COUNT] — 9 or 18).
- * Without a tee time id — e.g. tapped from the bottom nav — it falls back to
- * the "choose a round" landing (activity_scorecard_landing), since there's
- * nothing to score yet.
+ * Screen 5 · Live Scorecard. With [EXTRA_TEE_TIME_ID] set, this is the in-round screen for
+ * that round (choose the round on RoundsActivity first, which also prompts for
+ * [EXTRA_HOLE_COUNT] — 9 or 18): the live hole map stays open for the whole round, with the
+ * hole's distances, Add score, and ‹ › arrows to change hole. The map follows the golfer by GPS
+ * and the scorecard follows the map.
+ *
+ * Where the golfer is in the round (hole, layup target, unsent scores) is kept by
+ * [RoundProgressStore], so leaving for another tab and coming back — or the Scorecard tab, which
+ * reopens an unfinished round — lands on the same hole. Without a tee time id or an unfinished
+ * round it falls back to the "choose a round" landing (activity_scorecard_landing).
  */
-class ScorecardActivity : LocaleActivity() {
+class ScorecardActivity : LocaleActivity(), HoleMapController.Listener {
     companion object {
         const val EXTRA_TEE_TIME_ID = "com.teeup.android.extra.TEE_TIME_ID"
-        /** 9 or 18 (see RoundsActivity's hole-count prompt). Defaults to 18 when absent —
-         *  e.g. resuming a round via "Continue Round", which doesn't re-prompt. */
+        /** 9 or 18 (see RoundsActivity's hole-count prompt). Defaults to the unfinished round's
+         *  count, then 18 — e.g. resuming a round via "Continue Round", which doesn't re-prompt. */
         const val EXTRA_HOLE_COUNT = "com.teeup.android.extra.HOLE_COUNT"
+        /** Shows the scorecards list even while a round is unfinished — the fallback when that
+         *  round can't be loaded, so the Scorecard tab doesn't bounce straight back out. */
+        private const val EXTRA_SHOW_LIST = "com.teeup.android.extra.SHOW_LIST"
+        /** Width of the distances/score panel beside the map in landscape. */
+        private const val LANDSCAPE_PANEL_WIDTH_DP = 360
     }
 
-    /** True only for the landing screen (no [EXTRA_TEE_TIME_ID]) — controls whether
+    /** True only for the landing screen (no round to open) — controls whether
      *  [onResume] reloads the scorecard list. */
     private var isLandingMode = false
     /** onResume always fires right after onCreate too, so without this guard
      *  loadScorecardsLanding() ran twice on every open, showing every round twice. Same guard
      *  shape as HomeActivity's hasLoadedOnce. */
     private var hasLoadedScorecardsOnce = false
+    private lateinit var progressStore: RoundProgressStore
+    private var map: HoleMapController? = null
     private var teeTimeId: String? = null
     private var totalHoles = 18
     private var currentHole = 1
-    /** First hole this session can enter/revisit — anything before it is already permanently
-     *  saved on the server (a prior "Continue Round" session), so Previous Hole stops here. */
-    private var startHole = 1
-    private var alreadySavedHoles = 0
-    /** Hole numbers already scored and saved on the server for this round. Holes aren't always
-     *  a contiguous 1..N prefix — a middle hole can be deleted from RoundSummaryActivity and
-     *  reopened — so resuming and Next/Previous navigation must skip over these rather than
-     *  assume everything below the highest saved hole number is done. */
-    private var persistedHoles: Set<Int> = emptySet()
-    private val newEntries = mutableListOf<HoleScoreInput>()
+    private var scoring = RoundScoring(totalHoles, emptyMap(), emptyMap())
+    /** Where the golfer dragged the layup target on [currentHole]; null means the default spot. */
+    private var currentTarget: GeoPoint? = null
+    /** True from the round loading until it's finished or deleted; progress is only saved meanwhile. */
+    private var isRoundOpen = false
     /** Set once a Round row actually exists server-side (at least one hole already posted);
      *  null means nothing's been saved yet, so there's nothing to delete. */
     private var currentRoundId: String? = null
+    /** Opened by the Scorecard tab reopening the unfinished round, rather than for a chosen round. */
+    private var isResumingActiveRound = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        progressStore = RoundProgressStore(this)
 
-        val id = intent.getStringExtra(EXTRA_TEE_TIME_ID)
+        val active = if (intent.getBooleanExtra(EXTRA_SHOW_LIST, false)) null else progressStore.activeRound()
+        val chosenId = intent.getStringExtra(EXTRA_TEE_TIME_ID)
+        isResumingActiveRound = chosenId == null && active != null
+        val id = chosenId ?: active?.teeTimeId
         if (id == null) {
             isLandingMode = true
             setContentView(R.layout.activity_scorecard_landing)
@@ -78,7 +98,12 @@ class ScorecardActivity : LocaleActivity() {
         }
 
         teeTimeId = id
-        totalHoles = if (intent.getIntExtra(EXTRA_HOLE_COUNT, 18) == 9) 9 else 18
+        val holeCount = when {
+            intent.hasExtra(EXTRA_HOLE_COUNT) -> intent.getIntExtra(EXTRA_HOLE_COUNT, 18)
+            active?.teeTimeId == id -> active.holes
+            else -> 18
+        }
+        totalHoles = normalizedHoles(holeCount)
         setContentView(R.layout.activity_scorecard)
         BottomNav.wire(this, BottomNavTab.SCORECARD)
 
@@ -86,17 +111,69 @@ class ScorecardActivity : LocaleActivity() {
             finish()
             overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
         }
+        map = HoleMapController(this, this)
+        arrangeForOrientation(resources.configuration.orientation)
 
         loadRound(id)
     }
 
+    /** The bottom nav reuses an existing instance (CLEAR_TOP | SINGLE_TOP). A scorecards list
+     *  left in the back stack before a round started must turn into that round when reused. */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (isLandingMode && !intent.getBooleanExtra(EXTRA_SHOW_LIST, false) && progressStore.activeRound() != null) {
+            setIntent(intent)
+            recreate()
+        }
+    }
+
+    /** Rotation is handled here (see the manifest) so the map page isn't reloaded mid-round. */
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        if (!isLandingMode) arrangeForOrientation(newConfig.orientation)
+    }
+
+    /** Landscape has no height for the map above the distances, so they sit side by side. */
+    private fun arrangeForOrientation(orientation: Int) {
+        val landscape = orientation == Configuration.ORIENTATION_LANDSCAPE
+        val gutter = resources.getDimensionPixelSize(R.dimen.space_lg)
+        findViewById<LinearLayout>(R.id.group_entry_content).orientation =
+            if (landscape) LinearLayout.HORIZONTAL else LinearLayout.VERTICAL
+        findViewById<View>(R.id.frame_hole_map).layoutParams =
+            (if (landscape) LinearLayout.LayoutParams(0, MATCH_PARENT, 1f) else LinearLayout.LayoutParams(MATCH_PARENT, 0, 1f))
+                .apply {
+                    marginStart = gutter
+                    marginEnd = if (landscape) 0 else gutter
+                    bottomMargin = if (landscape) gutter else 0
+                }
+        findViewById<View>(R.id.panel_round_details).layoutParams =
+            if (landscape) LinearLayout.LayoutParams(dp(LANDSCAPE_PANEL_WIDTH_DP), MATCH_PARENT)
+            else LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+    }
+
     override fun onResume() {
         super.onResume()
+        map?.onResume()
         // Picks up a round just finished/continued elsewhere (RoundsActivity, RoundSummaryActivity)
         // without a stale list, same pattern as RoundsActivity's own onResume. Skips the first
         // call since onCreate's own loadScorecardsLanding() already covers it.
         if (isLandingMode && hasLoadedScorecardsOnce) loadScorecardsLanding()
         hasLoadedScorecardsOnce = true
+    }
+
+    override fun onPause() {
+        super.onPause()
+        map?.onPause()
+    }
+
+    override fun onDestroy() {
+        map?.onDestroy()
+        super.onDestroy()
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        map?.onRequestPermissionsResult(requestCode)
     }
 
     /** Landing screen (no tee time id): lists every round that already has scoring started —
@@ -210,6 +287,7 @@ class ScorecardActivity : LocaleActivity() {
                 val match = schedule.firstOrNull { it.teeTimeId == id }
                 if (match == null) {
                     runOnUiThread {
+                        progressStore.clear(id)
                         TeeUpBanner.show(this, getString(R.string.scorecard_missing_round), isError = true)
                         finish()
                     }
@@ -222,47 +300,200 @@ class ScorecardActivity : LocaleActivity() {
                     null
                 } ?: MockCatalog.courseById(match.courseId)
 
-                val existingHoles = match.round?.scorecard?.map { it.holeNumber }?.toSet() ?: emptySet()
-                val startHole = (1..totalHoles).firstOrNull { it !in existingHoles } ?: (totalHoles + 1)
-
-                runOnUiThread { onRoundLoaded(match, course, startHole, existingHoles) }
+                runOnUiThread { if (!isFinishing && !isDestroyed) onRoundLoaded(id, match, course) }
             } catch (e: Exception) {
                 runOnUiThread {
                     TeeUpBanner.show(this, e.message ?: getString(R.string.scorecard_load_failed), isError = true)
+                    // Finishing back to the Scorecard tab would only reopen this same round and fail again.
+                    if (isResumingActiveRound) {
+                        startActivity(Intent(this, ScorecardActivity::class.java).putExtra(EXTRA_SHOW_LIST, true))
+                    }
                     finish()
                 }
             }
         }.start()
     }
 
-    private fun onRoundLoaded(round: ScheduledRound, course: Course?, startHole: Int, existingHoles: Set<Int>) {
-        setLoading(false)
-
-        findViewById<TextView>(R.id.round_reference).text = getString(
-            R.string.round_reference,
-            "${course?.name ?: getString(R.string.rounds_unknown_course)} · ${formatTeeTime(round.dateTime)}"
-        )
-
-        if (startHole > totalHoles) {
+    private fun onRoundLoaded(id: String, round: ScheduledRound, course: Course?) {
+        // The tee time's own length wins over the intent's, which falls back to 18 when unknown.
+        round.holes?.let { totalHoles = normalizedHoles(it) }
+        val saved = round.round?.scorecard.orEmpty()
+            .associate { it.holeNumber to HoleScoreInput(it.holeNumber, it.strokes, it.putts) }
+        if ((1..totalHoles).all { it in saved }) {
+            progressStore.clear(id)
             TeeUpBanner.show(this, getString(R.string.scorecard_already_complete))
             openSummary()
             return
         }
 
-        this.startHole = startHole
-        this.persistedHoles = existingHoles
-        alreadySavedHoles = existingHoles.size
-        currentHole = startHole
+        val stored = progressStore.load(id)
+        scoring = RoundScoring(totalHoles, saved, stored?.pending.orEmpty().associateBy { it.holeNumber })
+            .withoutStalePending()
+        currentHole = stored?.hole?.takeIf { it in scoring.holes } ?: scoring.firstUnscored() ?: 1
+        currentTarget = stored?.target?.takeIf { stored.hole == currentHole }
         currentRoundId = round.round?.id
-        updateHoleUi()
+        isRoundOpen = true
+        progressStore.setActive(ActiveRound(id, totalHoles))
 
-        findViewById<Button>(R.id.button_previous_hole).setOnClickListener { onPreviousHoleClicked() }
-        findViewById<Button>(R.id.button_next_hole).setOnClickListener { onNextHoleClicked() }
-        findViewById<Button>(R.id.button_finish_early).setOnClickListener { onFinishEarlyClicked() }
-        findViewById<Button>(R.id.button_delete_round).apply {
-            visibility = if (currentRoundId != null) View.VISIBLE else View.GONE
-            setOnClickListener { confirmDeleteRound() }
+        findViewById<TextView>(R.id.text_course_name).text = getString(
+            R.string.scorecard_round_header_format,
+            course?.name ?: getString(R.string.rounds_unknown_course),
+            formatTeeTime(round.dateTime)
+        )
+        findViewById<Button>(R.id.button_previous_hole).setOnClickListener { moveToHole(currentHole - 1) }
+        findViewById<Button>(R.id.button_next_hole).setOnClickListener { moveToHole(currentHole + 1) }
+        findViewById<Button>(R.id.button_follow_gps).setOnClickListener { map?.resumeFollowingGps() }
+        findViewById<Button>(R.id.button_add_score).setOnClickListener { showScoreDialog() }
+        findViewById<Button>(R.id.button_finish_early).setOnClickListener { onFinishClicked() }
+        findViewById<Button>(R.id.button_delete_round).setOnClickListener { confirmDeleteRound() }
+
+        setLoading(false)
+        if (course != null) {
+            map?.start(course.id, course.name, currentHole, currentTarget, scoring.holes)
+        } else {
+            map?.showUnavailable()
         }
+        updateHoleUi()
+        persistProgress()
+    }
+
+    /** A hole picked with the ‹ › arrows, or the next one to score after saving. Unless
+     *  [keepFollowing], this stops the map following GPS so it stays on the chosen hole. */
+    private fun moveToHole(hole: Int, keepFollowing: Boolean = false) {
+        if (hole !in scoring.holes || hole == currentHole) return
+        currentHole = hole
+        currentTarget = null
+        map?.showHole(hole, keepFollowing)
+        updateHoleUi()
+        persistProgress()
+    }
+
+    override fun onHoleShown(hole: Int) {
+        updateFollowButton()
+        // Only GPS moves the map to a hole the scorecard isn't already on.
+        if (!isRoundOpen || hole == currentHole || hole !in scoring.holes) return
+        currentHole = hole
+        currentTarget = null
+        updateHoleUi()
+        persistProgress()
+    }
+
+    override fun onFollowGpsChanged(following: Boolean) = updateFollowButton()
+
+    override fun onTargetMoved(hole: Int, target: GeoPoint) {
+        if (hole != currentHole) return
+        currentTarget = target
+        persistProgress()
+    }
+
+    private fun updateFollowButton() {
+        val map = map ?: return
+        findViewById<Button>(R.id.button_follow_gps).visibility =
+            if (!map.isFollowingGps && map.mappedHoles.isNotEmpty()) View.VISIBLE else View.GONE
+    }
+
+    private fun showScoreDialog() {
+        val hole = currentHole
+        if (scoring.isSaved(hole)) return
+        val body = layoutInflater.inflate(R.layout.dialog_hole_score, null)
+        val strokesInput = body.findViewById<EditText>(R.id.input_strokes)
+        val puttsInput = body.findViewById<EditText>(R.id.input_putts)
+        // Editing a hole already entered this round starts from what was there.
+        scoring.pending[hole]?.let {
+            strokesInput.setText(it.strokes.toString())
+            puttsInput.setText(it.putts.toString())
+        }
+
+        val saveLabel = if (scoring.isLastToScore(hole)) R.string.scorecard_save_and_finish else R.string.scorecard_save_score
+        val dialog = AlertDialog.Builder(this, R.style.TeeUpDialogTheme)
+            .setTitle(getString(R.string.scorecard_score_dialog_title, hole))
+            .setView(body)
+            .setPositiveButton(saveLabel, null)
+            .setNegativeButton(R.string.dialog_cancel, null)
+            .create()
+        // Set after show() so a bad entry keeps the dialog open instead of dismissing it.
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val entry = RoundScoring.entryOrNull(
+                    hole,
+                    strokesInput.text.toString().trim().toIntOrNull(),
+                    puttsInput.text.toString().trim().toIntOrNull()
+                )
+                if (entry == null) {
+                    strokesInput.error = getString(R.string.scorecard_validation_error)
+                    strokesInput.requestFocus()
+                    return@setOnClickListener
+                }
+                dialog.dismiss()
+                onScoreEntered(entry)
+            }
+        }
+        dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
+        dialog.show()
+        strokesInput.requestFocus()
+    }
+
+    private fun onScoreEntered(entry: HoleScoreInput) {
+        scoring = scoring.withEntry(entry)
+        persistProgress()
+        if (scoring.isComplete) {
+            finishRound()
+            return
+        }
+        // On the course with GPS following, the map moves on by itself as the golfer walks to the
+        // next tee. Otherwise step straight to the next hole still needing a score, so off-GPS
+        // scoring stays one tap per hole like the old Save & Next Hole.
+        val next = scoring.holeAfter(entry.holeNumber)
+        if (map?.isFollowingOnCourse != true && next != null) moveToHole(next, keepFollowing = true)
+        updateHoleUi()
+    }
+
+    private fun onFinishClicked() {
+        if (scoring.pending.isEmpty()) {
+            TeeUpBanner.show(this, getString(R.string.scorecard_finish_empty_error), isError = true)
+            return
+        }
+        finishRound()
+    }
+
+    private fun updateHoleUi() {
+        findViewById<TextView>(R.id.text_hole_title).text = getString(R.string.hole_map_hole_format, currentHole)
+        findViewById<Button>(R.id.button_previous_hole).isEnabled = currentHole > scoring.holes.first
+        findViewById<Button>(R.id.button_next_hole).isEnabled = currentHole < scoring.holes.last
+
+        val score = scoring.scoreFor(currentHole)
+        val isSaved = scoring.isSaved(currentHole)
+        findViewById<Button>(R.id.button_add_score).apply {
+            // Holes already on the server can't be re-sent (the API rejects a repeated hole), so
+            // they're shown read-only; fix one by deleting it on the round summary.
+            isEnabled = !isSaved
+            text = when {
+                score == null -> getString(R.string.scorecard_add_score)
+                isSaved -> getString(R.string.scorecard_saved_score_format, score.strokes, score.putts)
+                else -> getString(R.string.scorecard_edit_score_format, score.strokes, score.putts)
+            }
+        }
+
+        findViewById<TextView>(R.id.text_progress).text =
+            getString(R.string.scorecard_progress_format, scoring.scoredCount, totalHoles)
+        findViewById<Button>(R.id.button_finish_early).setText(
+            if (scoring.isComplete) R.string.scorecard_finish_round else R.string.scorecard_finish_early
+        )
+        findViewById<Button>(R.id.button_delete_round).visibility =
+            if (currentRoundId != null) View.VISIBLE else View.GONE
+        updateFollowButton()
+    }
+
+    private fun persistProgress() {
+        val id = teeTimeId ?: return
+        if (!isRoundOpen) return
+        progressStore.save(id, RoundProgress(currentHole, currentTarget, scoring.pending.values.toList()))
+    }
+
+    /** Ends the round for good: nothing more is saved, and the Scorecard tab stops reopening it. */
+    private fun closeRound() {
+        isRoundOpen = false
+        teeTimeId?.let(progressStore::clear)
     }
 
     private fun confirmDeleteRound() {
@@ -280,6 +511,7 @@ class ScorecardActivity : LocaleActivity() {
             try {
                 TeeUpApiClient.deleteRound(roundId)
                 runOnUiThread {
+                    closeRound()
                     TeeUpBanner.show(this, getString(R.string.summary_round_deleted))
                     finish()
                 }
@@ -291,112 +523,16 @@ class ScorecardActivity : LocaleActivity() {
         }.start()
     }
 
-    private fun onPreviousHoleClicked() {
-        if (currentHole <= startHole) return
-        // Whatever's currently typed for the hole being left is discarded, not saved — Previous
-        // is for backing out of a hole to go fix an earlier mistake, not for confirming this one.
-        currentHole = previousEntryHole(currentHole)
-        updateHoleUi()
-    }
-
-    private fun onNextHoleClicked() {
-        val entry = readValidatedEntry() ?: run {
-            TeeUpBanner.show(this, getString(R.string.scorecard_validation_error), isError = true)
-            return
-        }
-        replaceEntry(entry)
-
-        val next = nextEntryHole(currentHole)
-        if (next > totalHoles) {
-            finishRound()
-        } else {
-            currentHole = next
-            updateHoleUi()
-        }
-    }
-
-    /** Nearest higher hole number, up to [totalHoles], that still needs an entry — skips holes
-     *  already persisted on the server so Next never re-submits one and hits the API's
-     *  duplicate-hole rejection. Returns totalHoles + 1 once nothing is left to enter. */
-    private fun nextEntryHole(from: Int): Int {
-        var hole = from + 1
-        while (hole <= totalHoles && hole in persistedHoles) hole++
-        return hole
-    }
-
-    /** Nearest lower hole number, no lower than [startHole], that still needs an entry — mirrors
-     *  [nextEntryHole] so Previous never lands back on an already-persisted hole either. */
-    private fun previousEntryHole(from: Int): Int {
-        var hole = from - 1
-        while (hole > startHole && hole in persistedHoles) hole--
-        return hole
-    }
-
-    private fun onFinishEarlyClicked() {
-        val strokesText = findViewById<EditText>(R.id.input_strokes).text.toString().trim()
-        val puttsText = findViewById<EditText>(R.id.input_putts).text.toString().trim()
-        if (strokesText.isNotEmpty() || puttsText.isNotEmpty()) {
-            val entry = readValidatedEntry() ?: run {
-                TeeUpBanner.show(this, getString(R.string.scorecard_validation_error), isError = true)
-                return
-            }
-            replaceEntry(entry)
-        }
-
-        if (newEntries.isEmpty()) {
-            TeeUpBanner.show(this, getString(R.string.scorecard_finish_empty_error), isError = true)
-            return
-        }
-        finishRound()
-    }
-
-    /** Replaces this session's existing entry for the hole, if any, instead of appending a
-     *  second one — needed once Previous Hole makes re-confirming an already-entered hole
-     *  possible (the API also rejects a duplicate hole number within one PostScorecard call). */
-    private fun replaceEntry(entry: HoleScoreInput) {
-        newEntries.removeAll { it.holeNumber == entry.holeNumber }
-        newEntries.add(entry)
-    }
-
-    private fun readValidatedEntry(): HoleScoreInput? {
-        val strokes = findViewById<EditText>(R.id.input_strokes).text.toString().trim().toIntOrNull()
-        val putts = findViewById<EditText>(R.id.input_putts).text.toString().trim().toIntOrNull()
-        if (strokes == null || strokes < 1 || putts == null || putts < 0 || putts > strokes) return null
-        return HoleScoreInput(currentHole, strokes, putts)
-    }
-
-    private fun updateHoleUi() {
-        findViewById<TextView>(R.id.text_hole_heading).text = getString(R.string.scorecard_hole_heading, currentHole)
-
-        // Revisiting a hole already entered this session (via Previous Hole) pre-fills what
-        // was there instead of showing blank fields — otherwise saving it again would erase it.
-        val existing = newEntries.firstOrNull { it.holeNumber == currentHole }
-        findViewById<EditText>(R.id.input_strokes).setText(existing?.strokes?.toString().orEmpty())
-        findViewById<EditText>(R.id.input_putts).setText(existing?.putts?.toString().orEmpty())
-
-        findViewById<TextView>(R.id.text_progress).text = getString(
-            R.string.scorecard_progress_format, alreadySavedHoles + newEntries.size, totalHoles
-        )
-        findViewById<Button>(R.id.button_previous_hole).visibility =
-            if (currentHole > startHole) View.VISIBLE else View.GONE
-        // The last hole still needing an entry, not just hole number == totalHoles — a gap left
-        // by deleting a middle hole can put the final entry before the numeric last hole.
-        val isLastEntryHole = nextEntryHole(currentHole) > totalHoles
-        findViewById<Button>(R.id.button_next_hole).text =
-            if (isLastEntryHole) getString(R.string.scorecard_finish_round) else getString(R.string.scorecard_next_hole)
-        findViewById<Button>(R.id.button_finish_early).visibility =
-            if (isLastEntryHole) View.GONE else View.VISIBLE
-    }
-
     private fun finishRound() {
         val id = teeTimeId ?: return
+        val entries = scoring.pending.values.sortedBy { it.holeNumber }
         setLoading(true)
-        findViewById<View>(R.id.group_entry_content).visibility = View.GONE
 
         Thread {
             try {
-                TeeUpApiClient.postScorecard(id, newEntries)
+                TeeUpApiClient.postScorecard(id, entries)
                 runOnUiThread {
+                    closeRound()
                     TeeUpBanner.show(this, getString(R.string.scorecard_finish_success))
                     openSummary()
                 }
@@ -416,6 +552,8 @@ class ScorecardActivity : LocaleActivity() {
         })
         finish()
     }
+
+    private fun normalizedHoles(count: Int) = if (count == 9) 9 else 18
 
     private fun setLoading(loading: Boolean) {
         findViewById<View>(R.id.scorecard_progress).visibility = if (loading) View.VISIBLE else View.GONE

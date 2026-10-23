@@ -12,7 +12,8 @@ import java.util.TimeZone
  */
 object MockCatalog {
     val courses: List<Course> = listOf(
-        Course(id = "mock-course-fancourt", name = "Fancourt Links", latitude = -33.9608, longitude = 22.4478, rating = 4.8),
+        // Centre of The Links at Fancourt (OpenStreetMap way 47154775), matching its hole map.
+        Course(id = "mock-course-fancourt", name = "Fancourt Links", latitude = -33.9678, longitude = 22.4157, rating = 4.8),
         Course(id = "mock-course-humewood", name = "Humewood Golf Club", latitude = -33.9711, longitude = 25.656, rating = 4.5),
         Course(id = "mock-course-wanderers", name = "Wanderers Golf Club", latitude = -26.1448, longitude = 28.0473, rating = 4.6),
         // Port Elizabeth area courses. Added because searches like "PEGC" or

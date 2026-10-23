@@ -131,7 +131,6 @@
     <string name="scorecard_strokes">Houe</string>
     <string name="scorecard_putts">Putte</string>
 
-    <string name="scorecard_next_hole">Volgende Gat / Voltooi Rondte</string>
 
     <!-- Notification Screen -->
     <string name="notifications_title">Kennisgewings</string>
@@ -369,12 +368,16 @@
     <string name="wireflow_back">Terug</string>
     <string name="scorecard_summary_preview">Bekyk rondte-opsomming</string>
 
-    <string name="scorecard_entry_notice">Voer jou telling vir elke putjie in, en voltooi dan die rondte om dit op jou telkaart te stoor.</string>
-    <string name="scorecard_hole_heading">PUTJIE %1$d</string>
     <string name="scorecard_strokes_hint">bv. 4</string>
     <string name="scorecard_putts_hint">bv. 2</string>
     <string name="scorecard_finish_round">Voltooi Rondte</string>
     <string name="scorecard_finish_early">Voltooi rondte nou</string>
+    <string name="scorecard_add_score">Voeg telling by</string>
+    <string name="scorecard_edit_score_format">%1$d houe · %2$d putte · Wysig</string>
+    <string name="scorecard_saved_score_format">Gestoor: %1$d houe · %2$d putte</string>
+    <string name="scorecard_score_dialog_title">Putjie %1$d telling</string>
+    <string name="scorecard_save_score">Stoor telling</string>
+    <string name="scorecard_save_and_finish">Stoor en voltooi rondte</string>
     <string name="scorecard_progress_format">%1$d van %2$d putjies gestoor hierdie rondte</string>
     <string name="scorecard_validation_error">Voer houe (1 of meer) en putte (0 tot houe) vir hierdie putjie in.</string>
     <string name="scorecard_finish_empty_error">Voer minstens een putjie in voordat jy die rondte voltooi.</string>
@@ -409,4 +412,24 @@
     <string name="teetime_updated">Opgedateer</string>
     <string name="teetime_update_failed_fallback">Kon nie die versoek opdateer nie</string>
     <string name="teetime_course_unavailable">Baanbesonderhede is nog nie beskikbaar nie</string>
+    <!-- Putjiekaart -->
+    <string name="hole_map_title">Putjiekaart</string>
+    <string name="hole_map_hole_format">Putjie %1$d</string>
+    <string name="hole_map_distance_format">%1$d m</string>
+    <string name="hole_map_front">Voor</string>
+    <string name="hole_map_middle">Middel</string>
+    <string name="hole_map_back">Agter</string>
+    <string name="hole_map_from_tee">Afstande vanaf die afslaanplek</string>
+    <string name="hole_map_from_you">Afstande vanaf jou</string>
+    <string name="hole_map_gps_waiting">Soek jou ligging…</string>
+    <string name="hole_map_gps_accuracy_format">Lewendige GPS · akkuraat tot %1$d m</string>
+    <string name="hole_map_gps_off_course_format">Jy is %1$.1f km van die baan af. Afstande word vanaf die afslaanplek gewys.</string>
+    <string name="hole_map_gps_denied">Liggingtoestemming is af, dus is afstande vanaf die afslaanplek.</string>
+    <string name="hole_map_gps_disabled">Skakel ligging aan vir lewendige afstande. Afstande word vanaf die afslaanplek gewys.</string>
+    <string name="hole_map_follow_gps">Volg GPS</string>
+    <string name="hole_map_previous">Vorige putjie</string>
+    <string name="hole_map_next">Volgende putjie</string>
+    <string name="hole_map_loading">Laai putjiekaart…</string>
+    <string name="hole_map_unavailable">Daar is nog nie \'n putjiekaart vir hierdie baan nie.</string>
+    <string name="hole_map_load_failed">Kon nie die putjiekaart laai nie.</string>
 </resources>
