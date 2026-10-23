@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<!--
+  Hole map view for HoleMapActivity. This page only draws: every distance, the current hole
+  and the target position are worked out in Kotlin (GeoMath/HoleTracker/HoleGuidance) and
+  pushed in through window.teeupMap. Drag events go back out through window.TeeUpBridge.
+
+  Layout mirrors the Wedge golf app's hole view: satellite imagery rotated so the hole plays
+  bottom-to-top, a dashed guide line from the golfer (or tee) to a draggable target and on
+  to the pin, with the distance of each leg on the line.
+
+  MapLibre GL JS (MapLibre, n.d.) renders Esri World Imagery tiles (Esri, n.d.); hole data is
+  from OpenStreetMap (OpenStreetMap contributors, n.d.).
+-->
+<html>
+<head>
+    <meta charset="utf-8">
+    <!-- No favicon: stops the WebView asking for one. -->
+    <link rel="icon" href="data:,">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- MapLibre GL JS 5.24.0 is bundled in assets/maplibre/ (BSD-3-Clause, see LICENSE.txt there) and
+         served by HoleMapActivity's WebViewClient, so the map still starts with no signal on the course. -->
+    <link rel="stylesheet" href="maplibre/maplibre-gl.css">
+    <style>
+        html, body, #map { height: 100%; margin: 0; padding: 0; background: #161C18; }
+        body { font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
+
+        .tee {
+            width: 14px; height: 14px; border-radius: 50%;
+            background: #FFFFFF; border: 3px solid #1E7A44; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+        }
+        .pin { width: 30px; height: 36px; }
+        .target {
+            width: 44px; height: 44px; border-radius: 50%; box-sizing: border-box;
+            border: 3px solid #FFFFFF; background: rgba(255, 255, 255, 0.18);
+            box-shadow: 0 1px 6px rgba(0, 0, 0, 0.55); touch-action: none;
+        }
+        .target::after {
+            content: ""; position: absolute; left: 50%; top: 50%; width: 8px; height: 8px;
+            margin: -4px 0 0 -4px; border-radius: 50%; background: #FFFFFF;
+        }
+        .user {
+            width: 16px; height: 16px; border-radius: 50%;
+            background: #2F80ED; border: 3px solid #FFFFFF; box-shadow: 0 0 0 6px rgba(47, 128, 237, 0.25);
+        }
+        .chip {
+            padding: 3px 8px; border-radius: 999px; background: rgba(20, 23, 15, 0.82);
+            color: #FFFFFF; font-size: 13px; font-weight: bold; white-space: nowrap; pointer-events: none;
+        }
+        .maplibregl-ctrl-attrib { font-size: 10px; }
+    </style>
+</head>
+<body>
+<div id="map"></div>
+<script src="maplibre/maplibre-gl.js"></script>
+<script>
+    (function () {
+        var bridge = window.TeeUpBridge || { onReady: function () {}, onTargetMoved: function () {}, onMapError: function () {} };
+        var PIN_SVG = '<svg viewBox="0 0 30 36" width="30" height="36"><line x1="6" y1="2" x2="6" y2="34" ' +
+            'stroke="#FFFFFF" stroke-width="2.5"/><path d="M7 3 L27 9 L7 15 Z" fill="#E5484D"/>' +
+            '<circle cx="6" cy="34" r="2" fill="#FFFFFF"/></svg>';
+        var EMPTY_LINE = { type: 'Feature', geometry: { type: 'LineString', coordinates: [] } };
+
+        var map;
+        try {
+            map = createMap();
+        } catch (error) {
+            // No WebGL on this device/WebView, or MapLibre failed to load: let Kotlin show its message.
+            bridge.onMapError(String(error));
+            return;
+        }
+
+        function createMap() {
+            return new maplibregl.Map({
+                container: 'map',
+                style: {
+                    version: 8,
+                    sources: {
+                        imagery: {
+                            type: 'raster',
+                            tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+                            tileSize: 256,
+                            maxzoom: 19,
+                            attribution: 'Imagery © Esri, Maxar, Earthstar Geographics · Holes © OpenStreetMap contributors'
+                        },
+                        route: { type: 'geojson', data: EMPTY_LINE },
+                        guide: { type: 'geojson', data: EMPTY_LINE }
+                    },
+                    layers: [
+                        { id: 'imagery', type: 'raster', source: 'imagery' },
+                        { id: 'route', type: 'line', source: 'route',
+                          paint: { 'line-color': '#FFFFFF', 'line-width': 2, 'line-opacity': 0.35 } },
+                        { id: 'guide', type: 'line', source: 'guide',
+                          layout: { 'line-cap': 'round' },
+                          paint: { 'line-color': '#FFFFFF', 'line-width': 3, 'line-dasharray': [1.5, 1.5] } }
+                    ]
+                },
+                center: [0, 0],
+                zoom: 2,
+                maxZoom: 20,
+                attributionControl: { compact: true },
+                pitchWithRotate: false,
+                dragRotate: false,
+                touchPitch: false
+            });
+        }
+        map.touchZoomRotate.disableRotation();
+
+        var teeMarker = null, pinMarker = null, targetMarker = null, userMarker = null;
+        var chipMarkers = [];
+        var draggingTarget = false;
+
+        function lngLat(p) { return [p.lng, p.lat]; }
+
+        // svg is only ever the PIN_SVG constant above; text (distance labels) goes in as plain text.
+        function element(className, content) {
+            var el = document.createElement('div');
+            el.className = className;
+            if (content && content.svg) el.innerHTML = content.svg;
+            else if (content) el.textContent = content.text;
+            return el;
+        }
+
+        function placeMarker(existing, point, className, content, anchor) {
+            if (existing) existing.remove();
+            return new maplibregl.Marker({ element: element(className, content), anchor: anchor || 'center' })
+                .setLngLat(lngLat(point))
+                .addTo(map);
+        }
+
+        function setLine(sourceId, points) {
+            map.getSource(sourceId).setData({
+                type: 'Feature',
+                geometry: { type: 'LineString', coordinates: points.map(lngLat) }
+            });
+        }
+
+        function clearChips() {
+            chipMarkers.forEach(function (m) { m.remove(); });
+            chipMarkers = [];
+        }
+
+        // Frames the whole hole, rotated to its tee-to-pin bearing so it plays up the screen.
+        function frameHole(hole) {
+            var bounds = new maplibregl.LngLatBounds();
+            [hole.tee, hole.pin].concat(hole.doglegs).forEach(function (p) { bounds.extend(lngLat(p)); });
+            var camera = map.cameraForBounds(bounds, {
+                bearing: hole.bearing,
+                padding: { top: 60, bottom: 40, left: 40, right: 40 },
+                maxZoom: 19
+            });
+            if (!camera) return;
+            map.easeTo({ center: camera.center, zoom: camera.zoom, bearing: hole.bearing, pitch: 0, duration: 700 });
+        }
+
+        function emitTargetMoved() {
+            var p = targetMarker.getLngLat();
+            bridge.onTargetMoved(p.lat, p.lng);
+        }
+
+        window.teeupMap = {
+            /** hole: {tee, pin, doglegs: [...], bearing}; points are {lat, lng}. */
+            showHole: function (hole) {
+                teeMarker = placeMarker(teeMarker, hole.tee, 'tee');
+                pinMarker = placeMarker(pinMarker, hole.pin, 'pin', { svg: PIN_SVG }, 'bottom-left');
+                setLine('route', [hole.tee].concat(hole.doglegs, [hole.pin]));
+                frameHole(hole);
+            },
+
+            /** guide: {points: [origin, target?, pin], labels: one per leg, hasTarget}. */
+            setGuide: function (guide) {
+                setLine('guide', guide.points);
+                if (guide.hasTarget) {
+                    var target = guide.points[1];
+                    if (!targetMarker) {
+                        targetMarker = new maplibregl.Marker({ element: element('target'), draggable: true })
+                            .setLngLat(lngLat(target))
+                            .addTo(map);
+                        targetMarker.on('dragstart', function () { draggingTarget = true; });
+                        targetMarker.on('drag', emitTargetMoved);
+                        targetMarker.on('dragend', function () { draggingTarget = false; emitTargetMoved(); });
+                    } else if (!draggingTarget) {
+                        targetMarker.setLngLat(lngLat(target));
+                    }
+                } else if (targetMarker) {
+                    targetMarker.remove();
+                    targetMarker = null;
+                }
+
+                clearChips();
+                for (var i = 0; i < guide.labels.length; i++) {
+                    var a = guide.points[i], b = guide.points[i + 1];
+                    var middle = { lat: (a.lat + b.lat) / 2, lng: (a.lng + b.lng) / 2 };
+                    chipMarkers.push(placeMarker(null, middle, 'chip', { text: guide.labels[i] }));
+                }
+            },
+
+            /** point: {lat, lng}, or null to hide the golfer's dot. */
+            setUser: function (point) {
+                if (!point) {
+                    if (userMarker) userMarker.remove();
+                    userMarker = null;
+                    return;
+                }
+                if (userMarker) userMarker.setLngLat(lngLat(point));
+                else userMarker = placeMarker(null, point, 'user');
+            }
+        };
+
+        map.on('load', function () {
+            // The compact attribution opens expanded and covers the bottom of a phone-sized map;
+            // start it collapsed behind its (i) button, which still shows the credits on tap.
+            var attribution = document.querySelector('.maplibregl-ctrl-attrib');
+            if (attribution) attribution.classList.remove('maplibregl-compact-show');
+            bridge.onReady();
+        });
+    })();
+</script>
+</body>
+</html>
+<!--
+References:
+
+Esri (n.d.). World Imagery. [online] ArcGIS. Available at: <https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9> [Accessed 23 Oct. 2026].
+
+MapLibre (n.d.). MapLibre GL JS documentation. [online] Available at: <https://maplibre.org/maplibre-gl-js/docs/> [Accessed 23 Oct. 2026].
+
+OpenStreetMap contributors (n.d.). OpenStreetMap. [online] Available at: <https://www.openstreetmap.org/copyright> [Accessed 23 Oct. 2026].
+-->

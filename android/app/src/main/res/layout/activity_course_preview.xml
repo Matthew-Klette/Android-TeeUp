@@ -93,6 +93,15 @@
             android:visibility="gone" />
 
         <Button
+            android:id="@+id/button_hole_map"
+            style="@style/TeeUpButton.Primary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/space_sm"
+            android:text="@string/hole_map_title"
+            android:visibility="gone" />
+
+        <Button
             android:id="@+id/button_open_in_maps"
             style="@style/TeeUpButton"
             android:layout_width="wrap_content"

@@ -7,6 +7,7 @@ public class TeeUpDbContext(DbContextOptions<TeeUpDbContext> options) : DbContex
 {
     public DbSet<User> Users => Set<User>();
     public DbSet<Course> Courses => Set<Course>();
+    public DbSet<HoleCoordinate> HoleCoordinates => Set<HoleCoordinate>();
     public DbSet<TeeTime> TeeTimes => Set<TeeTime>();
     public DbSet<JoinRequest> JoinRequests => Set<JoinRequest>();
     public DbSet<Round> Rounds => Set<Round>();
@@ -44,6 +45,18 @@ public class TeeUpDbContext(DbContextOptions<TeeUpDbContext> options) : DbContex
             b.Property(c => c.Rating).HasPrecision(3, 1);
             // Backfills existing rows to 72 (see Par's doc comment) when this column is added.
             b.Property(c => c.Par).HasDefaultValue(72);
+        });
+
+        modelBuilder.Entity<HoleCoordinate>(b =>
+        {
+            b.HasKey(h => h.Id);
+            // Stored as golfapi.io's int codes (see PointOfInterest), not names, so imported data
+            // keeps its original values.
+            b.HasOne<Course>()
+                .WithMany()
+                .HasForeignKey(h => h.CourseId)
+                .OnDelete(DeleteBehavior.Cascade);
+            b.HasIndex(h => new { h.CourseId, h.Hole });
         });
 
         modelBuilder.Entity<TeeTime>(b =>

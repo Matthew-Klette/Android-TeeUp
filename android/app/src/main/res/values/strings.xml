@@ -220,18 +220,23 @@
 
     <!-- Scoreboard Screen -->
     <string name="scorecard_title">Scorecard</string>
-    <string name="scorecard_entry_notice">Enter your score for each hole, then finish the round to save it to your scorecard.</string>
-    <string name="scorecard_hole_heading">HOLE %1$d</string>
 
     <string name="scorecard_strokes">Strokes</string>
     <string name="scorecard_putts">Putts</string>
     <string name="scorecard_strokes_hint">e.g. 4</string>
     <string name="scorecard_putts_hint">e.g. 2</string>
 
-    <string name="scorecard_next_hole">Save &amp; Next Hole</string>
-    <string name="scorecard_previous_hole">Previous Hole</string>
     <string name="scorecard_finish_round">Finish Round</string>
     <string name="scorecard_finish_early">Finish round now</string>
+    <string name="scorecard_add_score">Add score</string>
+    <string name="scorecard_edit_score_format">%1$d strokes · %2$d putts · Edit</string>
+    <string name="scorecard_saved_score_format">Saved: %1$d strokes · %2$d putts</string>
+    <string name="scorecard_score_dialog_title">Hole %1$d score</string>
+    <string name="scorecard_save_score">Save score</string>
+    <string name="scorecard_save_and_finish">Save and finish round</string>
+    <string name="scorecard_round_header_format" translatable="false">%1$s · %2$s</string>
+    <string name="scorecard_previous_symbol" translatable="false">‹</string>
+    <string name="scorecard_next_symbol" translatable="false">›</string>
     <string name="scorecard_progress_format">%1$d of %2$d holes saved this round</string>
     <string name="scorecard_validation_error">Enter strokes (1 or more) and putts (0 up to strokes) for this hole.</string>
     <string name="scorecard_finish_empty_error">Enter at least one hole before finishing the round.</string>
@@ -372,4 +377,25 @@
         <item>9 holes</item>
         <item>18 holes</item>
     </string-array>
+    <!-- Hole Map (live GPS hole view) -->
+    <string name="hole_map_title">Hole Map</string>
+    <string name="hole_map_hole_format">Hole %1$d</string>
+    <string name="hole_map_distance_format">%1$d m</string>
+    <string name="hole_map_no_distance" translatable="false">–</string>
+    <string name="hole_map_front">Front</string>
+    <string name="hole_map_middle">Middle</string>
+    <string name="hole_map_back">Back</string>
+    <string name="hole_map_from_tee">Distances from the tee</string>
+    <string name="hole_map_from_you">Distances from you</string>
+    <string name="hole_map_gps_waiting">Finding your location…</string>
+    <string name="hole_map_gps_accuracy_format">Live GPS · accurate to %1$d m</string>
+    <string name="hole_map_gps_off_course_format">You\'re %1$.1f km from the course. Showing distances from the tee.</string>
+    <string name="hole_map_gps_denied">Location permission is off, so distances are from the tee.</string>
+    <string name="hole_map_gps_disabled">Turn on location for live distances. Showing distances from the tee.</string>
+    <string name="hole_map_follow_gps">Follow GPS</string>
+    <string name="hole_map_previous">Previous hole</string>
+    <string name="hole_map_next">Next hole</string>
+    <string name="hole_map_loading">Loading hole map…</string>
+    <string name="hole_map_unavailable">There\'s no hole map for this course yet.</string>
+    <string name="hole_map_load_failed">Couldn\'t load the hole map.</string>
 </resources>
