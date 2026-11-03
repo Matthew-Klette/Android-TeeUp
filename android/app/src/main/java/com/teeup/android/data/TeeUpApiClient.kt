@@ -3,6 +3,7 @@ package com.teeup.android.data
 import com.teeup.android.BuildConfig
 import com.teeup.android.R
 import com.teeup.android.TeeUpApplication
+import android.util.Log
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
 import org.json.JSONArray
@@ -17,6 +18,8 @@ import java.util.concurrent.TimeUnit
  * Every function here blocks and must be called off the main thread.
  */
 object TeeUpApiClient {
+    private const val TAG = "TeeUpApiClient"
+
     /** [search] filters by course name (case-insensitive substring match) server-side;
      *  null/blank returns every course, same as calling this with no argument. */
     fun fetchCourses(search: String? = null): List<Course> {
@@ -139,9 +142,16 @@ object TeeUpApiClient {
         return (0 until array.length()).map { i -> parseNotification(array.getJSONObject(i)) }
     }
 
+    /** Retried once with a longer timeout: this is the first call after sign-in, so it's the one
+     *  that hits a sleeping API. Safe to repeat because the server returns the existing user
+     *  when [firebaseUid] is already registered. */
     fun register(firebaseUid: String, displayName: String): RegisteredUser {
         val body = JSONObject().put("firebaseUid", firebaseUid).put("displayName", displayName)
-        return parseRegisteredUser(JSONObject(request("POST", "api/auth/register", body)))
+        val text = retryWhileWakingUp { attempt ->
+            if (attempt > 1) Log.i(TAG, "POST api/auth/register: retrying (attempt $attempt)")
+            request("POST", "api/auth/register", body, timeoutMs = timeoutForAttempt(attempt))
+        }
+        return parseRegisteredUser(JSONObject(text))
     }
 
     /** GET /api/profiles/me. Just reads the profile, no register side effect.
@@ -339,12 +349,17 @@ object TeeUpApiClient {
         synced = o.getBoolean("synced")
     )
 
-    private fun request(method: String, path: String, body: JSONObject? = null): String {
+    private fun request(
+        method: String,
+        path: String,
+        body: JSONObject? = null,
+        timeoutMs: Int = DEFAULT_TIMEOUT_MS
+    ): String {
         val connection = URL(ApiConfig.BASE_URL + path).openConnection() as HttpURLConnection
         connection.requestMethod = method
         connection.setRequestProperty("Accept", "application/json")
-        connection.connectTimeout = 10_000
-        connection.readTimeout = 10_000
+        connection.connectTimeout = timeoutMs
+        connection.readTimeout = timeoutMs
         val authHeader = authorizationHeaderOrNull()
         if (authHeader != null) {
             connection.setRequestProperty("Authorization", authHeader)
