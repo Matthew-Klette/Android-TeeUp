@@ -10,6 +10,7 @@ import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.teeup.android.data.ActiveRound
 import com.teeup.android.data.Course
+import com.teeup.android.data.CoursePars
 import com.teeup.android.data.GeoPoint
 import com.teeup.android.data.HoleScoreInput
 import com.teeup.android.data.MockCatalog
@@ -19,6 +20,10 @@ import com.teeup.android.data.RoundScoring
 import com.teeup.android.data.ScheduledRound
 import com.teeup.android.data.TeeUpApiClient
 import com.teeup.android.data.formatTeeTime
+import com.teeup.android.data.ApiException
+import com.teeup.android.data.offline.NetworkMonitor
+import com.teeup.android.data.offline.ScorecardOutbox
+import android.util.Log
 import com.teeup.android.design.TeeUpTheme
 import com.teeup.android.nav.BottomNav
 import com.teeup.android.scorecard.HoleMapHost
@@ -55,6 +60,7 @@ import kotlinx.coroutines.withContext
  */
 class ScorecardActivity : LocaleComponentActivity(), HoleMapController.Listener {
     companion object {
+        private const val TAG = "ScorecardActivity"
         const val EXTRA_TEE_TIME_ID = "com.teeup.android.extra.TEE_TIME_ID"
         /** 9 or 18 (see RoundsActivity's hole-count prompt). Defaults to the unfinished round's
          *  count, then 18 — e.g. resuming a round via "Continue Round", which doesn't re-prompt. */
@@ -87,6 +93,8 @@ class ScorecardActivity : LocaleComponentActivity(), HoleMapController.Listener 
     private var currentRoundId: String? = null
     /** Opened by the Scorecard tab reopening the unfinished round, rather than for a chosen round. */
     private var isResumingActiveRound = false
+    /** The round's course, for its scorecard pars ([CoursePars]); null if it couldn't be loaded. */
+    private var courseName: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(
@@ -193,6 +201,16 @@ class ScorecardActivity : LocaleComponentActivity(), HoleMapController.Listener 
         ui.loading = true
         lifecycleScope.launch {
             try {
+                // A round finished offline is waiting in the outbox: reopening it would let the
+                // golfer score it twice. Its summary appears once it has synced.
+                val queued = withContext(Dispatchers.IO) { id in ScorecardOutbox.pendingTeeTimeIds(this@ScorecardActivity) }
+                if (queued) {
+                    Log.i(TAG, "Round $id is queued for sync; not reopening")
+                    progressStore.clear(id)
+                    TeeUpBanner.show(this@ScorecardActivity, getString(R.string.scorecard_waiting_to_sync))
+                    finish()
+                    return@launch
+                }
                 val (match, course) = withContext(Dispatchers.IO) {
                     val match = TeeUpApiClient.fetchSchedule().firstOrNull { it.teeTimeId == id }
                     val course = match?.let { round ->
@@ -245,6 +263,7 @@ class ScorecardActivity : LocaleComponentActivity(), HoleMapController.Listener 
         isRoundOpen = true
         progressStore.setActive(ActiveRound(id, totalHoles))
 
+        courseName = course?.name
         ui.courseName = course?.name ?: getString(R.string.rounds_unknown_course)
         ui.dateText = formatTeeTime(round.dateTime)
         ui.loading = false
@@ -252,6 +271,9 @@ class ScorecardActivity : LocaleComponentActivity(), HoleMapController.Listener 
         val startTarget = currentTarget
         val holes = scoring.holes
         mapHost?.withController { map ->
+            // A hole with a score lets GPS move on to the next tee sooner; an unscored one holds the
+            // map (and so the scorecard) even if the golfer's ball is in the next fairway.
+            map.isHoleComplete = { hole -> scoring.scoreFor(hole) != null }
             if (course != null) map.start(course.id, course.name, startHole, startTarget, holes) else map.showUnavailable()
         }
         updateHoleUi()
@@ -300,7 +322,7 @@ class ScorecardActivity : LocaleComponentActivity(), HoleMapController.Listener 
         val hole = currentHole
         if (scoring.isSaved(hole)) return
         // Editing a hole already entered this round starts from what was there.
-        ui.scoreSheet = ScoreSheet(hole, scoring.pending[hole], finishes = scoring.isLastToScore(hole))
+        ui.scoreSheet = ScoreSheet(hole, scoring.pending[hole], finishes = scoring.isLastToScore(hole), par = CoursePars.parFor(courseName, hole))
     }
 
     private fun onScoreEntered(entry: HoleScoreInput) {
@@ -328,6 +350,7 @@ class ScorecardActivity : LocaleComponentActivity(), HoleMapController.Listener 
 
     private fun updateHoleUi() {
         ui.hole = currentHole
+        ui.par = CoursePars.parFor(courseName, currentHole)
         ui.canPrevious = currentHole > scoring.holes.first
         ui.canNext = currentHole < scoring.holes.last
         val score = scoring.scoreFor(currentHole)
@@ -378,18 +401,47 @@ class ScorecardActivity : LocaleComponentActivity(), HoleMapController.Listener 
         val entries = scoring.pending.values.sortedBy { it.holeNumber }
         ui.loading = true
         lifecycleScope.launch {
+            // Offline mode: with no connection the round goes straight to the outbox instead of
+            // failing, and WorkManager uploads it once the phone is back online.
+            if (!NetworkMonitor.isOnline.value) {
+                queueOffline(id, entries)
+                return@launch
+            }
             try {
                 withContext(Dispatchers.IO) { TeeUpApiClient.postScorecard(id, entries) }
+                Log.i(TAG, "Round $id uploaded (${entries.size} holes)")
                 closeRound()
                 TeeUpBanner.show(this@ScorecardActivity, getString(R.string.scorecard_finish_success))
                 openSummary()
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
+            } catch (e: ApiException) {
+                // statusCode null: the server was never reached (signal dropped mid-upload).
+                if (e.statusCode == null) {
+                    queueOffline(id, entries)
+                } else {
+                    ui.loading = false
+                    TeeUpBanner.show(this@ScorecardActivity, e.message ?: getString(R.string.scorecard_save_failed), isError = true)
+                }
             } catch (e: Exception) {
                 ui.loading = false
                 TeeUpBanner.show(this@ScorecardActivity, e.message ?: getString(R.string.scorecard_save_failed), isError = true)
             }
         }
+    }
+
+    /** Saves the round to the Room outbox ("pending sync"), ends it locally and leaves the screen. */
+    private suspend fun queueOffline(id: String, entries: List<HoleScoreInput>) {
+        val queued = ScorecardOutbox.enqueue(this, id, ui.courseName, entries, totalHoles)
+        if (!queued) {
+            ui.loading = false
+            TeeUpBanner.show(this, getString(R.string.scorecard_save_failed), isError = true)
+            return
+        }
+        Log.i(TAG, "Round $id queued offline (${entries.size} holes)")
+        closeRound()
+        TeeUpBanner.show(this, getString(R.string.scorecard_saved_offline))
+        finish()
     }
 
     private fun openSummary() {

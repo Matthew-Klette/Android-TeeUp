@@ -68,6 +68,8 @@ class NotificationsViewModel(application: Application) : AndroidViewModel(applic
 
     init {
         load()
+        // Real-time: a push that lands while this screen is open refreshes the list at once.
+        viewModelScope.launch { PushNotifications.received.collect { load() } }
     }
 
     fun load() {

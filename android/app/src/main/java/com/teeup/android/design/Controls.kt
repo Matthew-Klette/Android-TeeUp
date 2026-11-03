@@ -245,7 +245,8 @@ fun SearchField(
     }
 }
 
-/** iOS segmented control: a white thumb that springs between equal segments on a grey track. */
+/** iOS segmented control: a white thumb that springs between equal segments on a grey track.
+ *  [selectedIndex] -1 shows no thumb, for a choice the user hasn't made yet. */
 @Composable
 fun SegmentedControl(
     options: List<String>,
@@ -264,8 +265,8 @@ fun SegmentedControl(
             .padding(2.dp)
     ) {
         val segment = maxWidth / options.size
-        val thumbOffset by animateDpAsState(segment * selectedIndex, motionSpec(TeeUpMotion.snappy()), label = "thumb")
-        Box(
+        val thumbOffset by animateDpAsState(segment * selectedIndex.coerceAtLeast(0), motionSpec(TeeUpMotion.snappy()), label = "thumb")
+        if (selectedIndex >= 0) Box(
             Modifier
                 .offset { IntOffset(thumbOffset.roundToPx(), 0) }
                 .width(segment)

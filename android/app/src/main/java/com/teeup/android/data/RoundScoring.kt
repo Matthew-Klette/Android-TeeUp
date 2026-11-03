@@ -18,6 +18,15 @@ data class RoundScoring(
             if (strokes == null || strokes < 1 || putts == null || putts < 0 || putts > strokes) return null
             return HoleScoreInput(hole, strokes, putts)
         }
+
+        /** The score sheet's check: [entryOrNull]'s rules plus the par + 3 stroke limit. */
+        fun check(hole: Int, strokes: Int?, putts: Int?, par: Int?): ScoreCheck = when {
+            strokes == null || strokes < 1 || putts == null || putts < 0 -> ScoreCheck.Invalid
+            par == null -> ScoreCheck.ParMissing
+            strokes > HolePar.maxStrokes(par) -> ScoreCheck.TooManyStrokes(par, HolePar.maxStrokes(par))
+            putts > strokes -> ScoreCheck.PuttsExceedStrokes(strokes)
+            else -> ScoreCheck.Valid(HoleScoreInput(hole, strokes, putts))
+        }
     }
 
     val holes: IntRange get() = 1..totalHoles

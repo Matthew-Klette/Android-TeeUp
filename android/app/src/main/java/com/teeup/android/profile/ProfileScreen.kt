@@ -54,7 +54,7 @@ import com.teeup.android.nav.BottomNavTab
 import com.teeup.android.ui.LocaleManager
 
 /** Where each settings row goes; the Activity owns the Intents. */
-enum class ProfileDestination { PERSONAL, PLAYING, NOTIFICATIONS, BIOMETRIC, OFFLINE_SYNC, PRIVACY }
+enum class ProfileDestination { PERSONAL, PLAYING, PARTNERS, NOTIFICATIONS, BIOMETRIC, OFFLINE_SYNC, PRIVACY }
 
 class ProfileActions(
     val open: (ProfileDestination) -> Unit,
@@ -140,6 +140,8 @@ fun ProfileScreen(viewModel: ProfileViewModel, currentLanguageTag: String, actio
                 SettingsRow(R.string.profile_personal_details, R.drawable.ic_glyph_person) { actions.open(ProfileDestination.PERSONAL) }
                 ListDivider(IconRowDividerInset)
                 SettingsRow(R.string.profile_playing_details, R.drawable.ic_glyph_flag) { actions.open(ProfileDestination.PLAYING) }
+                ListDivider(IconRowDividerInset)
+                SettingsRow(R.string.profile_partners, R.drawable.ic_glyph_people) { actions.open(ProfileDestination.PARTNERS) }
                 ListDivider(IconRowDividerInset)
                 SettingsRow(R.string.profile_notification_preferences, R.drawable.ic_glyph_bell) { actions.open(ProfileDestination.NOTIFICATIONS) }
                 ListDivider(IconRowDividerInset)

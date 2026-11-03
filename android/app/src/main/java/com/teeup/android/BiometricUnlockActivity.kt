@@ -5,10 +5,9 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
-import com.google.firebase.auth.FirebaseAuth
 import com.teeup.android.auth.BiometricUnlockScreen
 import com.teeup.android.auth.BiometricUnlockUiState
-import com.teeup.android.data.LocalIdentity
+import com.teeup.android.data.AuthSession
 import com.teeup.android.design.TeeUpTheme
 import com.teeup.android.ui.LocaleFragmentActivity
 import com.teeup.android.ui.enableTeeUpEdgeToEdge
@@ -30,14 +29,9 @@ class BiometricUnlockActivity : LocaleFragmentActivity() {
         promptForUnlock()
     }
 
-    private fun signOutInstead() {
-        FirebaseAuth.getInstance().signOut()
-        LocalIdentity.clearCache(this)
-        val intent = Intent(this, SignInActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-        startActivity(intent)
-    }
+    /** The same full sign-out as Profile: removes this phone's push token, reminders and
+     *  cached data too, so the next golfer on this phone gets none of them. */
+    private fun signOutInstead() = AuthSession.signOut(this)
 
     private fun promptForUnlock() {
         ui.showOptions = false

@@ -112,6 +112,8 @@ fun LargeTitleScreen(
                     item(key = "largeTitle", contentType = "largeTitle") {
                         Box(Modifier.graphicsLayer { alpha = (1f - collapse * 2f).coerceIn(0f, 1f) }) { header() }
                     }
+                    // Offline mode: shown on every screen while the connection is down.
+                    item(key = "offlineBanner", contentType = "offlineBanner") { OfflineBanner() }
                     content()
                 }
             }

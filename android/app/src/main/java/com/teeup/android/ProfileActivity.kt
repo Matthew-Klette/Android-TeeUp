@@ -119,6 +119,7 @@ class ProfileActivity : LocaleComponentActivity() {
         val target = when (destination) {
             ProfileDestination.PERSONAL -> PersonalDetailsActivity::class.java
             ProfileDestination.PLAYING -> PlayingDetailsActivity::class.java
+            ProfileDestination.PARTNERS -> PartnersActivity::class.java
             ProfileDestination.NOTIFICATIONS -> NotificationPreferencesActivity::class.java
             ProfileDestination.BIOMETRIC -> BiometricLoginActivity::class.java
             ProfileDestination.OFFLINE_SYNC -> OfflineSyncStatusActivity::class.java

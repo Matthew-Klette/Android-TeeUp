@@ -29,6 +29,7 @@ import com.teeup.android.design.Label
 import com.teeup.android.design.LargeTitleScreen
 import com.teeup.android.design.ListDivider
 import com.teeup.android.design.ListRow
+import com.teeup.android.design.Toggle
 import com.teeup.android.design.SegmentedControl
 import com.teeup.android.design.Stepper
 import com.teeup.android.design.TeeUpButton
@@ -118,6 +119,16 @@ fun CreateGroupScreen(viewModel: CreateGroupViewModel, onBack: () -> Unit) {
             }
         }
         item(key = "handicap", contentType = "section") { HandicapSection(state, viewModel) }
+        item(key = "private", contentType = "section") {
+            GroupedSection(footer = stringResource(R.string.group_private_footer)) {
+                ListRow(
+                    stringResource(R.string.group_private_label),
+                    icon = R.drawable.ic_glyph_people,
+                    showChevron = false,
+                    trailing = { Toggle(checked = state.isPrivate, onCheckedChange = viewModel::setPrivate) }
+                )
+            }
+        }
         item(key = "pace", contentType = "section") {
             GroupedSection(header = stringResource(R.string.register_pace)) {
                 SegmentedControl(

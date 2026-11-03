@@ -74,6 +74,11 @@ class SignInActivity : LocaleComponentActivity() {
             val idToken = account.idToken
                 ?: throw IllegalStateException("Google sign-in returned no ID token")
             authenticateWithFirebase(idToken)
+        } catch (e: IllegalStateException) {
+            // No ID token (e.g. a misconfigured OAuth client): previously uncaught, so the app crashed.
+            Log.w(tag, "Google sign-in returned no ID token", e)
+            resetGoogleButton()
+            TeeUpBanner.show(this, getString(R.string.signin_google_failed), isError = true)
         } catch (e: GoogleSignInException) {
             resetGoogleButton()
             // The user backing out of the Google chooser isn't a failure worth surfacing.

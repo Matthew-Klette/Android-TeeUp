@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Strings for the final-POE (Part 3) features: offline mode, push notifications and playing
+     partners. Afrikaans translations of values/strings_part3.xml. -->
+<resources>
+    <string name="push_channel_alerts">Groepwaarskuwings</string>
+    <string name="push_channel_alerts_description">Aansluitversoeke, aanvaarde of geweierde versoeke, gekanselleerde groepe en maatuitnodigings.</string>
+    <string name="push_channel_sync">Aflyn-sinkronisering</string>
+    <string name="push_channel_sync_description">Sê vir jou wanneer tellingskaarte wat aflyn gestoor is, opgelaai is.</string>
+    <string name="sync_done_title">Tellingskaarte gesinkroniseer</string>
+    <plurals name="sync_done_body">
+        <item quantity="one">%d rondte wat aflyn gestoor is, is nou opgelaai.</item>
+        <item quantity="other">%d rondtes wat aflyn gestoor is, is nou opgelaai.</item>
+    </plurals>
+    <string name="notification_category_private_invite">Maatuitnodiging</string>
+    <string name="offline_banner_title">Jy is aflyn</string>
+    <string name="offline_banner_body">Wys gestoorde data. Rondtes wat jy voltooi, sinkroniseer wanneer jy weer verbind.</string>
+    <string name="scorecard_saved_offline">Aflyn gestoor. Jou tellingskaart sal outomaties oplaai wanneer jy weer aanlyn is.</string>
+    <string name="scorecard_waiting_to_sync">Hierdie rondte wag om te sinkroniseer. Die opsomming verskyn sodra dit opgelaai is.</string>
+    <string name="rounds_pending_sync">Wag om te sinkroniseer</string>
+    <string name="offline_sync_pending_label">WAG OM OP TE LAAI</string>
+    <string name="offline_sync_pending_none">Alles is gesinkroniseer</string>
+    <string name="offline_sync_pending_detail">%1$d van %2$d putjies · laai op wanneer aanlyn</string>
+    <string name="offline_sync_pending_rejected">Nie deur die bediener aanvaar nie: %1$s</string>
+    <string name="offline_sync_discard">Gooi weg</string>
+    <string name="offline_sync_how_it_works">Rondtes wat jy sonder \'n verbinding voltooi, word op hierdie foon gestoor en laai self op sodra jy weer aanlyn is, selfs al is TeeUp toe.</string>
+    <string name="offline_sync_cache_notice">Afslaantye, jou rondtes en jou profiel word op hierdie foon gehou nadat dit gelaai is, sodat jy dit steeds aflyn kan bekyk.</string>
+    <string name="offline_sync_syncing">Weer aanlyn. Laai nou jou gestoorde rondtes op.</string>
+    <string name="profile_partners">Speelmaats</string>
+    <string name="partners_title">Speelmaats</string>
+    <string name="partners_section_saved">JOU MAATS</string>
+    <string name="partners_section_saved_footer">Maats kan jou groepe net vir maats sien en by aansluit, en kry \'n uitnodiging wanneer jy een skep.</string>
+    <string name="partners_section_find">VIND GOLFSPELERS</string>
+    <string name="partners_search_hint">Soek op naam</string>
+    <string name="partners_search_min">Tik minstens 2 letters om te soek.</string>
+    <string name="partners_search_none">Geen golfspelers pas by \"%1$s\" nie.</string>
+    <string name="partners_empty">Nog geen maats nie. Vind golfspelers met wie jy speel hieronder, of voeg hulle by uit \'n groep waarby jy aangesluit het.</string>
+    <string name="partners_add">Voeg by</string>
+    <string name="partners_added_badge">Maat</string>
+    <string name="partners_remove">Verwyder</string>
+    <string name="partners_added">%1$s is by jou maats gevoeg</string>
+    <string name="partners_removed">%1$s is van jou maats verwyder</string>
+    <string name="partners_load_failed">Kon nie jou maats laai nie.</string>
+    <string name="partners_action_failed">Dit het nie gewerk nie. Kontroleer jou verbinding en probeer weer.</string>
+    <string name="partners_member_add">Voeg by maats</string>
+    <string name="partners_subtitle">HCP %1$s · %2$s tempo</string>
+    <string name="group_private_label">Net maats</string>
+    <string name="group_private_footer">Net jou speelmaats kan hierdie groep sien en by aansluit, en elkeen kry \'n kennisgewing-uitnodiging.</string>
+    <string name="group_private_badge">Net maats</string>
+
+    <!-- Hole map GPS status (fix filtering and signal loss) -->
+    <string name="hole_map_gps_approximate">Presiese ligging is af, dus is afstande vanaf die afslaanplek. Laat presiese ligging in Instellings toe vir lewendige GPS.</string>
+    <string name="hole_map_gps_weak_format">Swak GPS-sein (±%1$d m). Beweeg na oop ruimte. Afstande word vanaf die afslaanplek gewys.</string>
+    <string name="hole_map_gps_lost_format">GPS-sein %1$d s gelede verloor. Afstande is dalk verouderd.</string>
+    <string name="hole_map_gps_far_from_hole_format">Jy is %1$d m van hierdie putjie af. Afstande word vanaf die afslaanplek gewys.</string>
+
+    <!-- Tee time reminders (local notifications) -->
+    <string name="reminder_title">Afslaantyd oor 1 uur</string>
+    <string name="reminder_body_format">%1$s · jy slaan om %2$s af. Tyd om baan toe te gaan.</string>
+
+    <!-- Score sheet: par and the par + 3 stroke limit -->
+    <string name="scorecard_par_label">PAAR</string>
+    <string name="scorecard_par_limit_format">Paar %1$d · tot %2$d houe, putte ingesluit.</string>
+    <string name="scorecard_par_unknown">Hierdie baan se telkaart is nog nie in TeeUp nie. Kies die putjie se paar van die klub se kaart:</string>
+    <string name="scorecard_too_many_strokes_format">Op \'n paar %1$d kan jy nie meer as %2$d houe neem nie (paar + 3, putte ingesluit). Tel op en voer %2$d in.</string>
+    <string name="scorecard_putts_exceed_format">Putte tel as houe, dus kan jy nie meer as %1$d putte met %1$d houe hê nie.</string>
+    <string name="scorecard_par_option_format">Paar %1$d</string>
+    <string name="scorecard_par_missing">Kies eers hierdie putjie se paar: dit bepaal die meeste houe wat jy mag neem.</string>
+    <string name="scorecard_hole_par_format">Paar %1$d</string>
+</resources>

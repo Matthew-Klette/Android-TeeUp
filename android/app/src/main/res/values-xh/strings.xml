@@ -140,7 +140,7 @@
 
     <!-- Notification Preferences Screen -->
     <string name="notification_prefs_title">Uluhlu Lwezaziso</string>
-    <string name="notification_prefs_subtitle">Iinketho zesicelo sokudibana, isikhumbuzo sexesha lokudlala, nemozulu ziyavumelana negunya lakho kwaye zisebenza kuyo nayiphi na idivayisi ongena kuyo. Izikhumbuzo zokuvumelanisa zigcinwa kule divayisi kuphela.</string>
+    <string name="notification_prefs_subtitle">Iisetingi zezicelo zokujoyina nezikhumbuzo zexesha le-tee zigcinwa kwi-akhawunti yakho kwaye zisebenza kuyo nayiphi na ifowuni ongena kuyo. Izikhumbuzo zokuvumelanisa (isaziso xa imijikelo egcinwe ngaphandle kwe-intanethi igqiba ukulayisha) zigcinwa kule fowuni kuphela.</string>
     <string name="notification_category_join_request">Izicelo ezitsha zokudibana</string>
     <string name="notification_pref_join_updates">Uhlaziyo lwesicelo sokudibana</string>
     <string name="notification_category_accepted">Izicelo ezamkelweyo</string>
@@ -178,7 +178,6 @@
 
     <!-- Offline Data &amp; Sync Status Screen -->
     <string name="offline_sync_title">Idatha Engaxhunyiwe &amp; Imeko Yokuvumelanisa</string>
-    <string name="offline_sync_no_cache_notice">I-TeeUp ayikagcini idatha yokusetyenziswa ngaphandle kwe-intanethi okwangoku — sonke isikrini sifuna uxhulumano oluphilayo. Eli phepha libonisa oko kuyinyani: uxhulumano lwakho nokuvumelaniswa kokugqibela okuphumeleleyo, hayi isibalo somjikelo olindileyo obumbeke.</string>
     <string name="offline_sync_last_synced_label">IGQIBELE UKUVUMELANISWA</string>
     <string name="offline_sync_never">Akuzange kwenzeke — akukho nto ilayishiweyo kwi-API okwangoku</string>
     <string name="offline_sync_connection_label">UXHULUMANO</string>
@@ -193,9 +192,18 @@
     <string name="offline_sync_request_failed_fallback">Isicelo se-API asiphumelelanga</string>
     <string name="offline_sync_unreachable">Ayikwazanga ukufikelela kwi-API</string>
     <string name="sync_relative_just_now">Ngoku nje</string>
-    <string name="sync_relative_minutes_ago">Kwimizuzu engu-%1$d eyadlulayo</string>
-    <string name="sync_relative_hours_ago">Kwiiyure ezingu-%1$d eyadlulayo</string>
-    <string name="sync_relative_days_ago">Kwiintsuku ezingu-%1$d eyadlulayo</string>
+    <plurals name="sync_relative_minutes_ago">
+        <item quantity="one">Kumzuzu o-%1$d odlulileyo</item>
+        <item quantity="other">Kwimizuzu e-%1$d edlulileyo</item>
+    </plurals>
+    <plurals name="sync_relative_hours_ago">
+        <item quantity="one">Kwiyure e-%1$d edlulileyo</item>
+        <item quantity="other">Kwiiyure ezi-%1$d ezidlulileyo</item>
+    </plurals>
+    <plurals name="sync_relative_days_ago">
+        <item quantity="one">Kusuku olu-%1$d oludlulileyo</item>
+        <item quantity="other">Kwiintsuku ezi-%1$d ezidlulileyo</item>
+    </plurals>
 
     <!-- Privacy &amp; Data (POPIA) Screen -->
     <string name="privacy_title">Ubumfihlo &amp; Idatha (POPIA)</string>
@@ -432,4 +440,92 @@
 
     <!-- iOS redesign: Rounds -->
     <string name="rounds_progress_format">%1$d kwizimbobo ezi-%2$d</string>
+
+    <!-- Added: email auth, group create/edit/cancel, summary delete -->
+    <string name="email_auth_title_signin">Ngena</string>
+    <string name="email_auth_title_signup">Yenza iakhawunti</string>
+    <string name="email_auth_email_label">Imeyili</string>
+    <string name="email_auth_email_hint">wena@umzekelo.com</string>
+    <string name="email_auth_password_label">Iphasiwedi</string>
+    <string name="email_auth_password_hint">Ubuncinane izimpawu ezi-6</string>
+    <string name="email_auth_confirm_password_label">Qinisekisa iphasiwedi</string>
+    <string name="email_auth_submit_signin">Ngena</string>
+    <string name="email_auth_submit_signup">Yenza iakhawunti</string>
+    <string name="email_auth_progress_signin">Iyangena…</string>
+    <string name="email_auth_progress_signup">Iyenza iakhawunti…</string>
+    <string name="email_auth_toggle_to_signup">Mtsha apha? Yenza iakhawunti</string>
+    <string name="email_auth_toggle_to_signin">Sele unayo iakhawunti? Ngena</string>
+    <string name="email_auth_error_email_invalid">Faka idilesi yeimeyili esebenzayo</string>
+    <string name="email_auth_error_password_too_short">Iphasiwedi mayibe ngaphezu kwezimpawu ezi-6</string>
+    <string name="email_auth_error_confirm_mismatch">Iiphasiwedi aziyifani</string>
+    <string name="email_auth_retry">Zama kwakhona</string>
+    <string name="email_auth_progress_retry">Iyigqibezela ukuseta…</string>
+    <string name="email_auth_registration_failed">Ungenile, kodwa ayikwazanga ukugqibezela ukuseta iakhawunti yakho. Zama kwakhona.</string>
+    <string name="email_auth_error_email_in_use">Leyo imeyili sele ibhalisiwe. Zama ukungena endaweni yoko.</string>
+    <string name="email_auth_error_wrong_password">Iphasiwedi ayichanekanga. Nceda uzame kwakhona.</string>
+    <string name="email_auth_error_user_not_found">Asiyifumananga iakhawunti enaleyo imeyili.</string>
+    <string name="email_auth_error_user_disabled">Le akhawunti ivaliwe.</string>
+    <string name="email_auth_error_weak_password">Nceda ukhethe iphasiwedi eyomeleleyo.</string>
+    <string name="email_auth_error_too_many_requests">Iinzame ezininzi kakhulu. Nceda ulinde umzuzwana uze uzame kwakhona.</string>
+    <string name="email_auth_error_network">Ayikwazanga ukuxhuma. Jonga uxhulumano lwakho lwe-intanethi uze uzame kwakhona.</string>
+    <string name="email_auth_error_invalid_credential">Leyo imeyili okanye iphasiwedi ayichanekanga.</string>
+    <string name="course_search_hint">Khangela ikhosi</string>
+    <string name="notification_category_cancelled">Iqela lirhoxisiwe</string>
+    <string name="create_group_title">Yenza Iqela</string>
+    <string name="create_group_when">Umhla &amp; ixesha</string>
+    <string name="create_group_pick_date_time">Khetha umhla &amp; ixesha</string>
+    <string name="create_group_pick_time_title">Khetha ixesha</string>
+    <string name="create_group_holes">Inani lezimbobo</string>
+    <string name="create_group_players_needed">Zingaphi ezinye izidlali ozifunayo?</string>
+    <string name="create_group_minus">−</string>
+    <string name="create_group_plus">+</string>
+    <string name="create_group_wanted_handicap">Uluhlu lwe-HCP olufunekayo (akunyanzelekanga)</string>
+    <string name="create_group_handicap_min_hint">Ubuncinane</string>
+    <string name="create_group_handicap_max_hint">Ubukhulu</string>
+    <string name="create_group_create">Yenza Iqela</string>
+    <string name="create_group_creating">Iyenza…</string>
+    <string name="create_group_pick_date_time_error">Khetha kuqala umhla nexesha.</string>
+    <string name="create_group_date_time_in_past">Khetha umhla nexesha elizayo.</string>
+    <string name="create_group_handicap_range_invalid">I-HCP encinci ayinakuba ngaphezu kweyona inkulu.</string>
+    <string name="create_group_created">Iqela liyenziwe.</string>
+    <string name="create_group_failed_fallback">Ayikwazanga ukwenza iqela — zama kwakhona.</string>
+    <string name="create_group_course_required">Khangela kwaye ukhethe ikhosi kuqala.</string>
+    <string name="home_create_group">Yenza Iqela</string>
+    <string name="edit_group_title">Hlela Iqela</string>
+    <string name="edit_group_save">Gcina Utshintsho</string>
+    <string name="edit_group_saving">Iyagcina…</string>
+    <string name="edit_group_saved">Iqela lihlaziyiwe.</string>
+    <string name="edit_group_failed_fallback">Ayikwazanga ukuhlaziya iqela — zama kwakhona.</string>
+    <string-array name="create_group_holes_options">
+        <item>Izimbobo ezi-9</item>
+        <item>Izimbobo ezingu-18</item>
+    </string-array>
+    <string name="teetime_full">Kugcwele</string>
+    <string name="teetime_edit_group">Hlela Iqela</string>
+    <string name="teetime_cancel_group">Rhoxisa Iqela</string>
+    <string name="teetime_delete_group">Cima Iqela</string>
+    <string name="teetime_withdraw_request">Tsala Isicelo</string>
+    <string name="teetime_cancel_confirm_title">Rhoxisa eli qela?</string>
+    <string name="teetime_cancel_confirm_message">Abadlali abajoyine baza kwaziswa. Oku akunakuphindwa.</string>
+    <string name="teetime_delete_confirm_title">Cima eli qela?</string>
+    <string name="teetime_delete_confirm_message">Iqela liza kususwa ngokusisigxina. Oku akunakuphindwa.</string>
+    <string name="teetime_withdraw_confirm_title">Tsala isicelo sakho?</string>
+    <string name="teetime_withdraw_confirm_message">Umphathi akasayi kuphinda abone isicelo sakho sokujoyina.</string>
+    <string name="teetime_group_cancelled">Iqela lirhoxisiwe.</string>
+    <string name="teetime_group_deleted">Iqela licinyiwe.</string>
+    <string name="teetime_request_withdrawn">Isicelo sitsaliwe.</string>
+    <string name="teetime_cancel_failed_fallback">Ayikwazanga ukurhoxisa iqela — zama kwakhona.</string>
+    <string name="teetime_delete_failed_fallback">Ayikwazanga ukucima iqela — zama kwakhona.</string>
+    <string name="teetime_withdraw_failed_fallback">Ayikwazanga ukutsala isicelo sakho — zama kwakhona.</string>
+    <string name="summary_delete_hole">Cima Isimbobo</string>
+    <string name="summary_delete_confirm_title">Cima esi simbobo?</string>
+    <string name="summary_delete_confirm_message">Amanqaku alesi simbobo aza kususwa. Oku akunakuphindwa.</string>
+    <string name="summary_hole_deleted">Isimbobo sicinyiwe.</string>
+    <string name="summary_delete_failed_fallback">Ayikwazanga ukucima isimbobo — zama kwakhona.</string>
+    <string name="summary_delete_round">Cima Umjikelo</string>
+    <string name="summary_delete_round_confirm_title">Cima lo mjikelo?</string>
+    <string name="summary_delete_round_confirm_message">Wonke umjikelo nawo onke amanqaku awo aza kususwa. Oku akunakuphindwa.</string>
+    <string name="summary_round_deleted">Umjikelo ucinyiwe.</string>
+    <string name="summary_delete_round_failed_fallback">Ayikwazanga ukucima umjikelo — zama kwakhona.</string>
+    <string name="email_auth_failed_generic">Ayikwazanga ukuseta iakhawunti yakho. Zama kwakhona.</string>
 </resources>

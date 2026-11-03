@@ -87,16 +87,6 @@ fun BrandMark(logoSize: Dp = LOGO_SIZE, showTagline: Boolean = true) {
     }
 }
 
-/** Screen 0: just the brand while Firebase auth state is checked; routing is instant. */
-@Composable
-fun SplashScreen() {
-    AuthBackground {
-        Spacer(Modifier.weight(1f))
-        BrandMark()
-        Spacer(Modifier.weight(1.2f))
-    }
-}
-
 @Stable
 class SignInUiState {
     var googleBusy by mutableStateOf(false)

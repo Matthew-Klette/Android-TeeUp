@@ -107,7 +107,10 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                _events.send(Notice(e.message, R.string.profile_photo_upload_failed, isError = true))
+                // The reason (unreadable or undecodable file) goes to the log; the golfer gets the
+                // translated message rather than an English exception text.
+                android.util.Log.w("ProfileViewModel", "Profile photo not saved", e)
+                _events.send(Notice(null, R.string.profile_photo_upload_failed, isError = true))
             } finally {
                 _state.update { it.copy(savingPhoto = false) }
             }

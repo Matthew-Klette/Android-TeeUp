@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using TeeUp.Api.Common;
 using TeeUp.Api.Dtos;
 using TeeUp.Api.Models;
@@ -19,9 +21,26 @@ public class JoinRequestService(
     IJoinRequestRepository joinRequestRepository,
     ITeeTimeRepository teeTimeRepository,
     INotificationRepository notificationRepository,
-    IUserRepository userRepository) : IJoinRequestService
+    IUserRepository userRepository,
+    IFriendshipRepository? friendshipRepository = null,
+    ICourseRepository? courseRepository = null,
+    ILogger<JoinRequestService>? logger = null) : IJoinRequestService
 {
     private const string UnknownGuestName = "Unknown golfer";
+    private readonly ILogger log = (ILogger?)logger ?? NullLogger.Instance;
+
+    /// <summary>Throws <see cref="ForbiddenException"/> unless the caller may see this (possibly partners-only) group.</summary>
+    private async Task EnsureCanSeeAsync(TeeTime teeTime, Guid? callerUserId)
+    {
+        if (!teeTime.IsPrivate)
+            return;
+
+        var pairs = await PrivateGroupAccess.LoadPairsAsync(friendshipRepository);
+        var visible = PrivateGroupAccess.CanSee(teeTime, callerUserId, pairs);
+        log.LogDebug("Private group {TeeTimeId} {Decision} for caller {CallerId}.", teeTime.Id, visible ? "visible" : "hidden", callerUserId);
+        if (!visible)
+            throw new ForbiddenException("This group is for the host's playing partners only.");
+    }
 
     public async Task<JoinRequestDto> CreateAsync(Guid teeTimeId, Guid guestUserId)
     {
@@ -37,6 +56,8 @@ public class JoinRequestService(
         {
             throw new DomainValidationException("This tee time is no longer accepting join requests.");
         }
+
+        await EnsureCanSeeAsync(teeTime, guestUserId);
 
         // Held across the duplicate-check-then-insert below: two near-simultaneous requests
         // from the same guest must not both see "no existing request" before either commits.
@@ -61,7 +82,23 @@ public class JoinRequestService(
 
         await joinRequestRepository.AddAsync(joinRequest);
         var guest = await userRepository.GetByIdAsync(guestUserId);
-        return JoinRequestDto.From(joinRequest, guest?.DisplayName ?? UnknownGuestName);
+        var guestName = guest?.DisplayName ?? UnknownGuestName;
+
+        // Tell the host (this row is also what the push pipeline picks up). Names fall back gracefully when a lookup misses.
+        if (teeTime.HostUserId is Guid hostId)
+        {
+            var course = courseRepository is null ? null : await courseRepository.GetByIdAsync(teeTime.CourseId);
+            await notificationRepository.AddAsync(new Notification
+            {
+                Id = Guid.NewGuid(),
+                UserId = hostId,
+                Type = NotificationType.JoinRequestReceived,
+                Message = $"{guestName} asked to join your group at {course?.Name ?? "your course"}.",
+                RelatedEntityId = teeTime.Id
+            });
+        }
+
+        return JoinRequestDto.From(joinRequest, guestName);
     }
 
     public async Task<JoinRequestDto> UpdateStatusAsync(Guid joinRequestId, JoinRequestStatus status, Guid callerId)
@@ -169,8 +206,12 @@ public class JoinRequestService(
         return JoinRequestDto.From(joinRequest, guest?.DisplayName ?? UnknownGuestName);
     }
 
-    public async Task<IReadOnlyList<JoinRequestDto>> GetForTeeTimeAsync(Guid teeTimeId)
+    public async Task<IReadOnlyList<JoinRequestDto>> GetForTeeTimeAsync(Guid teeTimeId, Guid? callerUserId = null)
     {
+        var teeTime = await teeTimeRepository.GetByIdFreshAsync(teeTimeId);
+        if (teeTime is not null)
+            await EnsureCanSeeAsync(teeTime, callerUserId);
+
         var joinRequests = await joinRequestRepository.GetByTeeTimeIdAsync(teeTimeId);
         var usersById = (await userRepository.GetAllAsync()).ToDictionary(u => u.Id);
         return joinRequests

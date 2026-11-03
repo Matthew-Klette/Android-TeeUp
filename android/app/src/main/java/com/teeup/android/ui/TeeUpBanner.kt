@@ -21,6 +21,8 @@ import com.teeup.android.R
  * message is presented.
  */
 object TeeUpBanner {
+    /** Clears every screen's top bar: the round back button ends ~58 dp below the status bar. */
+    private const val HEADER_CLEARANCE_DP = 72
 
     fun show(activity: Activity, message: String, isError: Boolean = false) {
         val root = activity.findViewById<ViewGroup>(android.R.id.content)
@@ -58,7 +60,8 @@ object TeeUpBanner {
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 Gravity.TOP
             ).apply {
-                topMargin = dp(16) + statusBarOverlap(root)
+                // Below the header row (back button, title bar), so a banner never covers the way out.
+                topMargin = dp(HEADER_CLEARANCE_DP) + statusBarOverlap(root)
                 marginStart = dp(16)
                 marginEnd = dp(16)
             }

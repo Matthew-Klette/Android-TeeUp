@@ -29,7 +29,8 @@ import com.teeup.android.data.HoleFix
 import com.teeup.android.data.HoleGuidance
 import com.teeup.android.data.HoleLayout
 import com.teeup.android.data.HoleLayoutSource
-import com.teeup.android.data.HoleTracker
+import com.teeup.android.data.GpsFixPolicy
+import com.teeup.android.data.HoleFollower
 import org.json.JSONArray
 import org.json.JSONObject
 import kotlin.math.roundToInt
@@ -70,6 +71,10 @@ class HoleMapController(private val activity: Activity, private val listener: Li
         /** Network fixes are coarse, so they're ignored while GPS is delivering, but used again once
          *  GPS has gone quiet this long (e.g. under trees or inside the clubhouse). */
         private const val GPS_STALE_MS = 10_000L
+        /** How often the GPS status re-checks for a lost signal while the screen is showing. */
+        private const val FRESHNESS_CHECK_MS = 5_000L
+        private const val NANOS_PER_MILLI = 1_000_000L
+        private const val MILLIS_PER_SECOND = 1_000L
         /** Placeholder https origin for the page (same host as CoursePreviewActivity). Requests to it
          *  are answered from assets/ by [AssetWebViewClient]; it never touches the network. */
         private const val MAP_HOST = "appassets.teeup.local"
@@ -103,6 +108,26 @@ class HoleMapController(private val activity: Activity, private val listener: Li
     private var userPosition: GeoPoint? = null
     private var userAccuracyMeters: Float? = null
     private var lastFix: HoleFix? = null
+    /** Decides the hole GPS puts the golfer on, without flicking (see [HoleFollower]). */
+    private val follower = HoleFollower(currentHole = null)
+    /** When [userPosition] was last updated, on the elapsedRealtime clock; 0 = never. */
+    private var userPositionAt = 0L
+    /** Accuracy of the latest fix that was too vague to use, for the status line; null once a good one arrives. */
+    private var rejectedAccuracyMeters: Float? = null
+    /** Only Approximate location granted: no GPS, so no live distances. */
+    private var approximateOnly = false
+    private val freshnessHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private val freshnessCheck = object : Runnable {
+        override fun run() {
+            checkFreshness()
+            freshnessHandler.postDelayed(this, FRESHNESS_CHECK_MS)
+        }
+    }
+    /** Set when the WebView's renderer died: the WebView is gone and must not be touched again. */
+    private var webViewDestroyed = false
+
+    /** Set by a host that keeps score: a scored hole lets GPS move on to the next hole sooner. */
+    var isHoleComplete: (Int) -> Boolean = { false }
     /** On by default: the map jumps to whichever hole GPS says you're on. Manual moves turn it off. */
     var isFollowingGps = true
         private set
@@ -166,9 +191,16 @@ class HoleMapController(private val activity: Activity, private val listener: Li
             listener.onFollowGpsChanged(false)
             Log.d(TAG, "Manually moved to hole $hole; GPS follow off")
         }
+        // The golfer chose this hole: GPS carries on from here, which also corrects a wrong guess.
+        follower.anchor(hole)
         if (hole == shownHoleNumber) return
         shownHoleNumber = hole
         restoredTarget = null
+        lastFix = userPosition?.let { position ->
+            holes.firstOrNull { it.hole == hole }?.let { layout ->
+                HoleFix(hole, GeoMath.distanceToPathMeters(position, layout.lineOfPlay), lastFix?.onCourse ?: false)
+            }
+        }
         selectHole()
     }
 
@@ -191,15 +223,29 @@ class HoleMapController(private val activity: Activity, private val listener: Li
 
     fun onResume() {
         isResumed = true
+        // The golfer may have walked a hole or two with the screen off: an old position would
+        // show confident distances from the wrong place.
+        checkFreshness()
         if (hasCourse) startLocationUpdates()
+        freshnessHandler.removeCallbacks(freshnessCheck)
+        freshnessHandler.postDelayed(freshnessCheck, FRESHNESS_CHECK_MS)
     }
 
     fun onPause() {
         isResumed = false
+        freshnessHandler.removeCallbacks(freshnessCheck)
         stopLocationUpdates()
     }
 
     fun onDestroy() {
+        freshnessHandler.removeCallbacks(freshnessCheck)
+        destroyWebView()
+    }
+
+    private fun destroyWebView() {
+        if (webViewDestroyed) return
+        webViewDestroyed = true
+        mapReady = false
         // A WebView must be detached before destroy(), or it can leak the Activity.
         (webView.parent as? ViewGroup)?.removeView(webView)
         webView.destroy()
@@ -254,6 +300,8 @@ class HoleMapController(private val activity: Activity, private val listener: Li
         } else if (shownHoleNumber == 0) {
             shownHoleNumber = loaded.first().hole
         }
+        // GPS starts from the hole the screen opened on (the round's current hole).
+        if (follower.currentHole == null && loaded.any { it.hole == shownHoleNumber }) follower.anchor(shownHoleNumber)
         Log.i(TAG, "${loaded.size} holes loaded; opening on hole $shownHoleNumber")
         // A fix that arrived while holes were still loading couldn't be placed on a hole yet.
         userPosition?.let { updateFix(it) }
@@ -297,8 +345,7 @@ class HoleMapController(private val activity: Activity, private val listener: Li
             listener.onMarkersMovedChanged(false)
             return
         }
-        val fix = lastFix
-        val onThisHole = fix != null && fix.onCourse && fix.hole == hole.hole
+        val onThisHole = GpsFixPolicy.measureFromGolfer(lastFix, hole.hole, positionFreshness())
         val flag = pins[hole.hole]
         val guidance = HoleGuidance.compute(hole, userPosition, onThisHole, target, placedPlayers[hole.hole], flag)
 
@@ -368,13 +415,20 @@ class HoleMapController(private val activity: Activity, private val listener: Li
         // arriving without a pause/resume (the listener gets onProviderEnabled).
         // The GPS provider needs Precise; with Approximate only, the network provider is all we may use.
         val precise = activity.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        approximateOnly = !precise
         val providers = LOCATION_PROVIDERS
             .filter { it in manager.allProviders }
             .filter { precise || it == LocationManager.NETWORK_PROVIDER }
         noLocationProvider = providers.none { manager.isProviderEnabled(it) }
         try {
+            // Re-registering replaces any earlier registration of this listener, so resuming twice is safe.
             providers.forEach { manager.requestLocationUpdates(it, LOCATION_INTERVAL_MS, LOCATION_MIN_DISTANCE_M, this, activity.mainLooper) }
             Log.d(TAG, "Location updates started from $providers")
+            // A fresh fix the phone already has (e.g. from the previous screen) shows distances
+            // straight away instead of waiting for the next one. onLocationChanged rejects stale ones.
+            if (userPosition == null && precise && LocationManager.GPS_PROVIDER in providers) {
+                manager.getLastKnownLocation(LocationManager.GPS_PROVIDER)?.let(::onLocationChanged)
+            }
         } catch (e: SecurityException) {
             // Permission revoked between the check and the request (e.g. from Settings mid-screen).
             Log.w(TAG, "Location permission lost", e)
@@ -390,8 +444,19 @@ class HoleMapController(private val activity: Activity, private val listener: Li
     }
 
     override fun onLocationChanged(location: Location) {
-        val accuracy = location.accuracy
+        val accuracy = if (location.hasAccuracy()) location.accuracy else null
         val now = SystemClock.elapsedRealtime()
+        val ageMs = (SystemClock.elapsedRealtimeNanos() - location.elapsedRealtimeNanos) / NANOS_PER_MILLI
+        if (!GpsFixPolicy.isUsable(accuracy, ageMs)) {
+            // Too vague or too old to measure a shot from. Keep the last good position (it
+            // expires on its own) and say why on the status line.
+            Log.d(TAG, "Ignored ${location.provider} fix: accuracy=$accuracy m, age=$ageMs ms")
+            // Only a vague fix earns the "weak signal" line; an old cached one just means "still finding you".
+            if (GpsFixPolicy.isUsable(accuracy, ageMs = 0)) return
+            rejectedAccuracyMeters = accuracy
+            updateGpsStatus()
+            return
+        }
         if (location.provider == LocationManager.GPS_PROVIDER) {
             lastGpsFixAt = now
         } else if (lastGpsFixAt != 0L && now - lastGpsFixAt < GPS_STALE_MS) {
@@ -402,19 +467,38 @@ class HoleMapController(private val activity: Activity, private val listener: Li
         val position = GeoPoint(location.latitude, location.longitude)
         userPosition = position
         userAccuracyMeters = accuracy
+        userPositionAt = now
+        rejectedAccuracyMeters = null
         updateFix(position)
         refreshGuidance()
     }
 
     private fun updateFix(position: GeoPoint) {
         if (holes.isEmpty()) return
-        val current = lastFix?.hole ?: shownHoleNumber.takeIf { it != 0 }
-        val fix = HoleTracker.detect(position, holes, current) ?: return
+        val fix = follower.update(position, userAccuracyMeters, holes, isHoleComplete) ?: return
         if (fix.hole != lastFix?.hole || fix.onCourse != lastFix?.onCourse) {
             Log.d(TAG, "Fix: hole ${fix.hole}, ${fix.distanceToHoleMeters.roundToInt()} m from its line, onCourse=${fix.onCourse}")
         }
         lastFix = fix
         if (isFollowingGps && fix.onCourse) jumpToHole(fix.hole)
+    }
+
+    private fun positionFreshness(): GpsFixPolicy.Freshness =
+        if (userPosition == null) GpsFixPolicy.Freshness.EXPIRED
+        else GpsFixPolicy.freshness(SystemClock.elapsedRealtime() - userPositionAt)
+
+    /** Drops a position too old to trust, so distances go back to the tee; otherwise just
+     *  refreshes the status line (which warns once the signal has been lost a while). */
+    private fun checkFreshness() {
+        if (userPosition != null && positionFreshness() == GpsFixPolicy.Freshness.EXPIRED) {
+            Log.i(TAG, "No GPS fix for ${GpsFixPolicy.EXPIRE_AFTER_MS / MILLIS_PER_SECOND} s; measuring from the tee")
+            userPosition = null
+            userAccuracyMeters = null
+            lastFix = null
+            refreshGuidance()
+        } else {
+            updateGpsStatus()
+        }
     }
 
     // Overridden explicitly: on API 24-28 these aren't default methods, so leaving them out
@@ -436,13 +520,24 @@ class HoleMapController(private val activity: Activity, private val listener: Li
     private fun updateGpsStatus() {
         val fix = lastFix
         val accuracy = userAccuracyMeters
+        val rejected = rejectedAccuracyMeters
+        val freshness = positionFreshness()
         gpsStatusText.text = when {
             placedPlayers.containsKey(shownHoleNumber) -> activity.getString(R.string.hole_map_gps_placed)
             locationDenied -> activity.getString(R.string.hole_map_gps_denied)
+            approximateOnly -> activity.getString(R.string.hole_map_gps_approximate)
             noLocationProvider -> activity.getString(R.string.hole_map_gps_disabled)
+            (userPosition == null || accuracy == null) && rejected != null ->
+                activity.getString(R.string.hole_map_gps_weak_format, rejected.roundToInt())
             userPosition == null || accuracy == null -> activity.getString(R.string.hole_map_gps_waiting)
+            freshness == GpsFixPolicy.Freshness.STALE -> activity.getString(
+                R.string.hole_map_gps_lost_format,
+                ((SystemClock.elapsedRealtime() - userPositionAt) / MILLIS_PER_SECOND).toInt()
+            )
             fix != null && !fix.onCourse ->
                 activity.getString(R.string.hole_map_gps_off_course_format, fix.distanceToHoleMeters / METERS_PER_KM)
+            fix != null && fix.hole == shownHoleNumber && fix.distanceToHoleMeters > GpsFixPolicy.NEAR_HOLE_METERS ->
+                activity.getString(R.string.hole_map_gps_far_from_hole_format, fix.distanceToHoleMeters.roundToInt())
             else -> activity.getString(R.string.hole_map_gps_accuracy_format, accuracy.roundToInt())
         }
     }
@@ -450,7 +545,7 @@ class HoleMapController(private val activity: Activity, private val listener: Li
     // ---- Map page plumbing ----
 
     private fun callMap(function: String, argument: Any) {
-        if (!mapReady) return
+        if (!mapReady || webViewDestroyed) return
         // JSONObject.toString() is valid JS literal syntax, so no further escaping is needed.
         webView.evaluateJavascript("window.teeupMap.$function($argument);", null)
     }
@@ -543,6 +638,20 @@ class HoleMapController(private val activity: Activity, private val listener: Li
                 Log.w(TAG, "No bundled asset for $url")
                 WebResourceResponse("text/plain", "utf-8", 404, "Not Found", emptyMap(), "".byteInputStream())
             }
+        }
+
+        /**
+         * The map's renderer process died (the system reclaimed memory mid-round, or it crashed).
+         * Unhandled, Android kills the whole app with it, losing the round screen; instead drop
+         * just the map and keep the distances and scorecard running (Android Developers, 2026).
+         */
+        @androidx.annotation.RequiresApi(android.os.Build.VERSION_CODES.O)
+        override fun onRenderProcessGone(view: WebView, detail: android.webkit.RenderProcessGoneDetail): Boolean {
+            Log.e(TAG, "Map renderer gone (crashed=${detail.didCrash()}); continuing without the map")
+            destroyWebView()
+            failureMessage = activity.getString(R.string.hole_map_load_failed)
+            if (isAlive()) updateMapMessage()
+            return true
         }
 
         override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {

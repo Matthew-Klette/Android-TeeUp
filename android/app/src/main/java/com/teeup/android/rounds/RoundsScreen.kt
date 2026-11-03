@@ -139,7 +139,7 @@ private fun LazyListScope.roundsContent(
                             ?: onChooseHoles(item.round.teeTimeId)
                         is RoundAction.Continue -> actions.openScorecard(item.round.teeTimeId, action.totalHoles)
                         RoundAction.ViewSummary -> actions.openSummary(item.round.teeTimeId)
-                        RoundAction.NotYetStartable -> Unit
+                        RoundAction.NotYetStartable, RoundAction.PendingSync -> Unit
                     }
                 },
                 modifier = Modifier.animateItem().padding(horizontal = TeeUpMetrics.gutter).padding(top = 14.dp)
@@ -186,6 +186,7 @@ private fun RoundCard(item: RoundItem, onAction: () -> Unit, modifier: Modifier 
             is RoundAction.Start -> stringResource(R.string.rounds_start_round) to ButtonKind.Primary
             is RoundAction.Continue -> stringResource(R.string.rounds_continue_round) to ButtonKind.Primary
             RoundAction.ViewSummary -> stringResource(R.string.rounds_view_summary) to ButtonKind.Tinted
+            RoundAction.PendingSync -> stringResource(R.string.rounds_pending_sync) to ButtonKind.Secondary
         }
         TeeUpButton(
             label,
@@ -193,7 +194,7 @@ private fun RoundCard(item: RoundItem, onAction: () -> Unit, modifier: Modifier 
             modifier = Modifier.fillMaxWidth(),
             kind = kind,
             compact = true,
-            enabled = item.action != RoundAction.NotYetStartable
+            enabled = item.action != RoundAction.NotYetStartable && item.action != RoundAction.PendingSync
         )
     }
 }

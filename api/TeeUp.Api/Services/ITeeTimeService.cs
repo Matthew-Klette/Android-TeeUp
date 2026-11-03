@@ -8,8 +8,9 @@ public interface ITeeTimeService
     /// <summary>
     /// <paramref name="maxHandicap"/>/<paramref name="pace"/> filter by the tee time's host; a tee time with no host is excluded when either is set.
     /// <paramref name="joinableOnly"/> defaults to false so callers looking up a specific tee time still see bookings, full, past and cancelled rows.
+    /// Partners-only groups are left out unless <paramref name="callerUserId"/> is the host or a playing partner of the host.
     /// </summary>
-    Task<IReadOnlyList<TeeTimeDto>> GetAllAsync(decimal? maxHandicap = null, PaceOfPlay? pace = null, bool joinableOnly = false);
+    Task<IReadOnlyList<TeeTimeDto>> GetAllAsync(decimal? maxHandicap = null, PaceOfPlay? pace = null, bool joinableOnly = false, Guid? callerUserId = null);
 
     /// <summary>
     /// Creates a tee time for a solo round, dated right now and reserved entirely for <paramref name="hostUserId"/>, so no join-request flow is needed before scores can be posted.

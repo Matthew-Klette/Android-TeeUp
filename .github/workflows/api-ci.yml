@@ -1,14 +1,10 @@
 name: API CI
 
 on:
+  # Every push and pull request, on any branch (POE brief: automated build + unit tests on every remote push).
   push:
-    paths:
-      - "api/**"
-      - ".github/workflows/api-ci.yml"
   pull_request:
-    paths:
-      - "api/**"
-      - ".github/workflows/api-ci.yml"
+  workflow_dispatch:
 
 jobs:
   build-and-test:

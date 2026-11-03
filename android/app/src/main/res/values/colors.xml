@@ -27,6 +27,10 @@
     <color name="teeup_border">#DCE3D6</color>
     <color name="teeup_ripple">#33006747</color>
 
+    <!-- Splash intro stage: the near-black of the TeeUp logo, so the system
+         launch window and the first animated frame match. -->
+    <color name="teeup_splash_stage">#070807</color>
+
     <!-- Status -->
     <color name="teeup_danger">#C4362A</color>
 

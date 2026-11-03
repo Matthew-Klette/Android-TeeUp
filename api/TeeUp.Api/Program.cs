@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using TeeUp.Api.Common;
 using TeeUp.Api.Data;
+using TeeUp.Api.Push;
 using TeeUp.Api.Repositories;
 using TeeUp.Api.Services;
 
@@ -71,8 +72,12 @@ builder.Services.AddScoped<IJoinRequestRepository, EfJoinRequestRepository>();
 builder.Services.AddScoped<IRoundRepository, EfRoundRepository>();
 builder.Services.AddScoped<IScorecardEntryRepository, EfScorecardEntryRepository>();
 builder.Services.AddScoped<IEndorsementRepository, EfEndorsementRepository>();
-builder.Services.AddScoped<INotificationRepository, EfNotificationRepository>();
+builder.Services.AddScoped<IFriendshipRepository, EfFriendshipRepository>();
 builder.Services.AddScoped<IUnitOfWork, EfUnitOfWork>();
+
+// Push notifications (FCM). Registers INotificationRepository as a decorator over EfNotificationRepository
+// so every stored notification is also pushed; falls back to a no-op sender without credentials.
+var pushConfigured = builder.Services.AddPushNotifications(builder.Configuration);
 
 // Services
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -82,8 +87,15 @@ builder.Services.AddScoped<IJoinRequestService, JoinRequestService>();
 builder.Services.AddScoped<IRoundService, RoundService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IFriendService, FriendService>();
 
 var app = builder.Build();
+
+if (!pushConfigured)
+{
+    app.Logger.LogWarning(
+        "Firebase credentials not configured (Firebase:ServiceAccountJson / GOOGLE_APPLICATION_CREDENTIALS); push notifications are disabled.");
+}
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 

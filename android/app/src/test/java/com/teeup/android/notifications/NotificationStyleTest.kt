@@ -19,6 +19,14 @@ class NotificationStyleTest {
     }
 
     @Test
+    fun partnerInviteIsLabelledAndAccent() {
+        val style = NotificationStyle.of(notification(NotificationType.PRIVATE_GROUP_INVITE))
+        assertEquals(R.string.notification_category_private_invite, style.title)
+        assertEquals(Tone.ACCENT, style.tone)
+        assertEquals(R.drawable.ic_glyph_people, style.icon)
+    }
+
+    @Test
     fun unknownTypeFallsBackToTheScreenTitle() {
         assertEquals(R.string.notifications_title, NotificationStyle.of(notification(99)).title)
     }

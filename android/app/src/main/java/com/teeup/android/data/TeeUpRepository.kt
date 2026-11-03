@@ -41,7 +41,7 @@ object TeeUpRepository {
         block: suspend (String) -> T
     ): T = withContext(Dispatchers.IO) {
         val user = FirebaseAuth.getInstance().currentUser
-            ?: throw ApiException("Please sign in to access your profile.")
+            ?: throw ApiException(httpFailureMessage(401))
 
         val token = try {
             Tasks.await(
@@ -52,13 +52,11 @@ object TeeUpRepository {
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            throw ApiException(
-                "Could not verify your sign-in. Check your connection and try again."
-            )
+            throw ApiException(noConnectionMessage())
         }
 
         if (token.isNullOrBlank()) {
-            throw ApiException("Your session is unavailable. Please sign in again.")
+            throw ApiException(httpFailureMessage(401))
         }
 
         try {
@@ -70,22 +68,12 @@ object TeeUpRepository {
             throw e
         } catch (e: IOException) {
             Log.w(TAG, "Profile request failed: network unavailable")
-            throw ApiException(
-                "Could not connect. Check your connection and try again."
-            )
+            throw ApiException(noConnectionMessage())
         } catch (e: HttpException) {
             Log.w(TAG, "Profile request failed: HTTP ${e.code()}")
 
-            val message = when (e.code()) {
-                400 -> "Some profile details are invalid. Check them and try again."
-                401 -> "Your session has expired. Please sign in again."
-                403 -> "You do not have permission to access this profile."
-                404 -> "Your profile could not be found. Complete registration first."
-                in 500..599 -> "The profile service is unavailable. Please try again later."
-                else -> "Could not complete the request. Please try again."
-            }
-
-            throw ApiException(message)
+            // Same translated messages as every other API call (InputValidation.kt).
+            throw ApiException(httpFailureMessage(e.code()), e.code())
         }
     }
 
@@ -118,3 +106,8 @@ object TeeUpRepository {
         }
     }
 }
+
+/** The translated "Could not connect" message; English only in plain-JVM unit tests. */
+private fun noConnectionMessage(): String =
+    com.teeup.android.TeeUpApplication.appContextOrNull?.getString(com.teeup.android.R.string.http_error_no_connection)
+        ?: "Could not connect. Check your connection and try again."

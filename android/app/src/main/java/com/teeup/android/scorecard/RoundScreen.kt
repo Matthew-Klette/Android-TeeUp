@@ -42,6 +42,9 @@ import androidx.compose.ui.unit.dp
 import android.content.res.Configuration
 import com.teeup.android.R
 import com.teeup.android.data.HoleScoreInput
+import com.teeup.android.design.SegmentedControl
+import com.teeup.android.data.ScoreCheck
+import com.teeup.android.data.HolePar
 import com.teeup.android.data.RoundScoring
 import com.teeup.android.design.BackButton
 import com.teeup.android.design.ButtonKind
@@ -77,6 +80,8 @@ class RoundUiState {
     var courseName by mutableStateOf("")
     var dateText by mutableStateOf("")
     var hole by mutableIntStateOf(1)
+    /** The shown hole's par from the club's card; null when the course's card isn't known. */
+    var par by mutableStateOf<Int?>(null)
     var canPrevious by mutableStateOf(false)
     var canNext by mutableStateOf(false)
     var scoreLabel by mutableStateOf<ScoreLabel>(ScoreLabel.Add)
@@ -91,7 +96,9 @@ class RoundUiState {
     var confirmDelete by mutableStateOf(false)
 }
 
-data class ScoreSheet(val hole: Int, val existing: HoleScoreInput?, val finishes: Boolean)
+/** [par] is from the club's scorecard ([com.teeup.android.data.CoursePars]); null when the course's
+ *  card isn't known, and the golfer picks it. */
+data class ScoreSheet(val hole: Int, val existing: HoleScoreInput?, val finishes: Boolean, val par: Int? = null)
 
 class RoundActions(
     val back: () -> Unit,
@@ -191,6 +198,14 @@ private fun RoundHeader(state: RoundUiState, actions: RoundActions) {
                     maxLines = 1,
                     modifier = Modifier.semantics { heading() }
                 )
+                state.par?.let { par ->
+                    Label(
+                        stringResource(R.string.scorecard_hole_par_format, par),
+                        type.subheadline.copy(textAlign = TextAlign.Center, fontWeight = type.headline.fontWeight),
+                        color = colors.accent,
+                        maxLines = 1
+                    )
+                }
                 Label(
                     stringResource(R.string.scorecard_progress_format, state.scored, state.totalHoles),
                     type.footnote.copy(textAlign = TextAlign.Center),
@@ -315,20 +330,42 @@ private fun ColumnScope.ScoreSheetContent(sheet: ScoreSheet, onSave: (HoleScoreI
     val colors = TeeUpTheme.colors
     var strokes by remember { mutableStateOf(sheet.existing?.strokes?.toString().orEmpty()) }
     var putts by remember { mutableStateOf(sheet.existing?.putts?.toString().orEmpty()) }
-    var invalid by remember { mutableStateOf(false) }
+    var par by remember { mutableStateOf(sheet.par) }
+    var problem by remember { mutableStateOf<ScoreCheck?>(null) }
     val save = {
-        val entry = RoundScoring.entryOrNull(sheet.hole, strokes.trim().toIntOrNull(), putts.trim().toIntOrNull())
-        if (entry == null) invalid = true else onSave(entry)
+        when (val check = RoundScoring.check(sheet.hole, strokes.trim().toIntOrNull(), putts.trim().toIntOrNull(), par)) {
+            is ScoreCheck.Valid -> onSave(check.entry)
+            else -> problem = check
+        }
     }
     Label(
         stringResource(R.string.scorecard_score_dialog_title, sheet.hole),
         TeeUpTheme.type.title3,
         modifier = Modifier.padding(bottom = 12.dp).semantics { heading() }
     )
+    // Par sets the stroke limit (par + 3, putts included). From the club's card when the course
+    // is known; otherwise the golfer picks it from the card before saving.
+    if (sheet.par == null) {
+        Label(stringResource(R.string.scorecard_par_unknown), TeeUpTheme.type.footnote, color = colors.secondaryLabel, modifier = Modifier.padding(start = 4.dp, bottom = 6.dp))
+        SegmentedControl(
+            options = HolePar.OPTIONS.map { stringResource(R.string.scorecard_par_option_format, it) },
+            selectedIndex = HolePar.OPTIONS.indexOf(par),
+            onSelect = { par = HolePar.OPTIONS[it]; problem = null }
+        )
+    }
+    par?.let { known ->
+        Label(
+            stringResource(R.string.scorecard_par_limit_format, known, HolePar.maxStrokes(known)),
+            TeeUpTheme.type.footnote,
+            color = colors.secondaryLabel,
+            modifier = Modifier.padding(start = 4.dp, top = 6.dp)
+        )
+    }
+    Spacer(Modifier.height(12.dp))
     Column(Modifier.fillMaxWidth().background(colors.background, RoundedCornerShape(TeeUpMetrics.controlRadius))) {
         FieldRow(
             value = strokes,
-            onValueChange = { strokes = it; invalid = false },
+            onValueChange = { strokes = it; problem = null },
             placeholder = stringResource(R.string.scorecard_strokes_hint),
             label = stringResource(R.string.scorecard_strokes),
             keyboardType = KeyboardType.Number,
@@ -337,7 +374,7 @@ private fun ColumnScope.ScoreSheetContent(sheet: ScoreSheet, onSave: (HoleScoreI
         ListDivider()
         FieldRow(
             value = putts,
-            onValueChange = { putts = it; invalid = false },
+            onValueChange = { putts = it; problem = null },
             placeholder = stringResource(R.string.scorecard_putts_hint),
             label = stringResource(R.string.scorecard_putts),
             keyboardType = KeyboardType.Number,
@@ -345,9 +382,14 @@ private fun ColumnScope.ScoreSheetContent(sheet: ScoreSheet, onSave: (HoleScoreI
             onImeAction = save
         )
     }
-    if (invalid) {
+    problem?.let { check ->
         Label(
-            stringResource(R.string.scorecard_validation_error),
+            when (check) {
+                is ScoreCheck.TooManyStrokes -> stringResource(R.string.scorecard_too_many_strokes_format, check.par, check.max)
+                is ScoreCheck.PuttsExceedStrokes -> stringResource(R.string.scorecard_putts_exceed_format, check.strokes)
+                ScoreCheck.ParMissing -> stringResource(R.string.scorecard_par_missing)
+                else -> stringResource(R.string.scorecard_validation_error)
+            },
             TeeUpTheme.type.footnote,
             color = colors.destructive,
             modifier = Modifier.padding(top = 8.dp, start = 4.dp)

@@ -15,6 +15,13 @@ import com.teeup.android.home.HomeViewModel
 import com.teeup.android.nav.BottomNav
 import com.teeup.android.ui.LocaleComponentActivity
 import com.teeup.android.ui.TeeUpBanner
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import android.util.Log
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import com.teeup.android.notifications.DeviceTokenRegistrar
 
 /**
  * Home: open groups looking for players. The first screen on the iOS-style design system
@@ -24,6 +31,12 @@ import com.teeup.android.ui.TeeUpBanner
 class HomeActivity : LocaleComponentActivity() {
     private val viewModel: HomeViewModel by viewModels()
     private var hasResumedOnce = false
+
+    /** Android 13+ asks before an app may post notifications; pushes still land in the in-app
+     *  list if the golfer says no. */
+    private val notificationPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        Log.i(TAG, "POST_NOTIFICATIONS granted=$granted")
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Content runs under transparent system bars, with dark icons on the light page.
@@ -42,6 +55,22 @@ class HomeActivity : LocaleComponentActivity() {
         setContent {
             TeeUpTheme { HomeScreen(viewModel, actions) }
         }
+        // Home is the first screen after every sign-in path, so this is where the device is
+        // registered for FCM push.
+        DeviceTokenRegistrar.syncCurrentToken()
+        if (savedInstanceState == null) requestNotificationPermissionIfNeeded()
+    }
+
+    private fun requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        val permission = Manifest.permission.POST_NOTIFICATIONS
+        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+            notificationPermission.launch(permission)
+        }
+    }
+
+    private companion object {
+        const val TAG = "HomeActivity"
     }
 
     override fun onResume() {

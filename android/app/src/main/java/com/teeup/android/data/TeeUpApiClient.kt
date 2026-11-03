@@ -3,6 +3,8 @@ package com.teeup.android.data
 import com.teeup.android.BuildConfig
 import com.teeup.android.R
 import com.teeup.android.TeeUpApplication
+import com.teeup.android.data.offline.ResponseCache
+import android.util.Log
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
 import org.json.JSONArray
@@ -15,8 +17,14 @@ import java.util.concurrent.TimeUnit
 /**
  * Plain HttpURLConnection and org.json client, not Retrofit/OkHttp yet.
  * Every function here blocks and must be called off the main thread.
+ *
+ * Offline mode: every successful GET is saved by [ResponseCache] (Room), and when the API can't
+ * be reached the last saved body is returned instead, so screens keep showing data offline.
+ * Writes are never cached; the Scorecard queues those itself (see ScorecardOutbox).
  */
 object TeeUpApiClient {
+    private const val TAG = "TeeUpApiClient"
+
     /** [search] filters by course name (case-insensitive substring match) server-side;
      *  null/blank returns every course, same as calling this with no argument. */
     fun fetchCourses(search: String? = null): List<Course> {
@@ -82,9 +90,11 @@ object TeeUpApiClient {
         openSpots: Int,
         wantedHandicapMin: Double?,
         wantedHandicapMax: Double?,
-        wantedPace: Int?
+        wantedPace: Int?,
+        isPrivate: Boolean = false
     ): TeeTime {
         val body = JSONObject()
+            .put("isPrivate", isPrivate)
             .put("courseId", courseId)
             .put("dateTime", dateTimeIso)
             .put("holes", holes)
@@ -104,7 +114,8 @@ object TeeUpApiClient {
         openSpots: Int,
         wantedHandicapMin: Double?,
         wantedHandicapMax: Double?,
-        wantedPace: Int?
+        wantedPace: Int?,
+        isPrivate: Boolean? = null
     ): TeeTime {
         val body = JSONObject()
             .put("dateTime", dateTimeIso)
@@ -113,6 +124,7 @@ object TeeUpApiClient {
             .put("wantedHandicapMin", wantedHandicapMin)
             .put("wantedHandicapMax", wantedHandicapMax)
             .put("wantedPace", wantedPace)
+        isPrivate?.let { body.put("isPrivate", it) }
         return parseTeeTime(JSONObject(request("PATCH", "api/teetimes/$teeTimeId", body)))
     }
 
@@ -134,14 +146,47 @@ object TeeUpApiClient {
         request("DELETE", "api/join-requests/$joinRequestId")
     }
 
+    /** GET /api/friends: the caller's saved playing partners, sorted by name. */
+    fun fetchPartners(): List<Partner> {
+        val array = JSONArray(request("GET", "api/friends"))
+        return (0 until array.length()).map { i -> parsePartner(array.getJSONObject(i), isPartner = true) }
+    }
+
+    /** POST /api/friends: saves [userId] as a playing partner (idempotent). */
+    fun addPartner(userId: String): Partner =
+        parsePartner(JSONObject(request("POST", "api/friends", JSONObject().put("friendUserId", userId))), isPartner = true)
+
+    /** DELETE /api/friends/{id}: removes a playing partner (idempotent). */
+    fun removePartner(userId: String) {
+        request("DELETE", "api/friends/$userId")
+    }
+
+    /** GET /api/users/search: golfers whose name contains [query] (2+ characters), excluding the caller. */
+    fun searchGolfers(query: String): List<Partner> {
+        val trimmed = query.trim()
+        if (trimmed.length < 2) return emptyList()
+        val array = JSONArray(request("GET", "api/users/search?query=${java.net.URLEncoder.encode(trimmed, "UTF-8")}", allowCache = false))
+        return (0 until array.length()).map { i ->
+            val o = array.getJSONObject(i)
+            parsePartner(o, isPartner = o.optBoolean("isPartner", false))
+        }
+    }
+
     fun fetchNotifications(): List<AppNotification> {
         val array = JSONArray(request("GET", "api/notifications"))
         return (0 until array.length()).map { i -> parseNotification(array.getJSONObject(i)) }
     }
 
+    /** Retried once with a longer timeout: this is the first call after sign-in, so it's the one
+     *  that hits a sleeping API. Safe to repeat because the server returns the existing user
+     *  when [firebaseUid] is already registered. */
     fun register(firebaseUid: String, displayName: String): RegisteredUser {
         val body = JSONObject().put("firebaseUid", firebaseUid).put("displayName", displayName)
-        return parseRegisteredUser(JSONObject(request("POST", "api/auth/register", body)))
+        val text = retryWhileWakingUp { attempt ->
+            if (attempt > 1) Log.i(TAG, "POST api/auth/register: retrying (attempt $attempt)")
+            request("POST", "api/auth/register", body, timeoutMs = timeoutForAttempt(attempt))
+        }
+        return parseRegisteredUser(JSONObject(text))
     }
 
     /** GET /api/profiles/me. Just reads the profile, no register side effect.
@@ -197,8 +242,15 @@ object TeeUpApiClient {
         return parseJoinRequest(JSONObject(request("PATCH", "api/join-requests/$joinRequestId", body)))
     }
 
-    fun fetchSchedule(): List<ScheduledRound> {
-        val array = JSONArray(request("GET", "api/rounds/me/schedule"))
+    fun fetchSchedule(): List<ScheduledRound> = parseSchedule(request("GET", "api/rounds/me/schedule"))
+
+    /** Same as [fetchSchedule] but never served from the offline cache: the sync worker must
+     *  compare against what the server really has. */
+    fun fetchScheduleLive(): List<ScheduledRound> =
+        parseSchedule(request("GET", "api/rounds/me/schedule", allowCache = false))
+
+    private fun parseSchedule(json: String): List<ScheduledRound> {
+        val array = JSONArray(json)
         return (0 until array.length()).map { i -> parseScheduledRound(array.getJSONObject(i)) }
     }
 
@@ -243,6 +295,14 @@ object TeeUpApiClient {
         teeTimeReminders = o.getBoolean("teeTimeReminders")
     )
 
+    private fun parsePartner(o: JSONObject, isPartner: Boolean) = Partner(
+        userId = o.getString("userId"),
+        displayName = o.getString("displayName"),
+        handicapIndex = if (o.isNull("handicapIndex")) null else o.getDouble("handicapIndex"),
+        paceOfPlay = o.optInt("paceOfPlay", 1),
+        isPartner = isPartner
+    )
+
     private fun parseCourse(o: JSONObject) = Course(
         id = o.getString("id"),
         name = o.getString("name"),
@@ -279,6 +339,8 @@ object TeeUpApiClient {
         wantedHandicapMax = if (o.isNull("wantedHandicapMax")) null else o.getDouble("wantedHandicapMax"),
         wantedPace = if (o.isNull("wantedPace")) null else o.getInt("wantedPace"),
         status = o.getInt("status"),
+        // Older API builds don't send isPrivate; those groups are all public.
+        isPrivate = o.optBoolean("isPrivate", false),
         members = o.optJSONArray("members")?.let { array ->
             (0 until array.length()).map { i -> parseGroupMember(array.getJSONObject(i)) }
         } ?: emptyList()
@@ -339,12 +401,20 @@ object TeeUpApiClient {
         synced = o.getBoolean("synced")
     )
 
-    private fun request(method: String, path: String, body: JSONObject? = null): String {
+    /** [allowCache] lets a GET fall back to its last saved body when the API is unreachable. */
+    private fun request(
+        method: String,
+        path: String,
+        body: JSONObject? = null,
+        allowCache: Boolean = true,
+        timeoutMs: Int = DEFAULT_TIMEOUT_MS
+    ): String {
+        val cacheable = method == "GET"
         val connection = URL(ApiConfig.BASE_URL + path).openConnection() as HttpURLConnection
         connection.requestMethod = method
         connection.setRequestProperty("Accept", "application/json")
-        connection.connectTimeout = 10_000
-        connection.readTimeout = 10_000
+        connection.connectTimeout = timeoutMs
+        connection.readTimeout = timeoutMs
         val authHeader = authorizationHeaderOrNull()
         if (authHeader != null) {
             connection.setRequestProperty("Authorization", authHeader)
@@ -371,8 +441,13 @@ object TeeUpApiClient {
                 }
                 throw ApiException(serverDetail ?: httpFailureMessage(code), code)
             }
-            return connection.inputStream.bufferedReader().use { it.readText() }
+            val text = connection.inputStream.bufferedReader().use { it.readText() }
+            Log.d(TAG, "$method $path -> $code")
+            if (cacheable) ResponseCache.store(path, text)
+            return text
         } catch (e: IOException) {
+            Log.w(TAG, "$method $path: network unavailable (${e.javaClass.simpleName})")
+            if (cacheable && allowCache) ResponseCache.load(path)?.let { return it.body }
             throw ApiException(TeeUpApplication.appContext.getString(R.string.http_error_no_connection))
         } finally {
             connection.disconnect()

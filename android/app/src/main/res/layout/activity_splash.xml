@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SplashActivity adds the destination screen (Sign In) at index 0, underneath
+     the intro, which then shatters into it. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/splash_stage"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/teeup_splash_stage">
+
+    <com.teeup.android.ui.splash.SplashShatterView
+        android:id="@+id/splash_intro"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no" />
+
+</FrameLayout>

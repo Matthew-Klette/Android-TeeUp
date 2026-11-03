@@ -127,7 +127,10 @@ fun TeeTimeCard(
                 }
             }
             Spacer(Modifier.width(10.dp))
-            SpotsPill(teeTime.spotsRemaining)
+            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                SpotsPill(teeTime.spotsRemaining)
+                if (teeTime.isPrivate) PrivatePill()
+            }
         }
 
         Spacer(Modifier.height(12.dp))
@@ -209,6 +212,20 @@ fun DateTile(parts: TeeTimeParts?) {
             maxLines = 1
         )
         Label(parts?.dayOfMonth?.toString() ?: "–", TeeUpTheme.type.title2, color = colors.onAccent, maxLines = 1)
+    }
+}
+
+/** Marks a partners-only group (only visible to the host's playing partners). */
+@Composable
+private fun PrivatePill() {
+    val colors = TeeUpTheme.colors
+    Row(
+        Modifier.clip(CircleShape).background(colors.fill).padding(horizontal = 8.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Glyph(R.drawable.ic_glyph_people, colors.secondaryLabel, size = 12.dp)
+        Spacer(Modifier.width(4.dp))
+        Label(stringResource(R.string.group_private_badge), TeeUpTheme.type.caption2, color = colors.secondaryLabel, maxLines = 1)
     }
 }
 
