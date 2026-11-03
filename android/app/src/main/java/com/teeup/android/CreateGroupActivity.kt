@@ -36,6 +36,8 @@ class CreateGroupActivity : LocaleComponentActivity() {
         const val EXTRA_EDIT_HANDICAP_MIN = "com.teeup.android.extra.EDIT_HANDICAP_MIN"
         const val EXTRA_EDIT_HANDICAP_MAX = "com.teeup.android.extra.EDIT_HANDICAP_MAX"
         const val EXTRA_EDIT_PACE = "com.teeup.android.extra.EDIT_PACE"
+        /** Boolean: the group is partners-only (Part 3, playing partners). */
+        const val EXTRA_EDIT_PRIVATE = "com.teeup.android.extra.EDIT_PRIVATE"
     }
 
     private val viewModel: CreateGroupViewModel by viewModels()

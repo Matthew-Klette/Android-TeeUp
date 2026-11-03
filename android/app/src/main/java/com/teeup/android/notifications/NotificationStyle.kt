@@ -26,6 +26,7 @@ data class NotificationStyle(
                 NotificationCategory.REQUEST_DECLINED -> R.drawable.ic_glyph_xmark to Tone.DESTRUCTIVE
                 NotificationCategory.TEE_TIME_REMINDER -> R.drawable.ic_glyph_clock to Tone.ACCENT
                 NotificationCategory.TEE_TIME_CANCELLED -> R.drawable.ic_glyph_xmark to Tone.DESTRUCTIVE
+                NotificationCategory.PRIVATE_GROUP_INVITE -> R.drawable.ic_glyph_people to Tone.ACCENT
                 NotificationCategory.SYNC_PENDING, NotificationCategory.WEATHER_ALERT, null -> R.drawable.ic_glyph_bell to Tone.NEUTRAL
             }
             return NotificationStyle(

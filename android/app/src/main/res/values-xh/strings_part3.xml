@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Strings for the final-POE (Part 3) features: offline mode, push notifications and playing
+     partners. isiXhosa translations of values/strings_part3.xml. -->
+<resources>
+    <string name="push_channel_alerts">Izilumkiso zeqela</string>
+    <string name="push_channel_alerts_description">Izicelo zokujoyina, izicelo ezamkelweyo okanye ezaliweyo, amaqela arhoxisiweyo nezimemo zabahlobo.</string>
+    <string name="push_channel_sync">Ukuvumelanisa okungaxhunyiwe</string>
+    <string name="push_channel_sync_description">Ikwazisa xa amakhadi amanqaku agcinwe ungaxhunyiwe elayishiwe.</string>
+    <string name="sync_done_title">Amakhadi amanqaku avumelanisiwe</string>
+    <plurals name="sync_done_body">
+        <item quantity="one">Umjikelo o-%d ogcinwe ungaxhunyiwe ngoku ulayishiwe.</item>
+        <item quantity="other">Imijikelo e-%d egcinwe ungaxhunyiwe ngoku ilayishiwe.</item>
+    </plurals>
+    <string name="notification_category_private_invite">Isimemo somdlali</string>
+    <string name="offline_banner_title">Awuxhunyiwe</string>
+    <string name="offline_banner_body">Ibonisa idatha egciniweyo. Imijikelo oyigqibezelayo iza kuvumelanisa xa uphinda uxhume.</string>
+    <string name="scorecard_saved_offline">Igcinwe ungaxhunyiwe. Ikhadi lakho lamanqaku liza kulayisha ngokwayo xa uphinda uxhume.</string>
+    <string name="scorecard_waiting_to_sync">Lo mjikelo ulindele ukuvumelanisa. Isishwankathelo siza kuvela xa sele ulayishiwe.</string>
+    <string name="rounds_pending_sync">Kulindwe ukuvumelanisa</string>
+    <string name="offline_sync_pending_label">KULINDWE UKULAYISHA</string>
+    <string name="offline_sync_pending_none">Yonke into ivumelanisiwe</string>
+    <string name="offline_sync_pending_detail">Izimbobo ezi-%1$d kwezi-%2$d · ilayisha xa uxhunyiwe</string>
+    <string name="offline_sync_pending_rejected">Ayamkelwanga yiseva: %1$s</string>
+    <string name="offline_sync_discard">Lahla</string>
+    <string name="offline_sync_how_it_works">Imijikelo oyigqibezela ungenalo uxhulumano igcinwa kule foni kwaye ilayisha ngokwayo xa uphinda uxhume, nokuba i-TeeUp ivaliwe.</string>
+    <string name="offline_sync_cache_notice">Amaxesha okudlala, imijikelo yakho neprofayile yakho zigcinwa kule foni emva kokuba zilayishiwe, ukuze usakwazi ukuzibona ungaxhunyiwe.</string>
+    <string name="offline_sync_syncing">Uphinde waxhuma. Ilayisha ngoku imijikelo yakho egciniweyo.</string>
+    <string name="profile_partners">Abahlobo Bokudlala</string>
+    <string name="partners_title">Abahlobo Bokudlala</string>
+    <string name="partners_section_saved">ABAHLOBO BAKHO</string>
+    <string name="partners_section_saved_footer">Abahlobo bangabona baze bajoyine amaqela akho abahlobo kuphela, kwaye bafumana isimemo xa wenza elinye.</string>
+    <string name="partners_section_find">FUMANA ABADLALI BEGOLF</string>
+    <string name="partners_search_hint">Khangela ngegama</string>
+    <string name="partners_search_min">Chwetheza ubuncinane oonobumba aba-2 ukukhangela.</string>
+    <string name="partners_search_none">Akukho badlali bagolf bahambelana ne-\"%1$s\".</string>
+    <string name="partners_empty">Abukho abahlobo okwangoku. Fumana abadlali bagolf odlala nabo ngezantsi, okanye ubongeze kwiqela olijoyinileyo.</string>
+    <string name="partners_add">Yongeza</string>
+    <string name="partners_added_badge">Umhlobo</string>
+    <string name="partners_remove">Susa</string>
+    <string name="partners_added">%1$s wongezwe kubahlobo bakho</string>
+    <string name="partners_removed">%1$s ususiwe kubahlobo bakho</string>
+    <string name="partners_load_failed">Ayikwazanga ukulayisha abahlobo bakho.</string>
+    <string name="partners_action_failed">Oko akuphumelelanga. Jonga uxhulumano lwakho uze uzame kwakhona.</string>
+    <string name="partners_member_add">Yongeza kubahlobo</string>
+    <string name="partners_subtitle">I-HCP %1$s · isantya se-%2$s</string>
+    <string name="group_private_label">Abahlobo kuphela</string>
+    <string name="group_private_footer">Abahlobo bakho bokudlala kuphela abanokubona baze bajoyine eli qela, kwaye ngamnye ufumana isimemo sokuziswa.</string>
+    <string name="group_private_badge">Abahlobo kuphela</string>
+</resources>

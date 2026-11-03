@@ -19,7 +19,8 @@ public record CreateGroupRequest(
     int OpenSpots,
     decimal? WantedHandicapMin,
     decimal? WantedHandicapMax,
-    PaceOfPlay? WantedPace);
+    PaceOfPlay? WantedPace,
+    bool IsPrivate = false);
 
 /// <summary>
 /// Edits an existing group's details (EME-321). Course isn't editable, only date/time, holes, open spots and the wanted handicap/pace range, mirroring what CreateGroupRequest validates.
@@ -30,7 +31,8 @@ public record UpdateGroupRequest(
     int OpenSpots,
     decimal? WantedHandicapMin,
     decimal? WantedHandicapMax,
-    PaceOfPlay? WantedPace);
+    PaceOfPlay? WantedPace,
+    bool? IsPrivate = null);
 
 public record GroupMemberDto(Guid UserId, string DisplayName, decimal? HandicapIndex, PaceOfPlay PaceOfPlay, bool IsHost);
 
@@ -48,7 +50,8 @@ public record TeeTimeDto(
     decimal? WantedHandicapMax,
     PaceOfPlay? WantedPace,
     TeeTimeStatus Status,
-    IReadOnlyList<GroupMemberDto> Members)
+    IReadOnlyList<GroupMemberDto> Members,
+    bool IsPrivate = false)
 {
     /// <summary>No member list available yet, so Members comes back empty.</summary>
     public static TeeTimeDto From(TeeTime teeTime) => From(teeTime, []);
@@ -67,6 +70,6 @@ public record TeeTimeDto(
             teeTime.Id, teeTime.HostUserId, teeTime.CourseId, teeTime.DateTime,
             teeTime.OpenSpots, spotsRemaining, teeTime.Price, teeTime.Type,
             teeTime.Holes, teeTime.WantedHandicapMin, teeTime.WantedHandicapMax, teeTime.WantedPace,
-            teeTime.Status, members);
+            teeTime.Status, members, teeTime.IsPrivate);
     }
 }

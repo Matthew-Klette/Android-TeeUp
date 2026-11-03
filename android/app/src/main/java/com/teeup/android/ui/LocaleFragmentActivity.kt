@@ -7,6 +7,10 @@ import androidx.fragment.app.FragmentActivity
  *  BiometricUnlockActivity) — BiometricPrompt requires a FragmentActivity, unlike every
  *  other screen in this app. See [LocaleComponentActivity]/[LocaleManager] for the locale part. */
 abstract class LocaleFragmentActivity : FragmentActivity() {
+    init {
+        lifecycle.addObserver(LifecycleLogging(javaClass.simpleName))
+    }
+
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(LocaleManager.wrap(newBase))
     }

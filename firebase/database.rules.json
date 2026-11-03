@@ -1,0 +1,15 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "deviceTokens": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        "$token": {
+          ".validate": "newData.isNumber() && $token.length < 300"
+        }
+      }
+    }
+  }
+}

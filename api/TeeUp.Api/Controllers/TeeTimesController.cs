@@ -20,7 +20,9 @@ public class TeeTimesController(
     public async Task<ActionResult<IReadOnlyList<TeeTimeDto>>> GetAll(
         [FromQuery] decimal? maxHandicap, [FromQuery] PaceOfPlay? pace, [FromQuery] bool joinableOnly = false)
     {
-        return Ok(await teeTimeService.GetAllAsync(maxHandicap, pace, joinableOnly));
+        // Anonymous callers are allowed, but a signed-in caller also sees the partners-only groups they're invited to.
+        var callerId = await TryResolveCurrentUserIdAsync();
+        return Ok(await teeTimeService.GetAllAsync(maxHandicap, pace, joinableOnly, callerId));
     }
 
     [Authorize]
@@ -61,7 +63,7 @@ public class TeeTimesController(
     [HttpGet("{id:guid}/joinrequests")]
     public async Task<ActionResult<IReadOnlyList<JoinRequestDto>>> GetJoinRequests(Guid id)
     {
-        return Ok(await joinRequestService.GetForTeeTimeAsync(id));
+        return Ok(await joinRequestService.GetForTeeTimeAsync(id, await TryResolveCurrentUserIdAsync()));
     }
 
     [Authorize]
@@ -87,6 +89,17 @@ public class TeeTimesController(
         var hostUserId = await ResolveCurrentUserIdAsync();
         await teeTimeService.DeleteAsync(id, hostUserId);
         return NoContent();
+    }
+
+    /// <summary>The caller's user id when a valid token maps to a registered user, otherwise null (no 404).</summary>
+    private async Task<Guid?> TryResolveCurrentUserIdAsync()
+    {
+        if (currentUser.FirebaseUid is null)
+        {
+            return null;
+        }
+
+        return (await userRepository.GetByFirebaseUidAsync(currentUser.FirebaseUid))?.Id;
     }
 
     private async Task<Guid> ResolveCurrentUserIdAsync()

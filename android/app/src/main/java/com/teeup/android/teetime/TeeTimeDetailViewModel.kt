@@ -1,5 +1,8 @@
 package com.teeup.android.teetime
 
+import android.util.Log
+import com.teeup.android.ui.LocaleManager
+
 import android.app.Application
 import androidx.annotation.StringRes
 import androidx.lifecycle.AndroidViewModel
@@ -40,7 +43,10 @@ data class LoadedDetail(
     val teeTime: TeeTime,
     val course: Course?,
     val requests: List<JoinRequest>,
-    val presentation: TeeTimeDetailPresentation
+    val presentation: TeeTimeDetailPresentation,
+    /** The caller's playing partners (user ids), for the "Add to partners" buttons. */
+    val partnerIds: Set<String> = emptySet(),
+    val selfId: String? = null
 )
 
 data class TeeTimeDetailUiState(
@@ -58,6 +64,10 @@ data class TeeTimeDetailUiState(
  * host's cancel and delete. All network work is on [Dispatchers.IO].
  */
 class TeeTimeDetailViewModel(application: Application, savedState: SavedStateHandle) : AndroidViewModel(application) {
+    private companion object {
+        const val TAG = "TeeTimeDetailViewModel"
+    }
+
     private val teeTimeId: String? = savedState[TeeTimeDetailActivity.EXTRA_TEE_TIME_ID]
     private val _state = MutableStateFlow(
         if (teeTimeId == null) TeeTimeDetailUiState(isLoading = false, error = Notice(null, R.string.teetime_no_id), canRetry = false)
@@ -120,10 +130,33 @@ class TeeTimeDetailViewModel(application: Application, savedState: SavedStateHan
         return loadedDetail(teeTime, course, requests) to usedMockFallback
     }
 
-    private fun loadedDetail(teeTime: TeeTime, course: Course?, requests: List<JoinRequest>) = LoadedDetail(
-        teeTime, course, requests,
-        TeeTimeDetailPresentation.from(teeTime, requests, LocalIdentity.cachedUserIdOrNull(getApplication()))
-    )
+    /** Partners are a nice-to-have on this screen: a failed lookup just hides the Add buttons. */
+    private fun fetchPartnerIds(): Set<String> = try {
+        TeeUpApiClient.fetchPartners().map { it.userId }.toSet()
+    } catch (e: Exception) {
+        Log.w(TAG, "Couldn't load partners for the member list: ${e.message}")
+        emptySet()
+    }
+
+    private fun loadedDetail(teeTime: TeeTime, course: Course?, requests: List<JoinRequest>): LoadedDetail {
+        val selfId = LocalIdentity.cachedUserIdOrNull(getApplication())
+        return LoadedDetail(
+            teeTime, course, requests,
+            TeeTimeDetailPresentation.from(teeTime, requests, selfId),
+            partnerIds = fetchPartnerIds(),
+            selfId = selfId
+        )
+    }
+
+    /** Saves a fellow member as a playing partner (POST /api/friends), straight from the group. */
+    fun addPartner(userId: String, displayName: String) = runAction(R.string.partners_action_failed) {
+        withContext(Dispatchers.IO) { TeeUpApiClient.addPartner(userId) }
+        Log.i(TAG, "Added partner $userId from the member list")
+        _state.update { state ->
+            state.copy(detail = state.detail?.let { it.copy(partnerIds = it.partnerIds + userId) })
+        }
+        _events.send(DetailEvent.Banner(Notice(LocaleManager.wrap(getApplication()).getString(R.string.partners_added, displayName), R.string.partners_added)))
+    }
 
     /** The tee time, course and requests straight from the API after a change; null if it's gone. */
     private fun refetch(id: String): LoadedDetail? {

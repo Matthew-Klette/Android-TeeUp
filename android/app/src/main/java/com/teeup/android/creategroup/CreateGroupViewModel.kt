@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import android.util.Log
 import kotlinx.coroutines.withContext
 
 private const val DEFAULT_HOLES_INDEX = 1 // 18 holes
@@ -46,6 +47,8 @@ data class CreateGroupUiState(
     val maxInvalid: Boolean = false,
     /** 0 = any pace, 1..3 = PaceOfPlay 0..2. */
     val paceIndex: Int = 0,
+    /** Partners-only: only the host's playing partners can see and join the group. */
+    val isPrivate: Boolean = false,
     val submitting: Boolean = false
 )
 
@@ -61,6 +64,10 @@ sealed interface CreateGroupEvent {
  * locked and only resolved to a name for display, since editing never sends it.
  */
 class CreateGroupViewModel(application: Application, savedState: SavedStateHandle) : AndroidViewModel(application) {
+    private companion object {
+        const val TAG = "CreateGroupViewModel"
+    }
+
     private val editTeeTimeId: String? = savedState[CreateGroupActivity.EXTRA_EDIT_TEE_TIME_ID]
     private val _state = MutableStateFlow(initialState(savedState))
     val state: StateFlow<CreateGroupUiState> = _state.asStateFlow()
@@ -89,7 +96,8 @@ class CreateGroupViewModel(application: Application, savedState: SavedStateHandl
             playersNeeded = PlayersNeeded.clamp(savedState.get<Int>(CreateGroupActivity.EXTRA_EDIT_OPEN_SPOTS) ?: 1),
             handicapMin = savedState.get<Double>(CreateGroupActivity.EXTRA_EDIT_HANDICAP_MIN)?.let(::formatHandicapValue).orEmpty(),
             handicapMax = savedState.get<Double>(CreateGroupActivity.EXTRA_EDIT_HANDICAP_MAX)?.let(::formatHandicapValue).orEmpty(),
-            paceIndex = savedState.get<Int>(CreateGroupActivity.EXTRA_EDIT_PACE)?.plus(1) ?: 0
+            paceIndex = savedState.get<Int>(CreateGroupActivity.EXTRA_EDIT_PACE)?.plus(1) ?: 0,
+            isPrivate = savedState.get<Boolean>(CreateGroupActivity.EXTRA_EDIT_PRIVATE) ?: false
         )
     }
 
@@ -121,6 +129,7 @@ class CreateGroupViewModel(application: Application, savedState: SavedStateHandl
     fun updateHandicapMin(text: String) = _state.update { it.copy(handicapMin = text, minInvalid = false) }
     fun updateHandicapMax(text: String) = _state.update { it.copy(handicapMax = text, maxInvalid = false) }
     fun selectPace(index: Int) = _state.update { it.copy(paceIndex = index) }
+    fun setPrivate(private: Boolean) = _state.update { it.copy(isPrivate = private) }
 
     fun submit() {
         val current = _state.value
@@ -159,6 +168,8 @@ class CreateGroupViewModel(application: Application, savedState: SavedStateHandl
 
     private fun save(group: ValidGroup) {
         val editId = editTeeTimeId
+        val isPrivate = _state.value.isPrivate
+        Log.i(TAG, "Saving group (edit=${editId != null}, partnersOnly=$isPrivate)")
         _state.update { it.copy(submitting = true) }
         viewModelScope.launch {
             try {
@@ -171,7 +182,8 @@ class CreateGroupViewModel(application: Application, savedState: SavedStateHandl
                             openSpots = group.openSpots,
                             wantedHandicapMin = group.handicapMin,
                             wantedHandicapMax = group.handicapMax,
-                            wantedPace = group.pace
+                            wantedPace = group.pace,
+                            isPrivate = isPrivate
                         )
                     } else {
                         // Validation guarantees a course when creating.
@@ -182,7 +194,8 @@ class CreateGroupViewModel(application: Application, savedState: SavedStateHandl
                             openSpots = group.openSpots,
                             wantedHandicapMin = group.handicapMin,
                             wantedHandicapMax = group.handicapMax,
-                            wantedPace = group.pace
+                            wantedPace = group.pace,
+                            isPrivate = isPrivate
                         )
                     }
                 }

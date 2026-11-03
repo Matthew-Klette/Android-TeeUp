@@ -178,7 +178,6 @@
 
     <!-- Offline Data &amp; Sync Status Screen -->
     <string name="offline_sync_title">Aflyn Data &amp; Sinkroniseringstatus</string>
-    <string name="offline_sync_no_cache_notice">TeeUp stoor nog nie data vir aflyn gebruik nie — elke skerm het \'n lewendige verbinding nodig. Hierdie bladsy wys wat regtig is: jou verbinding en die laaste suksesvolle sinkronisasie, nie \'n vals hangende-rondtes-teller nie.</string>
     <string name="offline_sync_last_synced_label">LAASTE GESINKRONISEER</string>
     <string name="offline_sync_never">Nooit — niks het nog van die API gelaai nie</string>
     <string name="offline_sync_connection_label">VERBINDING</string>
@@ -432,4 +431,92 @@
 
     <!-- iOS redesign: Rounds -->
     <string name="rounds_progress_format">%1$d van %2$d putjies</string>
+
+    <!-- Added: email auth, group create/edit/cancel, summary delete -->
+    <string name="email_auth_title_signin">Meld aan</string>
+    <string name="email_auth_title_signup">Skep rekening</string>
+    <string name="email_auth_email_label">E-pos</string>
+    <string name="email_auth_email_hint">jy@voorbeeld.com</string>
+    <string name="email_auth_password_label">Wagwoord</string>
+    <string name="email_auth_password_hint">Minstens 6 karakters</string>
+    <string name="email_auth_confirm_password_label">Bevestig wagwoord</string>
+    <string name="email_auth_submit_signin">Meld aan</string>
+    <string name="email_auth_submit_signup">Skep rekening</string>
+    <string name="email_auth_progress_signin">Meld tans aan…</string>
+    <string name="email_auth_progress_signup">Skep tans rekening…</string>
+    <string name="email_auth_toggle_to_signup">Nuut hier? Skep \'n rekening</string>
+    <string name="email_auth_toggle_to_signin">Het reeds \'n rekening? Meld aan</string>
+    <string name="email_auth_error_email_invalid">Voer \'n geldige e-posadres in</string>
+    <string name="email_auth_error_password_too_short">Wagwoord moet minstens 6 karakters wees</string>
+    <string name="email_auth_error_confirm_mismatch">Wagwoorde stem nie ooreen nie</string>
+    <string name="email_auth_retry">Probeer weer</string>
+    <string name="email_auth_progress_retry">Voltooi tans opstelling…</string>
+    <string name="email_auth_registration_failed">Aangemeld, maar kon nie jou rekening klaar opstel nie. Probeer weer.</string>
+    <string name="email_auth_error_email_in_use">Daardie e-pos is reeds geregistreer. Probeer eerder aanmeld.</string>
+    <string name="email_auth_error_wrong_password">Verkeerde wagwoord. Probeer asseblief weer.</string>
+    <string name="email_auth_error_user_not_found">Ons kon nie \'n rekening met daardie e-pos vind nie.</string>
+    <string name="email_auth_error_user_disabled">Hierdie rekening is gedeaktiveer.</string>
+    <string name="email_auth_error_weak_password">Kies asseblief \'n sterker wagwoord.</string>
+    <string name="email_auth_error_too_many_requests">Te veel pogings. Wag asseblief \'n oomblik en probeer weer.</string>
+    <string name="email_auth_error_network">Kon nie verbind nie. Kontroleer jou internetverbinding en probeer weer.</string>
+    <string name="email_auth_error_invalid_credential">Daardie e-pos of wagwoord is nie korrek nie.</string>
+    <string name="course_search_hint">Soek \'n baan</string>
+    <string name="notification_category_cancelled">Groep gekanselleer</string>
+    <string name="create_group_title">Skep \'n Groep</string>
+    <string name="create_group_when">Datum &amp; tyd</string>
+    <string name="create_group_pick_date_time">Kies datum &amp; tyd</string>
+    <string name="create_group_pick_time_title">Kies \'n tyd</string>
+    <string name="create_group_holes">Aantal putjies</string>
+    <string name="create_group_players_needed">Hoeveel meer spelers het jy nodig?</string>
+    <string name="create_group_minus">−</string>
+    <string name="create_group_plus">+</string>
+    <string name="create_group_wanted_handicap">Verlangde voorgee-reeks (opsioneel)</string>
+    <string name="create_group_handicap_min_hint">Min.</string>
+    <string name="create_group_handicap_max_hint">Maks.</string>
+    <string name="create_group_create">Skep Groep</string>
+    <string name="create_group_creating">Skep tans…</string>
+    <string name="create_group_pick_date_time_error">Kies eers \'n datum en tyd.</string>
+    <string name="create_group_date_time_in_past">Kies \'n datum en tyd in die toekoms.</string>
+    <string name="create_group_handicap_range_invalid">Die minimum voorgee kan nie bo die maksimum wees nie.</string>
+    <string name="create_group_created">Groep geskep.</string>
+    <string name="create_group_failed_fallback">Kon nie die groep skep nie — probeer weer.</string>
+    <string name="create_group_course_required">Soek en kies eers \'n baan.</string>
+    <string name="home_create_group">Skep \'n Groep</string>
+    <string name="edit_group_title">Wysig Groep</string>
+    <string name="edit_group_save">Stoor Veranderinge</string>
+    <string name="edit_group_saving">Stoor tans…</string>
+    <string name="edit_group_saved">Groep opgedateer.</string>
+    <string name="edit_group_failed_fallback">Kon nie die groep opdateer nie — probeer weer.</string>
+    <string-array name="create_group_holes_options">
+        <item>9 putjies</item>
+        <item>18 putjies</item>
+    </string-array>
+    <string name="teetime_full">Vol</string>
+    <string name="teetime_edit_group">Wysig Groep</string>
+    <string name="teetime_cancel_group">Kanselleer Groep</string>
+    <string name="teetime_delete_group">Skrap Groep</string>
+    <string name="teetime_withdraw_request">Trek Versoek Terug</string>
+    <string name="teetime_cancel_confirm_title">Kanselleer hierdie groep?</string>
+    <string name="teetime_cancel_confirm_message">Spelers wat aangesluit het, sal in kennis gestel word. Dit kan nie ongedaan gemaak word nie.</string>
+    <string name="teetime_delete_confirm_title">Skrap hierdie groep?</string>
+    <string name="teetime_delete_confirm_message">Die groep word permanent verwyder. Dit kan nie ongedaan gemaak word nie.</string>
+    <string name="teetime_withdraw_confirm_title">Trek jou versoek terug?</string>
+    <string name="teetime_withdraw_confirm_message">Die gasheer sal nie meer jou versoek om aan te sluit sien nie.</string>
+    <string name="teetime_group_cancelled">Groep gekanselleer.</string>
+    <string name="teetime_group_deleted">Groep geskrap.</string>
+    <string name="teetime_request_withdrawn">Versoek teruggetrek.</string>
+    <string name="teetime_cancel_failed_fallback">Kon nie die groep kanselleer nie — probeer weer.</string>
+    <string name="teetime_delete_failed_fallback">Kon nie die groep skrap nie — probeer weer.</string>
+    <string name="teetime_withdraw_failed_fallback">Kon nie jou versoek terugtrek nie — probeer weer.</string>
+    <string name="summary_delete_hole">Skrap Putjie</string>
+    <string name="summary_delete_confirm_title">Skrap hierdie putjie?</string>
+    <string name="summary_delete_confirm_message">Die tellings vir hierdie putjie word verwyder. Dit kan nie ongedaan gemaak word nie.</string>
+    <string name="summary_hole_deleted">Putjie geskrap.</string>
+    <string name="summary_delete_failed_fallback">Kon nie die putjie skrap nie — probeer weer.</string>
+    <string name="summary_delete_round">Skrap Rondte</string>
+    <string name="summary_delete_round_confirm_title">Skrap hierdie rondte?</string>
+    <string name="summary_delete_round_confirm_message">Die hele rondte en al sy tellings word verwyder. Dit kan nie ongedaan gemaak word nie.</string>
+    <string name="summary_round_deleted">Rondte geskrap.</string>
+    <string name="summary_delete_round_failed_fallback">Kon nie die rondte skrap nie — probeer weer.</string>
+    <string name="email_auth_failed_generic">Kon nie jou rekening opstel nie. Probeer weer.</string>
 </resources>

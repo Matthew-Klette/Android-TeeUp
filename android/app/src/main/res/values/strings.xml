@@ -287,7 +287,6 @@
 
     <!-- Offline Data &amp; Sync Status Screen -->
     <string name="offline_sync_title">Offline Data &amp; Sync Status</string>
-    <string name="offline_sync_no_cache_notice">TeeUp doesn\'t cache data for offline use yet — every screen needs a live connection. This page shows what\'s real: your connection and the last successful sync, not a fake pending-rounds counter.</string>
     <string name="offline_sync_last_synced_label">LAST SYNCED</string>
     <string name="offline_sync_never">Never — nothing has loaded from the API yet</string>
     <string name="offline_sync_connection_label">CONNECTION</string>

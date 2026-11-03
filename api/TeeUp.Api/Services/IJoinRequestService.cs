@@ -11,7 +11,9 @@ public interface IJoinRequestService
     /// <see cref="TeeUp.Api.Common.ConflictException"/> (409) if the caller already has a
     /// pending/accepted request against it. Two callers requesting at once are
     /// serialized so neither can slip past the duplicate check (see
-    /// <see cref="TeeTimeJoinLock"/>).
+    /// <see cref="TeeTimeJoinLock"/>). Throws <see cref="TeeUp.Api.Common.ForbiddenException"/> for a
+    /// partners-only group the caller isn't allowed to see. On success the host is notified
+    /// (<see cref="TeeUp.Api.Models.NotificationType.JoinRequestReceived"/>).
     /// </summary>
     Task<JoinRequestDto> CreateAsync(Guid teeTimeId, Guid guestUserId);
 
@@ -25,7 +27,11 @@ public interface IJoinRequestService
     /// </summary>
     Task<JoinRequestDto> UpdateStatusAsync(Guid joinRequestId, JoinRequestStatus status, Guid callerId);
 
-    Task<IReadOnlyList<JoinRequestDto>> GetForTeeTimeAsync(Guid teeTimeId);
+    /// <summary>
+    /// Join requests for a tee time. For a partners-only group, <paramref name="callerUserId"/> must be the host or one
+    /// of the host's playing partners, otherwise <see cref="TeeUp.Api.Common.ForbiddenException"/>.
+    /// </summary>
+    Task<IReadOnlyList<JoinRequestDto>> GetForTeeTimeAsync(Guid teeTimeId, Guid? callerUserId = null);
 
     /// <summary>
     /// Withdraws a guest's own pending join request (EME-323). <paramref name="guestUserId"/>

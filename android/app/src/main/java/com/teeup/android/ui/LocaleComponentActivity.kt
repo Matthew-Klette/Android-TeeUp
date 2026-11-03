@@ -7,6 +7,10 @@ import androidx.activity.ComponentActivity
 
 /** Base class for every screen except the two biometric ones, so language changes (see [LocaleManager]) take effect. */
 abstract class LocaleComponentActivity : ComponentActivity() {
+    init {
+        lifecycle.addObserver(LifecycleLogging(javaClass.simpleName))
+    }
+
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(LocaleManager.wrap(newBase))
     }

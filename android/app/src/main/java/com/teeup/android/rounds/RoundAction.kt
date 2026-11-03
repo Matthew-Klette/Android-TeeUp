@@ -19,6 +19,9 @@ sealed interface RoundAction {
 
     data object ViewSummary : RoundAction
 
+    /** Finished offline and still in the outbox (ScorecardOutbox): nothing to do until it syncs. */
+    data object PendingSync : RoundAction
+
     companion object {
         /** Throws IllegalArgumentException when the round's date can't be read. */
         fun of(round: ScheduledRound, nowMillis: Long): RoundAction {

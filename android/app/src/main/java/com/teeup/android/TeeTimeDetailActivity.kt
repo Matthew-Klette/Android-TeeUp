@@ -47,7 +47,8 @@ class TeeTimeDetailActivity : LocaleComponentActivity() {
                 overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
             },
             previewCourse = ::openCoursePreview,
-            editGroup = ::openEditGroup
+            editGroup = ::openEditGroup,
+            addPartner = viewModel::addPartner
         )
         setContent {
             TeeUpTheme { TeeTimeDetailScreen(viewModel, actions) }
@@ -85,6 +86,7 @@ class TeeTimeDetailActivity : LocaleComponentActivity() {
             teeTime.wantedHandicapMin?.let { putExtra(CreateGroupActivity.EXTRA_EDIT_HANDICAP_MIN, it) }
             teeTime.wantedHandicapMax?.let { putExtra(CreateGroupActivity.EXTRA_EDIT_HANDICAP_MAX, it) }
             teeTime.wantedPace?.let { putExtra(CreateGroupActivity.EXTRA_EDIT_PACE, it) }
+            putExtra(CreateGroupActivity.EXTRA_EDIT_PRIVATE, teeTime.isPrivate)
         }
         startActivity(intent)
         overridePendingTransition(R.anim.slide_in_right, R.anim.fade_out_slight)

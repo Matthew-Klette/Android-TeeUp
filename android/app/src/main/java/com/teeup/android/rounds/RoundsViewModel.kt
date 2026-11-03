@@ -10,6 +10,7 @@ import com.teeup.android.data.MockCatalog
 import com.teeup.android.data.ScheduledRound
 import com.teeup.android.data.TeeUpApiClient
 import com.teeup.android.data.selectRounds
+import com.teeup.android.data.offline.ScorecardOutbox
 import com.teeup.android.ui.CourseSearch
 import com.teeup.android.ui.Notice
 import kotlinx.coroutines.CancellationException
@@ -61,12 +62,21 @@ class RoundsViewModel(application: Application) : AndroidViewModel(application) 
     val events: Flow<RoundsEvent> = _events.receiveAsFlow()
     private val courseSearch = CourseSearch(viewModelScope)
     private var schedule: List<ScheduledRound> = emptyList()
+    /** Rounds finished offline that are still waiting in the outbox. */
+    private var pendingSyncIds: Set<String> = emptySet()
     private var coursesById: Map<String, Course> = emptyMap()
     private var location: GeoPoint? = null
     private var loadJob: Job? = null
 
     init {
         load()
+        // When a queued round finishes syncing, refresh so its card turns into "View summary".
+        viewModelScope.launch {
+            ScorecardOutbox.observePending(getApplication()).collect { rows ->
+                val ids = rows.map { it.teeTimeId }.toSet()
+                if (ids != pendingSyncIds && schedule.isNotEmpty()) load()
+            }
+        }
         viewModelScope.launch { courseSearch.results.collect { results -> _state.update { it.copy(suggestions = results) } } }
     }
 
@@ -87,6 +97,7 @@ class RoundsViewModel(application: Application) : AndroidViewModel(application) 
                     } catch (e: Exception) {
                         MockCatalog.courses
                     }
+                    pendingSyncIds = ScorecardOutbox.pendingTeeTimeIds(getApplication())
                     fetched to courses
                 }
                 schedule = fetchedSchedule
@@ -115,7 +126,7 @@ class RoundsViewModel(application: Application) : AndroidViewModel(application) 
             RoundItem(
                 round = round,
                 course = coursesById[round.courseId] ?: MockCatalog.courseById(round.courseId),
-                action = RoundAction.of(round, now),
+                action = if (round.teeTimeId in pendingSyncIds) RoundAction.PendingSync else RoundAction.of(round, now),
                 holesScored = scored,
                 totalHoles = total
             )

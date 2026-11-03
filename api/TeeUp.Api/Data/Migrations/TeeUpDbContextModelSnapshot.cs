@@ -87,6 +87,31 @@ namespace TeeUp.Api.Data.Migrations
                     b.ToTable("Endorsements");
                 });
 
+            modelBuilder.Entity("TeeUp.Api.Models.Friendship", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("FriendUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FriendUserId");
+
+                    b.HasIndex("UserId", "FriendUserId")
+                        .IsUnique();
+
+                    b.ToTable("Friendships");
+                });
+
             modelBuilder.Entity("TeeUp.Api.Models.HoleCoordinate", b =>
                 {
                     b.Property<Guid>("Id")
@@ -242,6 +267,11 @@ namespace TeeUp.Api.Data.Migrations
                     b.Property<Guid?>("HostUserId")
                         .HasColumnType("uuid");
 
+                    b.Property<bool>("IsPrivate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
                     b.Property<int>("OpenSpots")
                         .HasColumnType("integer");
 
@@ -349,6 +379,21 @@ namespace TeeUp.Api.Data.Migrations
                         .WithMany()
                         .HasForeignKey("ToUserId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TeeUp.Api.Models.Friendship", b =>
+                {
+                    b.HasOne("TeeUp.Api.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("FriendUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TeeUp.Api.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 

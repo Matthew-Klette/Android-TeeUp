@@ -4,10 +4,8 @@ import android.content.Context
 import com.teeup.android.R
 
 /**
- * Tracks the last time any real API call succeeded. There's no offline cache/queue in
- * this app yet (every screen is a live network call — see HomeActivity/TeeTimeDetailActivity),
- * so this is genuinely all there is to report; OfflineSyncStatusActivity shows this rather
- * than inventing fake queued-rounds data.
+ * Tracks the last time a real API call (or an offline-queue upload) succeeded, for the Offline
+ * Data & Sync Status screen. The offline data itself lives in Room (see data/offline).
  */
 object SyncStatus {
     private const val PREFS = "teeup_sync_status"

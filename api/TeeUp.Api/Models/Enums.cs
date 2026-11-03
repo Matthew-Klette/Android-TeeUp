@@ -47,7 +47,9 @@ public enum NotificationType
     // constants, which mirror these ordinals by hand.
     WeatherAlert,
     /// <summary>A group's host cancelled it (EME-321) while this user had a pending/accepted join request against it.</summary>
-    TeeTimeCancelled
+    TeeTimeCancelled,
+    /// <summary>A host marked a group "partners only" and this user is one of the host's playing partners (ordinal 7, always appended, never reordered).</summary>
+    PrivateGroupInvite
 }
 
 /// <summary>

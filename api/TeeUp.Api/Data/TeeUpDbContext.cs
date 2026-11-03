@@ -14,6 +14,7 @@ public class TeeUpDbContext(DbContextOptions<TeeUpDbContext> options) : DbContex
     public DbSet<ScorecardEntry> ScorecardEntries => Set<ScorecardEntry>();
     public DbSet<Endorsement> Endorsements => Set<Endorsement>();
     public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<Friendship> Friendships => Set<Friendship>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -68,6 +69,8 @@ public class TeeUpDbContext(DbContextOptions<TeeUpDbContext> options) : DbContex
             b.Property(t => t.WantedHandicapMax).HasPrecision(4, 1);
             b.Property(t => t.WantedPace).HasConversion<string>();
             b.Property(t => t.Status).HasConversion<string>().HasDefaultValue(TeeTimeStatus.Open);
+            // Existing groups stay public when the partners-only column is added.
+            b.Property(t => t.IsPrivate).HasDefaultValue(false);
             b.HasOne<User>()
                 .WithMany()
                 .HasForeignKey(t => t.HostUserId)
@@ -136,6 +139,21 @@ public class TeeUpDbContext(DbContextOptions<TeeUpDbContext> options) : DbContex
             b.HasOne<User>()
                 .WithMany()
                 .HasForeignKey(n => n.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // A playing partner is directional (owner -> partner), unique per pair, and removed with either user.
+        modelBuilder.Entity<Friendship>(b =>
+        {
+            b.HasKey(f => f.Id);
+            b.HasIndex(f => new { f.UserId, f.FriendUserId }).IsUnique();
+            b.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(f => f.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            b.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(f => f.FriendUserId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }

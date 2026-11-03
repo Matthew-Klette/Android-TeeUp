@@ -47,6 +47,7 @@ import com.teeup.android.design.Stat
 import com.teeup.android.design.StatStrip
 import com.teeup.android.design.StateMessage
 import com.teeup.android.design.TeeUpButton
+import com.teeup.android.design.ButtonKind
 import com.teeup.android.design.TeeUpMetrics
 import com.teeup.android.design.TeeUpSheet
 import com.teeup.android.design.TeeUpTheme
@@ -57,7 +58,8 @@ import com.teeup.android.home.wantedSummary
 class TeeTimeDetailActions(
     val back: () -> Unit,
     val previewCourse: (Course?) -> Unit,
-    val editGroup: (TeeTime) -> Unit
+    val editGroup: (TeeTime) -> Unit,
+    val addPartner: (userId: String, displayName: String) -> Unit = { _, _ -> }
 )
 
 internal sealed interface DetailSheet {
@@ -134,6 +136,10 @@ private fun LazyListScope.detailContent(
                 title = stringResource(R.string.home_card_wanted_format, wantedSummary(teeTime)),
                 icon = R.drawable.ic_glyph_target
             )
+            if (teeTime.isPrivate) {
+                ListDivider(IconRowDividerInset)
+                ListRow(title = stringResource(R.string.group_private_badge), subtitle = stringResource(R.string.group_private_footer), icon = R.drawable.ic_glyph_people)
+            }
             ListDivider(IconRowDividerInset)
             ListRow(
                 title = stringResource(R.string.detail_preview_course),
@@ -143,7 +149,9 @@ private fun LazyListScope.detailContent(
         }
     }
     item(key = "host", contentType = "section") { HostSection(teeTime, presentation) }
-    item(key = "players", contentType = "section") { PlayersSection(teeTime.members) }
+    item(key = "players", contentType = "section") {
+        PlayersSection(teeTime.members, detail.partnerIds, detail.selfId, actions.addPartner)
+    }
     item(key = "requests", contentType = "section") {
         GroupedSection {
             ListRow(
@@ -238,17 +246,37 @@ private fun HostSection(teeTime: TeeTime, presentation: TeeTimeDetailPresentatio
 
 /** Every current member (host and accepted guests) with handicap and pace (EME-312). */
 @Composable
-private fun PlayersSection(members: List<GroupMember>) {
+private fun PlayersSection(
+    members: List<GroupMember>,
+    partnerIds: Set<String>,
+    selfId: String?,
+    onAddPartner: (userId: String, displayName: String) -> Unit
+) {
     val context = LocalContext.current
     GroupedSection(header = stringResource(R.string.detail_members)) {
         members.forEachIndexed { index, member ->
             if (index > 0) ListDivider(16.dp + MEMBER_AVATAR + 14.dp)
+            val isSelf = member.userId == selfId
             ListRow(
                 title = if (member.isHost) stringResource(R.string.group_host_member_format, member.displayName) else member.displayName,
                 subtitle = "HCP ${formatHandicap(member.handicapIndex)}  ·  ${paceLabel(context, member.paceOfPlay)}",
-                leading = { Avatar(member.displayName, member.userId, size = MEMBER_AVATAR) }
+                leading = { Avatar(member.displayName, member.userId, size = MEMBER_AVATAR) },
+                // Playing partners: save anyone you've grouped with, so they see your partners-only groups.
+                trailing = when {
+                    isSelf || selfId == null -> null
+                    member.userId in partnerIds -> { { PartnerBadge() } }
+                    else -> { { TeeUpButton(stringResource(R.string.partners_add), onClick = { onAddPartner(member.userId, member.displayName) }, kind = ButtonKind.Tinted, compact = true) } }
+                }
             )
         }
+    }
+}
+
+@Composable
+private fun PartnerBadge() {
+    val colors = TeeUpTheme.colors
+    Box(Modifier.clip(CircleShape).background(colors.accentTint).padding(horizontal = 10.dp, vertical = 4.dp)) {
+        Label(stringResource(R.string.partners_added_badge), TeeUpTheme.type.caption.copy(fontWeight = TeeUpTheme.type.headline.fontWeight), color = colors.accent, maxLines = 1)
     }
 }
 

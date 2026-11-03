@@ -18,6 +18,13 @@ import com.teeup.android.R
 import com.teeup.android.data.ApiException
 import com.teeup.android.data.SyncStatus
 import com.teeup.android.data.TeeUpApiClient
+import com.teeup.android.data.RoundProgressCodec
+import com.teeup.android.data.offline.NetworkMonitor
+import com.teeup.android.data.offline.PendingScorecardEntity
+import com.teeup.android.data.offline.ScorecardOutbox
+import com.teeup.android.design.IconRowDividerInset
+import com.teeup.android.design.ListDivider
+import android.util.Log
 import com.teeup.android.design.BackButton
 import com.teeup.android.design.GroupedSection
 import com.teeup.android.design.Label
@@ -69,19 +76,38 @@ data class OfflineSyncUiState(
     /** Null: nothing has loaded from the API on this device yet. */
     val lastSynced: String? = null,
     val connection: ConnectionKind = ConnectionKind.NONE,
-    val checking: Boolean = false
+    val checking: Boolean = false,
+    /** Rounds finished offline, waiting in the Room outbox for WorkManager to upload them. */
+    val pending: List<PendingScorecardEntity> = emptyList()
 )
 
 /**
- * Profile → Offline Data & Sync Status. There's no offline cache or queue in this app (see
- * SyncStatus), so this reports what's real — the last successful sync and the current
- * connection — rather than a fabricated "N rounds pending" counter.
+ * Profile → Offline Data & Sync Status: the real offline queue (rounds waiting to upload, with
+ * any server rejection), the last successful sync, the current connection, and Sync Now, which
+ * schedules the WorkManager job straight away and checks the API is reachable.
  */
 class OfflineSyncViewModel(application: Application) : AndroidViewModel(application) {
+    private companion object {
+        const val TAG = "OfflineSyncViewModel"
+    }
+
     private val _state = MutableStateFlow(OfflineSyncUiState())
     val state: StateFlow<OfflineSyncUiState> = _state.asStateFlow()
     private val _events = Channel<Notice>(Channel.BUFFERED)
     val events: Flow<Notice> = _events.receiveAsFlow()
+
+    init {
+        viewModelScope.launch {
+            ScorecardOutbox.observePending(application).collect { rows ->
+                Log.d(TAG, "Outbox now holds ${rows.size} scorecard(s)")
+                _state.update { it.copy(pending = rows) }
+            }
+        }
+        // Connection changes update the screen live, e.g. while demonstrating airplane mode.
+        viewModelScope.launch {
+            NetworkMonitor.isOnline.collect { _state.update { it.copy(connection = currentConnection(application)) } }
+        }
+    }
 
     /** [context] formats the relative time in the app's language. */
     fun refresh(context: Context) {
@@ -90,17 +116,18 @@ class OfflineSyncViewModel(application: Application) : AndroidViewModel(applicat
         _state.update { it.copy(lastSynced = last, connection = currentConnection(app)) }
     }
 
-    /** A real, lightweight call against the live API — this is what "reachable" means here. */
+    /** Kicks the sync job, then makes a real, lightweight call against the live API. */
     fun checkNow(context: Context) {
         if (_state.value.checking) return
         _state.update { it.copy(checking = true) }
+        ScorecardOutbox.scheduleSync(getApplication())
         viewModelScope.launch {
             val notice = try {
                 withContext(Dispatchers.IO) {
-                    TeeUpApiClient.fetchCourses()
+                    TeeUpApiClient.fetchScheduleLive()
                     SyncStatus.recordSuccess(getApplication())
                 }
-                Notice(null, R.string.offline_sync_reachable)
+                Notice(null, if (_state.value.pending.isEmpty()) R.string.offline_sync_reachable else R.string.offline_sync_syncing)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: ApiException) {
@@ -112,6 +139,11 @@ class OfflineSyncViewModel(application: Application) : AndroidViewModel(applicat
             refresh(context)
             _events.send(notice)
         }
+    }
+
+    /** Removes a round the server permanently rejected (shown with its reason). */
+    fun discard(teeTimeId: String) {
+        viewModelScope.launch { ScorecardOutbox.discard(getApplication(), teeTimeId) }
     }
 
     private fun currentConnection(context: Context): ConnectionKind {
@@ -143,13 +175,41 @@ fun OfflineSyncScreen(viewModel: OfflineSyncViewModel, onBack: () -> Unit, onChe
             )
         }
     ) {
+        item(key = "pending", contentType = "section") {
+            GroupedSection(
+                header = stringResource(R.string.offline_sync_pending_label),
+                footer = stringResource(R.string.offline_sync_how_it_works)
+            ) {
+                if (state.pending.isEmpty()) {
+                    ListRow(stringResource(R.string.offline_sync_pending_none), icon = R.drawable.ic_glyph_check)
+                } else {
+                    state.pending.forEachIndexed { index, row ->
+                        if (index > 0) ListDivider(IconRowDividerInset)
+                        val holes = RoundProgressCodec.decodeEntries(row.entries).size
+                        val rejected = row.lastError
+                        ListRow(
+                            row.courseName.ifBlank { stringResource(R.string.rounds_unknown_course) },
+                            subtitle = if (rejected != null) {
+                                stringResource(R.string.offline_sync_pending_rejected, rejected)
+                            } else {
+                                stringResource(R.string.offline_sync_pending_detail, holes, row.totalHoles)
+                            },
+                            icon = if (rejected != null) R.drawable.ic_glyph_xmark else R.drawable.ic_glyph_sync,
+                            iconTint = if (rejected != null) TeeUpTheme.colors.destructive else TeeUpTheme.colors.accent,
+                            value = if (rejected != null) stringResource(R.string.offline_sync_discard) else null,
+                            onClick = if (rejected != null) ({ viewModel.discard(row.teeTimeId) }) else null
+                        )
+                    }
+                }
+            }
+        }
         item(key = "status", contentType = "section") {
             GroupedSection(header = stringResource(R.string.offline_sync_last_synced_label)) {
                 ListRow(state.lastSynced ?: stringResource(R.string.offline_sync_never), icon = R.drawable.ic_glyph_sync)
             }
         }
         item(key = "connection", contentType = "section") {
-            GroupedSection(header = stringResource(R.string.offline_sync_connection_label), footer = stringResource(R.string.offline_sync_no_cache_notice)) {
+            GroupedSection(header = stringResource(R.string.offline_sync_connection_label), footer = stringResource(R.string.offline_sync_cache_notice)) {
                 ListRow(
                     stringResource(
                         when (state.connection) {

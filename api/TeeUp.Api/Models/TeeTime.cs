@@ -18,4 +18,7 @@ public class TeeTime
     public decimal? WantedHandicapMax { get; set; }
     public PaceOfPlay? WantedPace { get; set; }
     public TeeTimeStatus Status { get; set; } = TeeTimeStatus.Open;
+
+    /// <summary>"Partners only" group: visible to, and joinable by, only the host's playing partners (see <see cref="Friendship"/>).</summary>
+    public bool IsPrivate { get; set; }
 }

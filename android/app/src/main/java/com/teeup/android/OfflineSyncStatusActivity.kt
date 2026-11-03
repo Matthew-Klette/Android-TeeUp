@@ -13,9 +13,8 @@ import com.teeup.android.ui.finishWithSlideBack
 import com.teeup.android.ui.showNotice
 
 /**
- * Profile → Offline Data & Sync Status. There's no offline cache/queue in this app (see
- * SyncStatus doc comment), so this reports what's real — last successful sync and current
- * connectivity — rather than a fabricated "N rounds pending" counter. UI: [OfflineSyncScreen].
+ * Profile → Offline Data & Sync Status: rounds queued offline in the Room outbox, the last
+ * successful sync, the live connection, and Sync Now. UI: [OfflineSyncScreen].
  */
 class OfflineSyncStatusActivity : LocaleComponentActivity() {
     private val viewModel: OfflineSyncViewModel by viewModels()

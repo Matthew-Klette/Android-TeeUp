@@ -1,8 +1,11 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.gms.google-services")
+    id("com.google.devtools.ksp")
 }
 
 // Real Firebase config is per-developer and gitignored (see .gitignore) — fresh
@@ -13,6 +16,16 @@ if (!googleServicesFile.exists()) {
     file("google-services.json.example").copyTo(googleServicesFile)
 }
 
+// Play Store upload key. The keystore and its passwords never enter git: they come from
+// android/keystore.properties (gitignored, see keystore.properties.example) or, on CI, from the
+// TEEUP_* environment variables. Without either, release builds are simply left unsigned.
+val keystoreProperties = Properties().apply {
+    val file = rootProject.file("keystore.properties")
+    if (file.exists()) file.inputStream().use(::load)
+}
+fun signingValue(key: String, env: String): String? =
+    keystoreProperties.getProperty(key) ?: System.getenv(env)
+
 android {
     namespace = "com.teeup.android"
     // 36 for the Compose 1.9 libraries; runtime behaviour still follows targetSdk below.
@@ -22,13 +35,32 @@ android {
         applicationId = "com.teeup.android"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "0.1"
+        // Final POE / first Play Store release.
+        versionCode = 2
+        versionName = "1.0.0"
+    }
+
+    signingConfigs {
+        create("release") {
+            val storePath = signingValue("storeFile", "TEEUP_KEYSTORE_PATH")
+            if (storePath != null) {
+                storeFile = file(storePath)
+                storePassword = signingValue("storePassword", "TEEUP_KEYSTORE_PASSWORD")
+                keyAlias = signingValue("keyAlias", "TEEUP_KEY_ALIAS")
+                keyPassword = signingValue("keyPassword", "TEEUP_KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // R8 shrinking/obfuscation for the store build; keep rules for the reflection-based
+            // pieces (Gson models, Room, Firebase) live in proguard-rules.pro.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            val release = signingConfigs.getByName("release")
+            if (release.storeFile != null) signingConfig = release
         }
         // Release, but signed with the local debug key so it installs over a dev build and
         // keeps its sign-in. For measuring performance the way users get it: not debuggable,
@@ -54,9 +86,6 @@ android {
         // (see dependency comment below), so android:tint is the correct, functional
         // attribute here — UseAppTint's AppCompat recommendation doesn't apply.
         disable += "UseAppTint"
-        // af/xh localization is a WIP rollout that doesn't yet cover every string
-        // file; don't block CI on incomplete translations.
-        disable += "MissingTranslation"
     }
 
     compileOptions {
@@ -140,6 +169,17 @@ dependencies {
     // Biometric Login (Profile & Settings) — BiometricPrompt requires a FragmentActivity
     // host, which is the one reason androidx.fragment enters this project at all.
     implementation("androidx.biometric:biometric:1.1.0")
+
+    // Offline mode (Part 3): Room is the on-device database (cached API responses + the outbox of
+    // scorecards waiting to upload) and WorkManager runs the network-constrained sync job.
+    implementation("androidx.room:room-runtime:2.8.4")
+    implementation("androidx.room:room-ktx:2.8.4")
+    ksp("androidx.room:room-compiler:2.8.4")
+    implementation("androidx.work:work-runtime-ktx:2.10.5")
+
+    // Real-time push notifications (Part 3): Firebase Cloud Messaging. Device tokens are stored in
+    // Firebase Realtime Database (firebase-database above), where the API reads them.
+    implementation("com.google.firebase:firebase-messaging")
 
     testImplementation("junit:junit:4.13.2")
     // The real org.json, so unit tests can parse the bundled hole maps (android.jar only has stubs).

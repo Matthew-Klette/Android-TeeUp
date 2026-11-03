@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using TeeUp.Api.Dtos;
 using TeeUp.Api.Models;
 using TeeUp.Api.Repositories;
@@ -12,16 +14,34 @@ public class TeeTimeService(
     IJoinRequestRepository joinRequestRepository,
     INotificationRepository notificationRepository,
     IRoundRepository roundRepository,
-    IUnitOfWork unitOfWork) : ITeeTimeService
+    IUnitOfWork unitOfWork,
+    IFriendshipRepository? friendshipRepository = null,
+    ILogger<TeeTimeService>? logger = null) : ITeeTimeService
 {
-    public async Task<IReadOnlyList<TeeTimeDto>> GetAllAsync(decimal? maxHandicap = null, PaceOfPlay? pace = null, bool joinableOnly = false)
+    private readonly ILogger log = (ILogger?)logger ?? NullLogger.Instance;
+
+    public async Task<IReadOnlyList<TeeTimeDto>> GetAllAsync(
+        decimal? maxHandicap = null, PaceOfPlay? pace = null, bool joinableOnly = false, Guid? callerUserId = null)
     {
         if (maxHandicap is decimal handicapFilter &&
             (handicapFilter < 0 || handicapFilter > 54 || decimal.Round(handicapFilter, 1) != handicapFilter))
             throw new DomainValidationException("Handicap must be between 0 and 54, with at most one decimal place.");
         if (pace is { } paceFilter && !Enum.IsDefined(paceFilter))
             throw new DomainValidationException("Select a valid pace of play.");
-        var teeTimes = await teeTimeRepository.GetAllAsync();
+        var allTeeTimes = await teeTimeRepository.GetAllAsync();
+
+        // Partners-only groups are hidden unless the caller is the host or one of the host's partners.
+        var partnerPairs = await PrivateGroupAccess.LoadPairsAsync(friendshipRepository);
+        var teeTimes = allTeeTimes
+            .Where(t =>
+            {
+                var visible = PrivateGroupAccess.CanSee(t, callerUserId, partnerPairs);
+                if (t.IsPrivate)
+                    log.LogDebug("Private group {TeeTimeId} {Decision} for caller {CallerId}.", t.Id, visible ? "visible" : "hidden", callerUserId);
+                return visible;
+            })
+            .ToList();
+
         var joinRequests = await joinRequestRepository.GetAllAsync();
         var acceptedByTeeTime = joinRequests
             .Where(j => j.Status == JoinRequestStatus.Accepted)
@@ -109,7 +129,7 @@ public class TeeTimeService(
 
     public async Task<TeeTimeDto> CreateGroupAsync(Guid hostUserId, CreateGroupRequest request)
     {
-        _ = await courseRepository.GetByIdAsync(request.CourseId)
+        var course = await courseRepository.GetByIdAsync(request.CourseId)
             ?? throw new DomainValidationException($"Course {request.CourseId} does not exist.");
 
         if (request.DateTime <= DateTime.UtcNow)
@@ -139,7 +159,8 @@ public class TeeTimeService(
             WantedHandicapMin = request.WantedHandicapMin,
             WantedHandicapMax = request.WantedHandicapMax,
             WantedPace = request.WantedPace,
-            Status = TeeTimeStatus.Open
+            Status = TeeTimeStatus.Open,
+            IsPrivate = request.IsPrivate
         };
 
         // Held across the auto-decline loop below so it can't race a concurrent JoinRequestService call (see AutoDeclineLock).
@@ -156,12 +177,40 @@ public class TeeTimeService(
             await joinRequestRepository.UpdateAsync(pending);
         }
 
+        if (teeTime.IsPrivate)
+            await NotifyPartnersAsync(host, teeTime, course.Name);
+
         var members = new List<GroupMemberDto>
         {
             new(host.Id, host.DisplayName, host.HandicapIndex, host.PaceOfPlay, IsHost: true)
         };
 
         return TeeTimeDto.From(teeTime, members);
+    }
+
+    /// <summary>
+    /// Tells each of the host's playing partners about a partners-only round. The rows go through
+    /// <see cref="INotificationRepository"/>, so in production the push pipeline sends them too.
+    /// </summary>
+    private async Task NotifyPartnersAsync(User host, TeeTime teeTime, string courseName)
+    {
+        if (friendshipRepository is null)
+            return;
+
+        var partners = await friendshipRepository.GetByUserIdAsync(host.Id);
+        foreach (var partner in partners)
+        {
+            await notificationRepository.AddAsync(new Notification
+            {
+                Id = Guid.NewGuid(),
+                UserId = partner.FriendUserId,
+                Type = NotificationType.PrivateGroupInvite,
+                Message = $"{host.DisplayName} invited you to a partners-only round at {courseName}.",
+                RelatedEntityId = teeTime.Id
+            });
+        }
+
+        log.LogInformation("Private group {TeeTimeId}: invited {Count} partner(s) of host {HostId}.", teeTime.Id, partners.Count, host.Id);
     }
 
     public async Task<TeeTimeDto> EditAsync(Guid teeTimeId, Guid hostUserId, UpdateGroupRequest request)
@@ -212,6 +261,9 @@ public class TeeTimeService(
         teeTime.WantedHandicapMin = request.WantedHandicapMin;
         teeTime.WantedHandicapMax = request.WantedHandicapMax;
         teeTime.WantedPace = request.WantedPace;
+        var becamePrivate = request.IsPrivate is true && !teeTime.IsPrivate;
+        if (request.IsPrivate is bool isPrivate)
+            teeTime.IsPrivate = isPrivate;
         // A prior accept may have flipped this to Full; if the edit reopened capacity, reflect it.
         if (teeTime.Status == TeeTimeStatus.Full && accepted.Count < request.OpenSpots)
             teeTime.Status = TeeTimeStatus.Open;
@@ -219,6 +271,14 @@ public class TeeTimeService(
         await teeTimeRepository.UpdateAsync(teeTime);
 
         var usersById = (await userRepository.GetAllAsync()).ToDictionary(u => u.Id);
+
+        // Flipping a group to partners-only is the moment the partners get told about it.
+        if (becamePrivate && usersById.TryGetValue(hostUserId, out var host))
+        {
+            var course = await courseRepository.GetByIdAsync(teeTime.CourseId);
+            await NotifyPartnersAsync(host, teeTime, course?.Name ?? "your course");
+        }
+
         var members = BuildMemberList(teeTime, usersById, accepted);
         return TeeTimeDto.From(teeTime, members);
     }

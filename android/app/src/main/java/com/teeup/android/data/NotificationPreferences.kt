@@ -17,7 +17,8 @@ enum class NotificationCategory(val labelRes: Int) {
     // Never actually sent (the weather-alerts preference was removed). Kept in place since this
     // list is looked up by ordinal, and removing it would shift TEE_TIME_CANCELLED out of sync.
     WEATHER_ALERT(R.string.notification_category_weather),
-    TEE_TIME_CANCELLED(R.string.notification_category_cancelled);
+    TEE_TIME_CANCELLED(R.string.notification_category_cancelled),
+    PRIVATE_GROUP_INVITE(R.string.notification_category_private_invite);
 
     companion object {
         fun fromType(type: Int): NotificationCategory? = entries.getOrNull(type)

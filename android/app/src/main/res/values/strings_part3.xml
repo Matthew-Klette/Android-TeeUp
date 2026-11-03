@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Strings for the final-POE (Part 3) features: offline mode, push notifications and playing
+     partners. Translated in values-af/strings_part3.xml and values-xh/strings_part3.xml. -->
+<resources>
+    <!-- Push notification channels (Settings → Apps → TeeUp → Notifications) -->
+    <string name="push_channel_alerts">Group alerts</string>
+    <string name="push_channel_alerts_description">Join requests, accepted or declined requests, cancelled groups and partner invites.</string>
+    <string name="push_channel_sync">Offline sync</string>
+    <string name="push_channel_sync_description">Tells you when scorecards saved offline have uploaded.</string>
+    <string name="sync_done_title">Scorecards synced</string>
+    <plurals name="sync_done_body">
+        <item quantity="one">%d round saved offline is now uploaded.</item>
+        <item quantity="other">%d rounds saved offline are now uploaded.</item>
+    </plurals>
+    <string name="notification_category_private_invite">Partner invite</string>
+
+    <!-- Offline mode -->
+    <string name="offline_banner_title">You\'re offline</string>
+    <string name="offline_banner_body">Showing saved data. Rounds you finish will sync when you reconnect.</string>
+    <string name="scorecard_saved_offline">Saved offline. Your scorecard will upload automatically when you\'re back online.</string>
+    <string name="scorecard_waiting_to_sync">This round is waiting to sync. Its summary appears once it has uploaded.</string>
+    <string name="rounds_pending_sync">Waiting to sync</string>
+    <string name="offline_sync_pending_label">WAITING TO UPLOAD</string>
+    <string name="offline_sync_pending_none">Everything is synced</string>
+    <string name="offline_sync_pending_detail">%1$d of %2$d holes · uploads when online</string>
+    <string name="offline_sync_pending_rejected">Not accepted by the server: %1$s</string>
+    <string name="offline_sync_discard">Discard</string>
+    <string name="offline_sync_how_it_works">Rounds you finish without a connection are saved on this phone and upload on their own once you\'re back online, even if TeeUp is closed.</string>
+    <string name="offline_sync_cache_notice">Tee times, your rounds and your profile are kept on this phone after they load, so you can still view them offline.</string>
+    <string name="offline_sync_syncing">Back online. Uploading your saved rounds now.</string>
+
+    <!-- Playing partners and partners-only groups -->
+    <string name="profile_partners">Playing Partners</string>
+    <string name="partners_title">Playing Partners</string>
+    <string name="partners_section_saved">YOUR PARTNERS</string>
+    <string name="partners_section_saved_footer">Partners can see and join your partners-only groups, and get an invite when you create one.</string>
+    <string name="partners_section_find">FIND GOLFERS</string>
+    <string name="partners_search_hint">Search by name</string>
+    <string name="partners_search_min">Type at least 2 letters to search.</string>
+    <string name="partners_search_none">No golfers match \"%1$s\".</string>
+    <string name="partners_empty">No partners yet. Find golfers you play with below, or add them from a group you\'ve joined.</string>
+    <string name="partners_add">Add</string>
+    <string name="partners_added_badge">Partner</string>
+    <string name="partners_remove">Remove</string>
+    <string name="partners_added">%1$s added to your partners</string>
+    <string name="partners_removed">%1$s removed from your partners</string>
+    <string name="partners_load_failed">Couldn\'t load your partners.</string>
+    <string name="partners_action_failed">That didn\'t work. Check your connection and try again.</string>
+    <string name="partners_member_add">Add to partners</string>
+    <string name="partners_subtitle">HCP %1$s · %2$s pace</string>
+    <string name="group_private_label">Partners only</string>
+    <string name="group_private_footer">Only your playing partners can see and join this group, and each of them gets a push invite.</string>
+    <string name="group_private_badge">Partners only</string>
+</resources>

@@ -33,7 +33,19 @@ data class TeeTime(
     val wantedHandicapMax: Double?,
     val wantedPace: Int?,
     val status: Int,
-    val members: List<GroupMember>
+    val members: List<GroupMember>,
+    /** Partners-only group: visible to, and joinable by, only the host's playing partners. */
+    val isPrivate: Boolean = false
+)
+
+/** A golfer in the caller's playing partners list, or a search result ([isPartner] says which).
+ *  Mirrors the API's FriendDto / UserSearchResultDto. */
+data class Partner(
+    val userId: String,
+    val displayName: String,
+    val handicapIndex: Double?,
+    val paceOfPlay: Int,
+    val isPartner: Boolean
 )
 
 /** Mirrors the API's TeeTimeStatus enum (api/TeeUp.Api/Models/Enums.cs). */
@@ -113,4 +125,6 @@ object NotificationType {
     const val WEATHER_ALERT = 5
     /** A group's host cancelled it (EME-321) while this user had a pending/accepted join request against it. */
     const val TEE_TIME_CANCELLED = 6
+    /** A host invited this user (one of their playing partners) to a partners-only group. */
+    const val PRIVATE_GROUP_INVITE = 7
 }
