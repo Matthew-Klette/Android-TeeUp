@@ -22,16 +22,17 @@ object SyncStatus {
         return if (prefs.contains(KEY_LAST_SYNC_MILLIS)) prefs.getLong(KEY_LAST_SYNC_MILLIS, 0L) else null
     }
 
-    /** "Just now" / "5 minute(s) ago" / "3 hour(s) ago" / "2 day(s) ago". Plain arithmetic on
+    /** "Just now" / "1 minute ago" / "5 minutes ago" / "3 hours ago" / "2 days ago" (plurals, so
+     *  each language gets its own singular). Plain arithmetic on
      *  purpose — same reasoning as Formatting.kt's substring date parsing: no java.time
      *  without desugaring at minSdk 24, and this doesn't need timezone-aware formatting. */
     fun formatRelative(context: Context, millis: Long): String {
         val diffSeconds = (System.currentTimeMillis() - millis) / 1000
         return when {
             diffSeconds < 60 -> context.getString(R.string.sync_relative_just_now)
-            diffSeconds < 3600 -> context.getString(R.string.sync_relative_minutes_ago, diffSeconds / 60)
-            diffSeconds < 86400 -> context.getString(R.string.sync_relative_hours_ago, diffSeconds / 3600)
-            else -> context.getString(R.string.sync_relative_days_ago, diffSeconds / 86400)
+            diffSeconds < 3600 -> (diffSeconds / 60).toInt().let { context.resources.getQuantityString(R.plurals.sync_relative_minutes_ago, it, it) }
+            diffSeconds < 86400 -> (diffSeconds / 3600).toInt().let { context.resources.getQuantityString(R.plurals.sync_relative_hours_ago, it, it) }
+            else -> (diffSeconds / 86400).toInt().let { context.resources.getQuantityString(R.plurals.sync_relative_days_ago, it, it) }
         }
     }
 }

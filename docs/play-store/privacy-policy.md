@@ -21,7 +21,7 @@ choices you have. It is written to meet South Africa's Protection of Personal In
 
 - **Location:** GPS is used only on your device to show distances on the hole map. It is never
   sent to our servers.
-- **Profile photo:** stored only on your device.
+- **Profile photo:** stored only on your device. You can take it with the camera or pick it from your gallery; TeeUp asks for camera permission only when you choose to take a photo, and the picture is never uploaded.
 - **Offline copies:** recently loaded data and rounds waiting to upload are kept in the app's
   private storage and are cleared when you sign out (queued rounds upload first).
 - **Biometrics:** fingerprint or face data never leaves Android's secure hardware. TeeUp only

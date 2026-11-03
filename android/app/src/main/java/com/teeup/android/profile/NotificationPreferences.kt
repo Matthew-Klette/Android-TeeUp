@@ -87,7 +87,11 @@ class NotificationPreferencesViewModel(application: Application) : AndroidViewMo
         enabled,
         read = { it.reminders },
         write = { state, toggle -> state.copy(reminders = toggle) }
-    ) { TeeUpApiClient.updateNotificationPreference(teeTimeReminders = enabled) }
+    ) {
+        TeeUpApiClient.updateNotificationPreference(teeTimeReminders = enabled)
+        com.teeup.android.notifications.TeeTimeReminders.storeEnabled(getApplication(), enabled)
+        com.teeup.android.notifications.TeeTimeReminders.refresh(getApplication())
+    }
 
     fun setSyncReminders(enabled: Boolean) {
         NotificationPreferences.setSyncPendingEnabled(getApplication(), enabled)

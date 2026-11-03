@@ -235,6 +235,8 @@ class TeeTimeDetailViewModel(application: Application, savedState: SavedStateHan
         viewModelScope.launch {
             try {
                 block()
+                // Cancelling, withdrawing or approving changes whose rounds need a reminder.
+                com.teeup.android.notifications.TeeTimeReminders.refresh(getApplication())
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

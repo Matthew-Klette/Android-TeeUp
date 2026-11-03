@@ -46,4 +46,24 @@
     <string name="group_private_label">Abahlobo kuphela</string>
     <string name="group_private_footer">Abahlobo bakho bokudlala kuphela abanokubona baze bajoyine eli qela, kwaye ngamnye ufumana isimemo sokuziswa.</string>
     <string name="group_private_badge">Abahlobo kuphela</string>
+
+    <!-- Hole map GPS status (fix filtering and signal loss) -->
+    <string name="hole_map_gps_approximate">Indawo echanileyo icinyiwe, ngoko imigama isuka kwi-tee. Vumela indawo echanileyo kuSeto ukuze ufumane i-GPS ephilayo.</string>
+    <string name="hole_map_gps_weak_format">Umqondiso we-GPS ubuthathaka (±%1$d m). Yiya kwindawo evulekileyo. Kuboniswa imigama ukusuka kwi-tee.</string>
+    <string name="hole_map_gps_lost_format">Umqondiso we-GPS ulahlekile kwimizuzwana eyi-%1$d edlulileyo. Imigama isenokungabi yeyangoku.</string>
+    <string name="hole_map_gps_far_from_hole_format">Ukude nge-%1$d m kule mbobo. Kuboniswa imigama ukusuka kwi-tee.</string>
+
+    <!-- Tee time reminders (local notifications) -->
+    <string name="reminder_title">Ixesha le-tee kwiyure enye</string>
+    <string name="reminder_body_format">%1$s · uqala ukudlala ngo-%2$s. Lixesha lokuya ebaleni.</string>
+
+    <!-- Score sheet: par and the par + 3 stroke limit -->
+    <string name="scorecard_par_label">I-PAR</string>
+    <string name="scorecard_par_limit_format">I-par %1$d · ukuya kutsho kwi-%2$d strokes, kuquka ii-putts.</string>
+    <string name="scorecard_par_unknown">Ikhadi lamanqaku eli bala alikabikho kwi-TeeUp. Khetha i-par yale mbobo kwikhadi leklabhu:</string>
+    <string name="scorecard_too_many_strokes_format">Kwi-par %1$d awunakuthatha ngaphezu kwe-%2$d strokes (par + 3, kuquka ii-putts). Phakamisa ibhola ufake u-%2$d.</string>
+    <string name="scorecard_putts_exceed_format">Ii-putts zibalwa njengee-strokes, ngoko awunakuba nee-putts ezingaphezu kwe-%1$d xa uneestrokes ezi-%1$d.</string>
+    <string name="scorecard_par_option_format">I-par %1$d</string>
+    <string name="scorecard_par_missing">Khetha i-par yale mbobo kuqala: ibeka elona nani likhulu lee-strokes onokuzithatha.</string>
+    <string name="scorecard_hole_par_format">I-par %1$d</string>
 </resources>

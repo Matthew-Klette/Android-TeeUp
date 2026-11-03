@@ -63,7 +63,8 @@ public static class PushServiceCollectionExtensions
             sp.GetRequiredService<EfNotificationRepository>(),
             sp.GetRequiredService<IUserRepository>(),
             sp.GetRequiredService<IPushSender>(),
-            sp.GetRequiredService<ILogger<PushingNotificationRepository>>()));
+            sp.GetRequiredService<ILogger<PushingNotificationRepository>>(),
+            sendInBackground: true));
 
         return credential is not null && messaging is not null;
     }

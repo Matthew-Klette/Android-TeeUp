@@ -235,7 +235,7 @@ rejects (4xx) is kept with the reason on *Offline Data & Sync Status* instead of
 | Backend API | ASP.NET Core Web API (.NET 10), Entity Framework Core |
 | Database | PostgreSQL on Supabase |
 | Hosting | Azure App Service |
-| Testing | JUnit 4 (195 Android unit tests), xUnit (170 API tests) |
+| Testing | JUnit 4 (248 Android unit tests), xUnit (171 API tests, 4 skipped without a database) |
 | CI | GitHub Actions |
 
 ## 9. DevOps: Version Control, CI and Releases

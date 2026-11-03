@@ -20,6 +20,7 @@ object AuthSession {
         DeviceTokenRegistrar.unregister {
             FirebaseAuth.getInstance().signOut()
             LocalIdentity.clearCache(appContext)
+            com.teeup.android.notifications.TeeTimeReminders.cancelAll(appContext)
             // Room disallows main-thread queries. Queued scorecards are kept: they're filed under
             // their owner and upload when that golfer signs back in.
             thread(name = "clear-offline-cache") { ResponseCache.clear() }

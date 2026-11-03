@@ -31,6 +31,8 @@ class TeeUpMessagingService : FirebaseMessagingService() {
         val body = message.notification?.body ?: message.data["message"] ?: return
         val related = message.data["relatedEntityId"]?.takeIf { it.isNotBlank() }
         PushNotifications.show(this, PushNotifications.CHANNEL_ALERTS, title, body, related)
+        // An accepted or cancelled group changes which rounds need a reminder.
+        TeeTimeReminders.refresh(this)
     }
 }
 

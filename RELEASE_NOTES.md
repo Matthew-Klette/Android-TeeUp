@@ -2,7 +2,7 @@
 
 ## Version 1.0.0 (Final POE), November 2026
 
-`versionCode 2` · `versionName 1.0.0` · minimum Android 7.0 (API 24) · target API 34
+`versionCode 2` · `versionName 1.0.0` · minimum Android 7.0 (API 24) · target API 35
 
 This release turns the Part 2 prototype (version 0.1, submitted 22 September 2026) into the
 finished, store-ready app. Every functional change since the prototype is listed below, grouped by
@@ -45,6 +45,15 @@ this final version.
 - New server-side triggers: the host is notified when someone asks to join their group, and
   partners are notified when they're invited to a partners-only group.
 
+- **Tee time reminders:** a notification an hour before every round you're booked into
+  ("Tee time in 1 hour · Humewood Golf Club · you tee off at 08:00"), scheduled on the phone with
+  WorkManager so it arrives with no signal and survives restarts. Honours the *Tee time reminders*
+  switch; re-planned on app start, every 12 hours, and whenever a group is created, edited,
+  cancelled, joined or a push arrives. Cancelled on sign-out.
+- The *Sync reminders* switch now actually controls the "rounds uploaded" notification.
+- API: pushes are sent after the request returns, so a slow FCM can no longer stall group
+  creation long enough for the phone to time out and retry.
+
 ### 3. Playing partners and partners-only groups (New feature, user-defined feature from Part 1)
 
 - **Playing Partners** screen (Profile): search golfers by name, add and remove partners.
@@ -65,6 +74,21 @@ this final version.
   Elizabeth courses. API endpoint `GET /api/courses/{id}/holes`.
 - Round progress (hole, target, unsent scores) is kept on the device, so leaving and returning
   lands on the same hole. *Start a Round* suggests nearby courses.
+
+- **Wrong-hole protection:** GPS follows the golfer in playing order. It stays on the hole being
+  played even when a stray shot lands in a parallel fairway, moves on at the next tee (or sooner
+  once the hole has a score), and only jumps to another hole when the golfer is clearly elsewhere.
+  A switch needs two agreeing fixes, so one bad fix can't move the map or the scorecard.
+- **Trustworthy distances:** fixes vaguer than 50 m, or older than 30 s, are ignored; "Distances
+  from you" are only shown within 150 m of the hole; a lost signal is flagged after 20 s and old
+  positions are dropped after 90 s, falling back to tee distances with a status line saying why.
+  Approximate-only location is explained instead of showing distances that could be 1 km out.
+- **Robustness:** the map survives its WebView renderer being killed (the round keeps running),
+  and a recent fix the phone already has is used straight away.
+- **Par and the stroke limit:** every course in the catalogue carries its real hole-by-hole par
+  from the club's scorecard (22 courses). The round screen shows each hole's par, and a hole's
+  score is capped at par + 3 strokes, putts included, with no separate putt limit. The score
+  sheet explains the limit ("Par 4 · up to 7 strokes, putts included").
 
 ### 5. Multi-language support
 
@@ -101,6 +125,17 @@ this final version.
 - Join request, round and auto-decline concurrency races were fixed in the API.
 - Course pins were moved to the real course centres, and closed courses were removed.
 - A course with no hole map returns "not mapped" instead of an error.
+
+- Tee times now show in the phone's local time everywhere (they were shown in UTC, two hours
+  early in South Africa), and Home's Today/Tomorrow filters use the local day.
+- Sign-in retries once with a longer timeout when the API is waking up, instead of failing with
+  "Could not connect" on the first sign-in after a quiet spell.
+- Error banners sit below the header so they never cover the back button.
+- Plural wording ("1 minute ago", "5 minutes ago") and accurate Notification Preferences text.
+- Signing out from the biometric unlock screen now clears this phone's push token, reminders and
+  cache, like signing out from Profile.
+- A Google sign-in that returns no ID token shows an error instead of crashing.
+- Target API raised to 35 (Google Play's current minimum).
 
 ## Version 0.1 (Prototype, Part 2), September 2026
 

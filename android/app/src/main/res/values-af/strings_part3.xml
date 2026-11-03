@@ -46,4 +46,24 @@
     <string name="group_private_label">Net maats</string>
     <string name="group_private_footer">Net jou speelmaats kan hierdie groep sien en by aansluit, en elkeen kry \'n kennisgewing-uitnodiging.</string>
     <string name="group_private_badge">Net maats</string>
+
+    <!-- Hole map GPS status (fix filtering and signal loss) -->
+    <string name="hole_map_gps_approximate">Presiese ligging is af, dus is afstande vanaf die afslaanplek. Laat presiese ligging in Instellings toe vir lewendige GPS.</string>
+    <string name="hole_map_gps_weak_format">Swak GPS-sein (±%1$d m). Beweeg na oop ruimte. Afstande word vanaf die afslaanplek gewys.</string>
+    <string name="hole_map_gps_lost_format">GPS-sein %1$d s gelede verloor. Afstande is dalk verouderd.</string>
+    <string name="hole_map_gps_far_from_hole_format">Jy is %1$d m van hierdie putjie af. Afstande word vanaf die afslaanplek gewys.</string>
+
+    <!-- Tee time reminders (local notifications) -->
+    <string name="reminder_title">Afslaantyd oor 1 uur</string>
+    <string name="reminder_body_format">%1$s · jy slaan om %2$s af. Tyd om baan toe te gaan.</string>
+
+    <!-- Score sheet: par and the par + 3 stroke limit -->
+    <string name="scorecard_par_label">PAAR</string>
+    <string name="scorecard_par_limit_format">Paar %1$d · tot %2$d houe, putte ingesluit.</string>
+    <string name="scorecard_par_unknown">Hierdie baan se telkaart is nog nie in TeeUp nie. Kies die putjie se paar van die klub se kaart:</string>
+    <string name="scorecard_too_many_strokes_format">Op \'n paar %1$d kan jy nie meer as %2$d houe neem nie (paar + 3, putte ingesluit). Tel op en voer %2$d in.</string>
+    <string name="scorecard_putts_exceed_format">Putte tel as houe, dus kan jy nie meer as %1$d putte met %1$d houe hê nie.</string>
+    <string name="scorecard_par_option_format">Paar %1$d</string>
+    <string name="scorecard_par_missing">Kies eers hierdie putjie se paar: dit bepaal die meeste houe wat jy mag neem.</string>
+    <string name="scorecard_hole_par_format">Paar %1$d</string>
 </resources>

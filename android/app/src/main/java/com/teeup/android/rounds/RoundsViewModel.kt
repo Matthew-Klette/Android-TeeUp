@@ -102,6 +102,8 @@ class RoundsViewModel(application: Application) : AndroidViewModel(application) 
                 }
                 schedule = fetchedSchedule
                 coursesById = courses.associateBy { it.id }
+                // Picks up rounds just joined or cancelled for the hour-before reminders.
+                com.teeup.android.notifications.TeeTimeReminders.refresh(getApplication())
                 _state.update {
                     it.copy(isLoading = false, hasLoaded = true, items = buildItems(it.showHistory), nearby = nearbyCourses())
                 }

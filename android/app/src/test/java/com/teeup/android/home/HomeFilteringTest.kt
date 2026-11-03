@@ -32,7 +32,7 @@ class HomeFilteringTest {
     )
 
     private fun ids(filters: HomeFilters, vararg teeTimes: TeeTime) =
-        HomeFiltering.apply(teeTimes.toList(), courses, filters, today, tomorrow).map { it.id }
+        HomeFiltering.apply(teeTimes.toList(), courses, filters, today, tomorrow, java.util.TimeZone.getTimeZone("UTC")).map { it.id }
 
     @Test
     fun noFilters_keepsEverythingInOrder() {

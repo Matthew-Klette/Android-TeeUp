@@ -49,6 +49,8 @@
             color: #FFFFFF; font-size: 13px; font-weight: bold; white-space: nowrap; pointer-events: none;
         }
         .maplibregl-ctrl-attrib { font-size: 10px; }
+        /* Until the map has loaded the credits would sit expanded over the "Loading" message. */
+        body:not(.ready) .maplibregl-ctrl-attrib { visibility: hidden; }
     </style>
 </head>
 <body>
@@ -238,6 +240,7 @@
             // start it collapsed behind its (i) button, which still shows the credits on tap.
             var attribution = document.querySelector('.maplibregl-ctrl-attrib');
             if (attribution) attribution.classList.remove('maplibregl-compact-show');
+            document.body.classList.add('ready');
             bridge.onReady();
         });
     })();

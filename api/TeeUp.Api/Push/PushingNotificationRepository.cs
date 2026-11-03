@@ -8,12 +8,17 @@ namespace TeeUp.Api.Push;
 /// Decorates <see cref="INotificationRepository"/> so every persisted notification is also pushed, without changing any
 /// service that creates one. The row is always stored; only the push is gated by the recipient's preferences, and a push
 /// problem is logged and swallowed so it can never fail the request that created the notification.
+/// With <paramref name="sendInBackground"/> (how the app registers it) the FCM send runs after the request returns: a slow
+/// FCM or Realtime Database would otherwise hold the request (and any lock it's in) for up to <see cref="PushTimeout"/> per
+/// recipient, long enough for the phone's 10 s timeout to fire and a retry to create a duplicate group. The recipient
+/// lookup and preference check still happen in the request, so only the singleton sender is used afterwards.
 /// </summary>
 public class PushingNotificationRepository(
     INotificationRepository inner,
     IUserRepository userRepository,
     IPushSender pushSender,
-    ILogger<PushingNotificationRepository> logger) : INotificationRepository
+    ILogger<PushingNotificationRepository> logger,
+    bool sendInBackground = false) : INotificationRepository
 {
     public static readonly TimeSpan PushTimeout = TimeSpan.FromSeconds(5);
 
@@ -48,8 +53,26 @@ public class PushingNotificationRepository(
                 return;
             }
 
+            if (sendInBackground)
+            {
+                var firebaseUid = user.FirebaseUid;
+                _ = Task.Run(() => SendAsync(firebaseUid, notification));
+                return;
+            }
+            await SendAsync(user.FirebaseUid, notification);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Push failed for notification {NotificationId}; the notification itself was saved.", notification.Id);
+        }
+    }
+
+    private async Task SendAsync(string firebaseUid, Notification notification)
+    {
+        try
+        {
             using var timeout = new CancellationTokenSource(PushTimeout);
-            await pushSender.SendAsync(user.FirebaseUid, notification, timeout.Token);
+            await pushSender.SendAsync(firebaseUid, notification, timeout.Token);
             logger.LogInformation("Push sent for notification {NotificationId} ({Type}).", notification.Id, notification.Type);
         }
         catch (Exception ex)

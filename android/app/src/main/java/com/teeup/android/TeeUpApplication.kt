@@ -20,7 +20,9 @@ class TeeUpApplication : Application() {
         // WorkManager persists queued work across restarts on its own; this just makes sure a
         // round queued by an older build (or before a crash) is picked up too. Cheap: it only
         // runs once a connection exists, and does nothing with an empty queue.
-        ScorecardOutbox.scheduleSync(this)
+        ScorecardOutbox.scheduleSync(this, restartIfQueued = false)
+        com.teeup.android.notifications.TeeTimeReminders.schedulePeriodicRefresh(this)
+        com.teeup.android.notifications.TeeTimeReminders.refresh(this)
     }
 
     companion object {

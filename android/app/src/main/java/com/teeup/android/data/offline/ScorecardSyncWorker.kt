@@ -11,6 +11,7 @@ import com.teeup.android.data.HoleScoreInput
 import com.teeup.android.data.RoundProgressCodec
 import com.teeup.android.data.SyncStatus
 import com.teeup.android.data.TeeUpApiClient
+import com.teeup.android.data.NotificationPreferences
 import com.teeup.android.notifications.PushNotifications
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -71,8 +72,9 @@ class ScorecardSyncWorker(context: Context, params: WorkerParameters) : Coroutin
                 OutboxSyncRules.Outcome.REJECTED -> Log.w(TAG, "Server rejected ${row.teeTimeId}; kept for review ($outcome)")
             }
         }
-        if (synced > 0) {
-            SyncStatus.recordSuccess(applicationContext)
+        if (synced > 0) SyncStatus.recordSuccess(applicationContext)
+        // The "Sync reminders" switch in Notification Preferences.
+        if (synced > 0 && NotificationPreferences.isSyncPendingEnabled(applicationContext)) {
             PushNotifications.show(
                 applicationContext,
                 PushNotifications.CHANNEL_SYNC,

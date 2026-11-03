@@ -34,7 +34,7 @@ android {
     defaultConfig {
         applicationId = "com.teeup.android"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         // Final POE / first Play Store release.
         versionCode = 2
         versionName = "1.0.0"

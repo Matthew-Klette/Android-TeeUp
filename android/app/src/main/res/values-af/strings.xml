@@ -140,7 +140,7 @@
 
     <!-- Notification Preferences Screen -->
     <string name="notification_prefs_title">Kennisgewingvoorkeure</string>
-    <string name="notification_prefs_subtitle">Aansluitversoek-, afslaantyd-herinnering- en weervoorkeure sinkroniseer met jou rekening en geld op enige toestel waarop jy aanmeld. Sinkroniseringsherinneringe word slegs op hierdie toestel gestoor.</string>
+    <string name="notification_prefs_subtitle">Aansluitversoek- en afslaantyd-herinneringinstellings word in jou rekening gestoor en geld op enige foon waarop jy aanmeld. Sinkroniseringsherinneringe (\'n kennisgewing wanneer rondtes wat vanlyn gestoor is klaar opgelaai het) word slegs op hierdie foon gestoor.</string>
     <string name="notification_category_join_request">Nuwe aansluitversoeke</string>
     <string name="notification_pref_join_updates">Aansluitversoek-opdaterings</string>
     <string name="notification_category_accepted">Aanvaarde versoeke</string>
@@ -192,9 +192,18 @@
     <string name="offline_sync_request_failed_fallback">API-versoek het misluk</string>
     <string name="offline_sync_unreachable">Kon nie die API bereik nie</string>
     <string name="sync_relative_just_now">Nou net</string>
-    <string name="sync_relative_minutes_ago">%1$d minuut/minute gelede</string>
-    <string name="sync_relative_hours_ago">%1$d uur/ure gelede</string>
-    <string name="sync_relative_days_ago">%1$d dag/dae gelede</string>
+    <plurals name="sync_relative_minutes_ago">
+        <item quantity="one">%1$d minuut gelede</item>
+        <item quantity="other">%1$d minute gelede</item>
+    </plurals>
+    <plurals name="sync_relative_hours_ago">
+        <item quantity="one">%1$d uur gelede</item>
+        <item quantity="other">%1$d uur gelede</item>
+    </plurals>
+    <plurals name="sync_relative_days_ago">
+        <item quantity="one">%1$d dag gelede</item>
+        <item quantity="other">%1$d dae gelede</item>
+    </plurals>
 
     <!-- Privacy &amp; Data (POPIA) Screen -->
     <string name="privacy_title">Privaatheid &amp; Data (POPIA)</string>

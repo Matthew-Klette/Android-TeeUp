@@ -140,7 +140,7 @@
 
     <!-- Notification Preferences Screen -->
     <string name="notification_prefs_title">Uluhlu Lwezaziso</string>
-    <string name="notification_prefs_subtitle">Iinketho zesicelo sokudibana, isikhumbuzo sexesha lokudlala, nemozulu ziyavumelana negunya lakho kwaye zisebenza kuyo nayiphi na idivayisi ongena kuyo. Izikhumbuzo zokuvumelanisa zigcinwa kule divayisi kuphela.</string>
+    <string name="notification_prefs_subtitle">Iisetingi zezicelo zokujoyina nezikhumbuzo zexesha le-tee zigcinwa kwi-akhawunti yakho kwaye zisebenza kuyo nayiphi na ifowuni ongena kuyo. Izikhumbuzo zokuvumelanisa (isaziso xa imijikelo egcinwe ngaphandle kwe-intanethi igqiba ukulayisha) zigcinwa kule fowuni kuphela.</string>
     <string name="notification_category_join_request">Izicelo ezitsha zokudibana</string>
     <string name="notification_pref_join_updates">Uhlaziyo lwesicelo sokudibana</string>
     <string name="notification_category_accepted">Izicelo ezamkelweyo</string>
@@ -192,9 +192,18 @@
     <string name="offline_sync_request_failed_fallback">Isicelo se-API asiphumelelanga</string>
     <string name="offline_sync_unreachable">Ayikwazanga ukufikelela kwi-API</string>
     <string name="sync_relative_just_now">Ngoku nje</string>
-    <string name="sync_relative_minutes_ago">Kwimizuzu engu-%1$d eyadlulayo</string>
-    <string name="sync_relative_hours_ago">Kwiiyure ezingu-%1$d eyadlulayo</string>
-    <string name="sync_relative_days_ago">Kwiintsuku ezingu-%1$d eyadlulayo</string>
+    <plurals name="sync_relative_minutes_ago">
+        <item quantity="one">Kumzuzu o-%1$d odlulileyo</item>
+        <item quantity="other">Kwimizuzu e-%1$d edlulileyo</item>
+    </plurals>
+    <plurals name="sync_relative_hours_ago">
+        <item quantity="one">Kwiyure e-%1$d edlulileyo</item>
+        <item quantity="other">Kwiiyure ezi-%1$d ezidlulileyo</item>
+    </plurals>
+    <plurals name="sync_relative_days_ago">
+        <item quantity="one">Kusuku olu-%1$d oludlulileyo</item>
+        <item quantity="other">Kwiintsuku ezi-%1$d ezidlulileyo</item>
+    </plurals>
 
     <!-- Privacy &amp; Data (POPIA) Screen -->
     <string name="privacy_title">Ubumfihlo &amp; Idatha (POPIA)</string>

@@ -51,4 +51,24 @@
     <string name="group_private_label">Partners only</string>
     <string name="group_private_footer">Only your playing partners can see and join this group, and each of them gets a push invite.</string>
     <string name="group_private_badge">Partners only</string>
+
+    <!-- Hole map GPS status (fix filtering and signal loss) -->
+    <string name="hole_map_gps_approximate">Precise location is off, so distances are from the tee. Allow precise location in Settings for live GPS.</string>
+    <string name="hole_map_gps_weak_format">Weak GPS signal (±%1$d m). Move into the open. Showing distances from the tee.</string>
+    <string name="hole_map_gps_lost_format">GPS signal lost %1$d s ago. Distances may be out of date.</string>
+    <string name="hole_map_gps_far_from_hole_format">You\'re %1$d m from this hole. Showing distances from the tee.</string>
+
+    <!-- Tee time reminders (local notifications) -->
+    <string name="reminder_title">Tee time in 1 hour</string>
+    <string name="reminder_body_format">%1$s · you tee off at %2$s. Time to head to the course.</string>
+
+    <!-- Score sheet: par and the par + 3 stroke limit -->
+    <string name="scorecard_par_label">PAR</string>
+    <string name="scorecard_par_limit_format">Par %1$d · up to %2$d strokes, putts included.</string>
+    <string name="scorecard_par_unknown">This course\'s scorecard isn\'t in TeeUp yet. Pick the hole\'s par from the club\'s card:</string>
+    <string name="scorecard_too_many_strokes_format">On a par %1$d you can\'t take more than %2$d strokes (par + 3, putts included). Pick up and enter %2$d.</string>
+    <string name="scorecard_putts_exceed_format">Putts count as strokes, so you can\'t have more than %1$d putts with %1$d strokes.</string>
+    <string name="scorecard_par_option_format">Par %1$d</string>
+    <string name="scorecard_par_missing">Pick this hole\'s par first: it sets the most strokes you can take.</string>
+    <string name="scorecard_hole_par_format">Par %1$d</string>
 </resources>

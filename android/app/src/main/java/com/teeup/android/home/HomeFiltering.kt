@@ -2,7 +2,9 @@ package com.teeup.android.home
 
 import com.teeup.android.data.Course
 import com.teeup.android.data.TeeTime
+import com.teeup.android.data.teeTimeMillis
 import java.util.Calendar
+import java.util.Locale
 import java.util.TimeZone
 
 enum class DateFilter { ALL, TODAY, TOMORROW }
@@ -31,20 +33,22 @@ data class HomeFilters(
 }
 
 object HomeFiltering {
-    /** [today]/[tomorrow] are "yyyy-MM-dd" in UTC, matching how tee times are shown (Formatting.kt). */
+    /** [today]/[tomorrow] are "yyyy-MM-dd" on the phone's calendar, matching how tee times are shown
+     *  (Formatting.kt), so a 00:30 tee time counts as that local day, not the UTC day before. */
     fun apply(
         teeTimes: List<TeeTime>,
         coursesById: Map<String, Course>,
         filters: HomeFilters,
         today: String,
-        tomorrow: String
+        tomorrow: String,
+        zone: TimeZone = TimeZone.getDefault()
     ): List<TeeTime> = teeTimes.filter { teeTime ->
         val courseName = coursesById[teeTime.courseId]?.name.orEmpty()
         val matchesSearch = filters.search.isBlank() || courseName.contains(filters.search.trim(), ignoreCase = true)
         val matchesDate = when (filters.date) {
             DateFilter.ALL -> true
-            DateFilter.TODAY -> teeTime.dateTime.take(10) == today
-            DateFilter.TOMORROW -> teeTime.dateTime.take(10) == tomorrow
+            DateFilter.TODAY -> localDate(teeTime.dateTime, zone) == today
+            DateFilter.TOMORROW -> localDate(teeTime.dateTime, zone) == tomorrow
         }
         matchesSearch &&
             matchesDate &&
@@ -65,37 +69,37 @@ object HomeFiltering {
         return matchesHandicap && matchesPace
     }
 
-    /** Today (0) or a day offset from it as "yyyy-MM-dd" in UTC. */
-    fun isoDate(daysFromToday: Int): String {
-        val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
-            add(Calendar.DAY_OF_MONTH, daysFromToday)
-        }
-        return "%04d-%02d-%02d".format(
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH) + 1,
-            calendar.get(Calendar.DAY_OF_MONTH)
-        )
+    /** Today (0) or a day offset from it as "yyyy-MM-dd" on the phone's calendar. */
+    fun isoDate(daysFromToday: Int, zone: TimeZone = TimeZone.getDefault()): String {
+        val calendar = Calendar.getInstance(zone).apply { add(Calendar.DAY_OF_MONTH, daysFromToday) }
+        return dateKey(calendar)
     }
+
+    /** The local "yyyy-MM-dd" a tee time falls on, or "" if its timestamp is unreadable. */
+    fun localDate(isoDateTime: String, zone: TimeZone = TimeZone.getDefault()): String {
+        val millis = teeTimeMillis(isoDateTime) ?: return ""
+        return dateKey(Calendar.getInstance(zone).apply { timeInMillis = millis })
+    }
+
+    private fun dateKey(calendar: Calendar) = String.format(
+        Locale.US, "%04d-%02d-%02d",
+        calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH) + 1, calendar.get(Calendar.DAY_OF_MONTH)
+    )
+
 }
 
-/** The pieces of a tee time's date the card's date tile shows. Read in UTC like formatTeeTime. */
+/** The pieces of a tee time's date the card's date tile shows, in the golfer's local time like
+ *  formatTeeTime (the API's UTC 06:00 is an 08:00 tee time in South Africa). */
 data class TeeTimeParts(val dayOfMonth: Int, val monthIndex: Int, val weekdayIndex: Int, val time: String) {
     companion object {
-        private val ISO = Regex("^(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2}).*$")
-
-        fun parse(isoDateTime: String): TeeTimeParts? {
-            val match = ISO.matchEntire(isoDateTime) ?: return null
-            val (year, month, day, hour, minute) = match.destructured.toList().map { it.toInt() }
-            if (month !in 1..12 || day !in 1..31 || hour !in 0..23 || minute !in 0..59) return null
-            val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
-                clear()
-                set(year, month - 1, day)
-            }
+        fun parse(isoDateTime: String, zone: TimeZone = TimeZone.getDefault()): TeeTimeParts? {
+            val millis = teeTimeMillis(isoDateTime) ?: return null
+            val local = Calendar.getInstance(zone).apply { timeInMillis = millis }
             return TeeTimeParts(
-                dayOfMonth = day,
-                monthIndex = month - 1,
-                weekdayIndex = calendar.get(Calendar.DAY_OF_WEEK) - 1,
-                time = "%02d:%02d".format(hour, minute)
+                dayOfMonth = local.get(Calendar.DAY_OF_MONTH),
+                monthIndex = local.get(Calendar.MONTH),
+                weekdayIndex = local.get(Calendar.DAY_OF_WEEK) - 1,
+                time = String.format(Locale.US, "%02d:%02d", local.get(Calendar.HOUR_OF_DAY), local.get(Calendar.MINUTE))
             )
         }
     }

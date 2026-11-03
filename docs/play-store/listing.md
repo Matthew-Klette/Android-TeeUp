@@ -67,7 +67,7 @@ Available in English, Afrikaans and isiXhosa.
 | Email address | Yes (Firebase Authentication) | No | Account management | No |
 | Name (display name) | Yes | Shown to other golfers in groups | App functionality | No |
 | Other info (handicap, home course, pace of play, rounds, scores) | Yes | Handicap/pace shown in groups | App functionality | Handicap and home course are optional |
-| Photos | No. The profile photo stays on the device | No | n/a | Yes |
+| Photos | No. The profile photo (camera or gallery, camera permission asked only when used) stays on the device | No | n/a | Yes |
 | Precise location | Used on device only, not collected | No | Hole distances | Yes |
 | Device or other IDs (FCM token) | Yes | No | Push notifications | Yes (notification permission) |
 
@@ -79,7 +79,7 @@ Available in English, Afrikaans and isiXhosa.
 - [x] Signed release build (upload key, APK Signature Scheme v2), R8 shrinking on
 - [x] Version code and name set (2 / 1.0.0)
 - [x] Adaptive launcher icon, round icon, monochrome themed icon, notification icon
-- [x] Target API 34, HTTPS only, no unused dangerous permissions requested at install
+- [x] Target API 35 (Google Play's current minimum), HTTPS only, no unused dangerous permissions requested at install
 - [x] Store listing text, icon and feature graphic
 - [x] Privacy policy written
 - [ ] Phone screenshots captured on a physical device (see `screenshots/README.md`)

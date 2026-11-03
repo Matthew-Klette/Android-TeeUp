@@ -10,6 +10,7 @@ import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.teeup.android.data.ActiveRound
 import com.teeup.android.data.Course
+import com.teeup.android.data.CoursePars
 import com.teeup.android.data.GeoPoint
 import com.teeup.android.data.HoleScoreInput
 import com.teeup.android.data.MockCatalog
@@ -92,6 +93,8 @@ class ScorecardActivity : LocaleComponentActivity(), HoleMapController.Listener 
     private var currentRoundId: String? = null
     /** Opened by the Scorecard tab reopening the unfinished round, rather than for a chosen round. */
     private var isResumingActiveRound = false
+    /** The round's course, for its scorecard pars ([CoursePars]); null if it couldn't be loaded. */
+    private var courseName: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(
@@ -260,6 +263,7 @@ class ScorecardActivity : LocaleComponentActivity(), HoleMapController.Listener 
         isRoundOpen = true
         progressStore.setActive(ActiveRound(id, totalHoles))
 
+        courseName = course?.name
         ui.courseName = course?.name ?: getString(R.string.rounds_unknown_course)
         ui.dateText = formatTeeTime(round.dateTime)
         ui.loading = false
@@ -267,6 +271,9 @@ class ScorecardActivity : LocaleComponentActivity(), HoleMapController.Listener 
         val startTarget = currentTarget
         val holes = scoring.holes
         mapHost?.withController { map ->
+            // A hole with a score lets GPS move on to the next tee sooner; an unscored one holds the
+            // map (and so the scorecard) even if the golfer's ball is in the next fairway.
+            map.isHoleComplete = { hole -> scoring.scoreFor(hole) != null }
             if (course != null) map.start(course.id, course.name, startHole, startTarget, holes) else map.showUnavailable()
         }
         updateHoleUi()
@@ -315,7 +322,7 @@ class ScorecardActivity : LocaleComponentActivity(), HoleMapController.Listener 
         val hole = currentHole
         if (scoring.isSaved(hole)) return
         // Editing a hole already entered this round starts from what was there.
-        ui.scoreSheet = ScoreSheet(hole, scoring.pending[hole], finishes = scoring.isLastToScore(hole))
+        ui.scoreSheet = ScoreSheet(hole, scoring.pending[hole], finishes = scoring.isLastToScore(hole), par = CoursePars.parFor(courseName, hole))
     }
 
     private fun onScoreEntered(entry: HoleScoreInput) {
@@ -343,6 +350,7 @@ class ScorecardActivity : LocaleComponentActivity(), HoleMapController.Listener 
 
     private fun updateHoleUi() {
         ui.hole = currentHole
+        ui.par = CoursePars.parFor(courseName, currentHole)
         ui.canPrevious = currentHole > scoring.holes.first
         ui.canNext = currentHole < scoring.holes.last
         val score = scoring.scoreFor(currentHole)

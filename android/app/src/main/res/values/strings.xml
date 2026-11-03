@@ -248,7 +248,7 @@
 
     <!-- Notification Preferences Screen -->
     <string name="notification_prefs_title">Notification Preferences</string>
-    <string name="notification_prefs_subtitle">Join request, tee time reminder, and weather preferences sync to your account and apply on any device you sign into. Sync reminders are stored on this device only.</string>
+    <string name="notification_prefs_subtitle">Join request and tee time reminder settings are saved to your account and apply on any phone you sign in on. Sync reminders (a notification when rounds saved offline finish uploading) are stored on this phone only.</string>
     <string name="notification_category_join_request">New join requests</string>
     <string name="notification_pref_join_updates">Join request updates</string>
     <string name="notification_category_accepted">Accepted requests</string>
@@ -301,9 +301,18 @@
     <string name="offline_sync_request_failed_fallback">API request failed</string>
     <string name="offline_sync_unreachable">Couldn\'t reach the API</string>
     <string name="sync_relative_just_now">Just now</string>
-    <string name="sync_relative_minutes_ago">%1$d minute(s) ago</string>
-    <string name="sync_relative_hours_ago">%1$d hour(s) ago</string>
-    <string name="sync_relative_days_ago">%1$d day(s) ago</string>
+    <plurals name="sync_relative_minutes_ago">
+        <item quantity="one">%1$d minute ago</item>
+        <item quantity="other">%1$d minutes ago</item>
+    </plurals>
+    <plurals name="sync_relative_hours_ago">
+        <item quantity="one">%1$d hour ago</item>
+        <item quantity="other">%1$d hours ago</item>
+    </plurals>
+    <plurals name="sync_relative_days_ago">
+        <item quantity="one">%1$d day ago</item>
+        <item quantity="other">%1$d days ago</item>
+    </plurals>
 
     <!-- Privacy &amp; Data (POPIA) Screen -->
     <string name="privacy_title">Privacy &amp; Data (POPIA)</string>

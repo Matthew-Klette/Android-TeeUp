@@ -46,13 +46,17 @@ object ScorecardOutbox {
     }
 
     /** Enqueues the sync job; it waits for a connection, then retries with exponential backoff. */
-    fun scheduleSync(context: Context) {
+    /** [restartIfQueued] false keeps a sync that's already queued or mid-upload (app start), so
+     *  its backoff isn't reset every time the app opens; true replaces it (a new round queued,
+     *  the golfer tapping Check Now), so it runs again as soon as there's a connection. */
+    fun scheduleSync(context: Context, restartIfQueued: Boolean = true) {
         val request = OneTimeWorkRequestBuilder<ScorecardSyncWorker>()
             .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
             .build()
-        // REPLACE: the worker always processes the whole queue, so one pending job is enough.
-        WorkManager.getInstance(context).enqueueUniqueWork(WORK_NAME, ExistingWorkPolicy.REPLACE, request)
+        // One job is enough either way: the worker always processes the whole queue.
+        val policy = if (restartIfQueued) ExistingWorkPolicy.REPLACE else ExistingWorkPolicy.KEEP
+        WorkManager.getInstance(context).enqueueUniqueWork(WORK_NAME, policy, request)
         Log.d(TAG, "Sync scheduled (runs when connected)")
     }
 

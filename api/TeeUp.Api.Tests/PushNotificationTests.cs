@@ -104,6 +104,34 @@ public class PushNotificationTests
     }
 
     [Fact]
+    public async Task BackgroundSend_ReturnsBeforeASlowPushFinishes()
+    {
+        var users = new InMemoryUserRepository();
+        var user = await users.AddAsync(new User { Id = Guid.NewGuid(), FirebaseUid = "uid-slow", DisplayName = "Slow" });
+        var sender = new SlowPushSender();
+        var repo = new PushingNotificationRepository(new InMemoryNotificationRepository(), users, sender,
+            NullLogger<PushingNotificationRepository>.Instance, sendInBackground: true);
+
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+        await repo.AddAsync(new Notification { Id = Guid.NewGuid(), UserId = user.Id, Type = NotificationType.JoinRequestReceived, Message = "m" });
+        watch.Stop();
+
+        Assert.True(watch.ElapsedMilliseconds < 1000, $"AddAsync waited {watch.ElapsedMilliseconds} ms for the push");
+        Assert.True(await sender.Started.Task.WaitAsync(TimeSpan.FromSeconds(5)), "The push was never sent");
+    }
+
+    private sealed class SlowPushSender : IPushSender
+    {
+        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public async Task SendAsync(string firebaseUid, Notification notification, CancellationToken cancellationToken)
+        {
+            Started.TrySetResult(true);
+            await Task.Delay(3000, cancellationToken);
+        }
+    }
+
+    [Fact]
     public void FcmMessage_HasExpectedShape()
     {
         var related = Guid.NewGuid();

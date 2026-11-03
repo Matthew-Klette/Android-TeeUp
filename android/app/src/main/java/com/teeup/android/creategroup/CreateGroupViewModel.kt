@@ -199,6 +199,8 @@ class CreateGroupViewModel(application: Application, savedState: SavedStateHandl
                         )
                     }
                 }
+                // A new or moved tee time needs its hour-before reminder (re)planned.
+                com.teeup.android.notifications.TeeTimeReminders.refresh(getApplication())
                 _events.send(CreateGroupEvent.Done(Notice(null, if (editId != null) R.string.edit_group_saved else R.string.create_group_created)))
             } catch (e: CancellationException) {
                 throw e
