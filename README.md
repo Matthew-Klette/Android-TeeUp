@@ -22,7 +22,8 @@
 
 **Final POE demonstration (unlisted YouTube):** [Watch the TeeUp final demo](FINAL_DEMO_VIDEO_URL)
 
-Prototype (Part 2) demo: [youtu.be/wKdn8wWyUJU](https://youtu.be/wKdn8wWyUJU)
+[Prototype (Part 2) demo](https://youtu.be/wKdn8wWyUJU)
+[Prototype (Part 3) demo](https://youtu.be/v_cn2hKnYms)
 
 ## Table of Contents
 
