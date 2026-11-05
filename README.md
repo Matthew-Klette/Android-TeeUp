@@ -259,6 +259,10 @@ rejects (4xx) is kept with the reason on *Offline Data & Sync Status* instead of
 
 ## 10. Google Play Store Readiness
 
+![Proposed TeeUp Google Play Store listing — mockup](docs/play-store/play-store-mockup.png)
+
+*Proposed Google Play Store listing — mockup.*
+
 | Item | Status |
 |---|---|
 | Signed production build | Release APK signed with the TeeUp upload key (APK Signature Scheme v2), R8 shrinking and obfuscation, resource shrinking |
